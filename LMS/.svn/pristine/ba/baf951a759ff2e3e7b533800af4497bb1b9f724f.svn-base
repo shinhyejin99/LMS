@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctApplyWeekbyMapper">
+
+	<insert id="insertLctApplyWeekby">
+        INSERT INTO lct_apply_weekby (
+            lecture_week,
+            lct_apply_id,
+            week_goal,
+            week_desc
+        ) VALUES (
+            #{lectureWeek},
+            #{lctApplyId},
+            #{weekGoal},
+            #{weekDesc}
+        )
+    </insert>
+
+    <select id="selectLctApplyWeekbyList" resultType="kr.or.jsu.vo.LctApplyWeekbyVO">
+        SELECT
+            lecture_week,
+            lct_apply_id,
+            week_goal,
+            week_desc
+        FROM
+            lct_apply_weekby
+        ORDER BY
+            lct_apply_id, lecture_week
+    </select>
+
+    <update id="updateLctApplyWeekby">
+        UPDATE lct_apply_weekby
+        SET
+            week_goal = #{weekGoal},
+            week_desc = #{weekDesc}
+        WHERE
+            lecture_week = #{lectureWeek} AND lct_apply_id = #{lctApplyId}
+    </update>
+
+    <delete id="deleteLctApplyWeekby">
+        DELETE FROM lct_apply_weekby
+        WHERE
+            lecture_week = #{lectureWeek} AND lct_apply_id = #{lctApplyId}
+    </delete>
+
+</mapper>

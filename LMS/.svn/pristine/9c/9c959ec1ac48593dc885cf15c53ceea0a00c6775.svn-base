@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.classroom.ClassroomStudentManagementMapper">
+
+	<resultMap type="LctAttRoundAndStuAttendacneDTO" id="attMap">
+		<id property="lctPrintRound" column="LCT_PRINT_ROUND"/>
+		<association property="attRoundInfo"
+					  javaType="LctAttRoundInfo"
+					  columnPrefix="LAT_"
+					  autoMapping="true"/>
+		<association property="stuAttInfo"
+					  javaType="LctStuAttInfo"
+					  columnPrefix="LSA_"
+					  autoMapping="true"/>
+	</resultMap>
+
+	<select id="selectStuAttendance" resultMap="attMap">
+		SELECT
+			  ROW_NUMBER() OVER(ORDER BY lat.LCT_ROUND) AS LCT_PRINT_ROUND
+			, lat.LECTURE_ID      AS LAT_LECTURE_ID
+			, lat.LCT_ROUND       AS LAT_LCT_ROUND
+			, lat.ATT_DAY         AS LAT_ATT_DAY
+			, lat.QRCODE_FILE_ID  AS LAT_QRCODE_FILE_ID
+			, lsa.LECTURE_ID      AS LSA_LECTURE_ID
+			, lsa.LCT_ROUND       AS LSA_LCT_ROUND
+			, lsa.ENROLL_ID       AS LSA_ENROLL_ID
+			, lsa.ATT_AT          AS LSA_ATT_AT
+			, lsa.ATT_STATUS_CD   AS LSA_ATT_STATUS_CD
+			, lsa.ATT_COMMENT     AS LSA_ATT_COMMENT
+		FROM
+			LCT_ATTROUND lat
+		LEFT JOIN
+			LCT_STU_ATT lsa 
+			ON lat.LCT_ROUND = lsa.LCT_ROUND
+		WHERE
+			lat.LECTURE_ID = #{lectureId}
+			AND lsa.ENROLL_ID = #{enrollId}
+	</select>
+	
+	<resultMap type="IndivtaskAndStuSubmitDTO" id="indivMap">
+		<association property="indivtaskInfo"
+					javaType="LctIndivtaskInfo"
+					autoMapping="true"
+					columnPrefix="LI_"/>
+		<association property="submitInfo"
+					javaType="IndivtaskSubmitInfo"
+					autoMapping="true"
+					columnPrefix="ITS_"/>
+	</resultMap>
+	
+	<select id="selectIndivtaskWithSubmitByEnrollId" resultMap="indivMap">
+		SELECT
+			    li.INDIVTASK_ID 	AS LI_INDIVTASK_ID
+			  , li.LECTURE_ID 		AS LI_LECTURE_ID
+			  , li.INDIVTASK_NAME 	AS LI_INDIVTASK_NAME
+			  , li.INDIVTASK_DESC 	AS LI_INDIVTASK_DESC
+			  , li.CREATE_AT 		AS LI_CREATE_AT
+			  , li.START_AT 		AS LI_START_AT
+			  , li.END_AT 			AS LI_END_AT
+			  , li.DELETE_YN 		AS LI_DELETE_YN
+			  , li.ATTACH_FILE_ID 	AS LI_ATTACH_FILE_ID
+			  , its.ENROLL_ID 		AS ITS_ENROLL_ID
+			  , its.INDIVTASK_ID 	AS ITS_INDIVTASK_ID
+			  , its.SUBMIT_DESC 	AS ITS_SUBMIT_DESC
+			  , its.SUBMIT_FILE_ID 	AS ITS_SUBMIT_FILE_ID
+			  , its.SUBMIT_AT 		AS ITS_SUBMIT_AT
+			  , its.EVALU_SCORE 	AS ITS_EVALU_SCORE
+			  , its.EVALU_AT 		AS ITS_EVALU_AT
+			  , its.EVALU_DESC 		AS ITS_EVALU_DESC
+		FROM LCT_INDIVTASK li
+		LEFT JOIN INDIVTASK_SUBMIT its ON
+			li.INDIVTASK_ID = its.INDIVTASK_ID 
+			AND its.ENROLL_ID = #{enrollId} -- 레프트조인 결과가 있으면 이 학생것만 갖고와
+		WHERE
+			li.LECTURE_ID = #{lectureId} -- 특정 강의의
+			AND li.START_AT &lt; SYSDATE -- 제출할 수 있는 개인과제 중
+			AND li.DELETE_YN = 'N' -- 삭제되지 않은 것
+	</select>
+	
+	<select id="selectGrouptaskWithSubmitByEnrollId">
+		WITH MY_GROUP AS (
+		    SELECT
+				  gg.grouptask_id
+				, gg.group_id
+		    FROM
+		    	grouptask_group gg
+		    LEFT JOIN grouptask_crew gc ON
+		    	gc.group_id = gg.group_id
+		    WHERE
+		    	gc.enroll_id = #{enrollId}
+		)
+		SELECT
+			  lgt.grouptask_id
+			, lgt.grouptask_name
+			, lgt.create_at
+			, lgt.start_at
+			, lgt.end_at
+			, lgt.attach_file_id
+			, mg.group_id
+			, gg.group_name
+			, gs.submit_desc
+			, gs.submit_at
+			, me.evalu_score
+			, me.evalu_at
+			, me.evalu_desc
+			, gs.submit_file_id
+		FROM lct_grouptask lgt
+		LEFT JOIN my_group mg ON
+			mg.grouptask_id = lgt.grouptask_id
+		LEFT JOIN grouptask_group gg ON
+			gg.group_id = mg.group_id
+		LEFT JOIN grouptask_submit gs ON
+			gs.grouptask_id = lgt.grouptask_id
+			AND gs.group_id = mg.group_id
+		LEFT JOIN grouptask_crew me ON
+			me.group_id  = mg.group_id
+		    AND me.enroll_id = #{enrollId}
+		WHERE
+			lgt.lecture_id = #{lectureId}
+			AND lgt.delete_yn = 'N'
+			AND lgt.start_at &lt;= SYSDATE  -- 이미 시작된 과제만
+	</select>
+	
+	<resultMap type="LctExamAndStuSubmitDTO" id="examMap">
+		<association property="examInfo"
+					  javaType="LctExamInfo"
+					  columnPrefix="LE_"
+					  autoMapping="true"/>
+		<association property="submitInfo"
+					  javaType="ExamSubmitInfo"
+					  columnPrefix="ES_"
+					  autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectExamWithSubmitByStudent" resultMap="examMap">
+		SELECT
+			  le.LCT_EXAM_ID     AS LE_LCT_EXAM_ID
+			, le.LECTURE_ID      AS LE_LECTURE_ID
+			, le.EXAM_NAME       AS LE_EXAM_NAME
+			, le.EXAM_DESC       AS LE_EXAM_DESC
+			, le.EXAM_TYPE       AS LE_EXAM_TYPE
+			, le.CREATE_AT       AS LE_CREATE_AT
+			, le.START_AT        AS LE_START_AT
+			, le.END_AT          AS LE_END_AT
+			, le.WEIGHT_VALUE    AS LE_WEIGHT_VALUE
+			, es.ENROLL_ID       AS ES_ENROLL_ID
+			, es.LCT_EXAM_ID     AS ES_LCT_EXAM_ID
+			, es.SUBMIT_AT       AS ES_SUBMIT_AT
+			, es.AUTO_SCORE      AS ES_AUTO_SCORE
+			, es.MODIFIED_SCORE  AS ES_MODIFIED_SCORE
+			, es.MODIFY_REASON   AS ES_MODIFY_REASON
+		FROM
+			LCT_EXAM le
+		LEFT JOIN
+			EXAM_SUBMIT es
+				ON  le.LCT_EXAM_ID = es.LCT_EXAM_ID
+				AND es.ENROLL_ID = #{enrollId}
+		WHERE
+			le.LECTURE_ID = #{lectureId}
+			AND le.END_AT &lt; SYSDATE
+			AND le.DELETE_YN = 'N'
+		ORDER BY
+			le.END_AT DESC
+	</select>
+
+</mapper>

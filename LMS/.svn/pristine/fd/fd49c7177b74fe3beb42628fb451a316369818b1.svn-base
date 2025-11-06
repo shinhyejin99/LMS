@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctSectionScoreMapper">
+
+	<insert id="upsertSectionScore" parameterType="java.util.List">
+		<!-- 리스트가 비어있으면 실행 안 함 -->
+		<if test="list != null and list.size() > 0">
+			MERGE INTO LCT_SECTION_SCORE tgt
+			USING (
+				<foreach collection="list" item="s" separator=" UNION ALL ">
+					SELECT
+						#{s.lectureId} AS LECTURE_ID,
+						#{s.gradeCriteriaCd} AS GRADE_CRITERIA_CD,
+						#{s.enrollId} AS ENROLL_ID,
+						#{s.rawScore} AS RAW_SCORE
+					FROM DUAL
+				</foreach>
+			) src
+			ON (
+				tgt.LECTURE_ID = src.LECTURE_ID
+				AND tgt.GRADE_CRITERIA_CD = src.GRADE_CRITERIA_CD
+				AND tgt.ENROLL_ID = src.ENROLL_ID
+			)
+			WHEN MATCHED THEN
+				UPDATE SET
+					tgt.RAW_SCORE = src.RAW_SCORE
+			WHEN NOT MATCHED THEN
+				INSERT (
+					LECTURE_ID,
+					GRADE_CRITERIA_CD,
+					ENROLL_ID,
+					RAW_SCORE
+				) VALUES (
+					src.LECTURE_ID,
+					src.GRADE_CRITERIA_CD,
+					src.ENROLL_ID,
+					src.RAW_SCORE
+				)
+		</if>
+	</insert>
+
+	<select id="selectSectionScoreList">
+		SELECT
+			LECTURE_ID
+			, GRADE_CRITERIA_CD
+			, ENROLL_ID
+			, RAW_SCORE
+		FROM
+			LCT_SECTION_SCORE
+		WHERE
+			LECTURE_ID = #{lectureId}
+			AND GRADE_CRITERIA_CD = #{gradeCriteriaCd}
+	</select>
+
+
+</mapper>

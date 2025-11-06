@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강의실 배정 대시보드</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --theme-primary: #0d9488; /* Teal-700 */
+                --theme-primary-light: #f0fdfa; /* Teal-50 */
+                --theme-success: #16a34a; /* Green-600 */
+                --theme-warning: #f59e0b; /* Amber-500 */
+                --theme-danger: #dc2626; /* Red-600 */
+                --theme-text-dark: #1f2937;
+                --theme-text-light: #6b7280;
+            }
+    
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+    
+            @keyframes progressAnimate {
+                from { width: 0%; }
+            }
+    
+            body { 
+                background-color: #f0f2f5;
+                font-family: 'Noto Sans KR', sans-serif;
+                color: var(--theme-text-dark);
+            }
+    
+            .card {
+                animation: fadeInUp 0.5s ease-out forwards;
+                opacity: 0;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+                border: none;
+            }
+    
+            .kpi-card .card-body { display: flex; align-items: center; }
+            .kpi-icon { font-size: 2rem; margin-right: 1rem; width: 50px; text-align: center; color: var(--theme-primary); }
+            
+            .timetable-wrapper { overflow-x: auto; }
+            .timetable { table-layout: fixed; min-width: 1200px; border-collapse: separate; border-spacing: 0; }
+            .timetable th, .timetable td { text-align: center; vertical-align: middle; padding: 0.5rem; font-size: 0.8rem; }
+            .timetable th { background-color: #f8f9fa; }
+            .timetable .time-col { width: 80px; font-weight: 500; }
+            .timetable .room-header { cursor: pointer; transition: background-color 0.2s ease; }
+            .timetable .room-header:hover { background-color: #e9ecef; }
+            .timetable .fa-video.text-danger { color: var(--theme-danger) !important; }
+            
+            .slot { border: 1px solid #e9ecef; height: 60px; transition: all 0.2s ease; }
+            .slot.booked { background-color: #f1f5f9; color: var(--theme-text-light); }
+            .slot.requested-time { background-image: repeating-linear-gradient(-45deg, #ffffff, #ffffff 5px, var(--theme-primary-light) 5px, var(--theme-primary-light) 10px); }
+            .slot.available:hover { background-color: #d1fae5; cursor: pointer; transform: scale(1.05); z-index: 10; }
+            .slot.selected { 
+                background-color: var(--theme-success);
+                color: white; 
+                transform: scale(1.05);
+                box-shadow: 0 0 15px rgba(22, 163, 74, 0.5);
+                z-index: 10;
+            }
+    
+            .progress { height: 1.25rem; background-color: #e9ecef; }
+            .progress-bar { animation: progressAnimate 1s ease-out forwards; background-color: var(--theme-primary); }
+            .progress-bar.bg-danger { background-color: var(--theme-danger) !important; }
+            .progress-bar.bg-success { background-color: var(--theme-success) !important; }
+            .progress-bar-label { font-size: 0.8em; font-weight: 500; color: var(--theme-text-light); }
+    
+            .btn-primary { background-color: var(--theme-primary); border-color: var(--theme-primary); }
+            .btn-primary:hover { background-color: var(--theme-primary-dark); border-color: var(--theme-primary-dark); }
+            .btn-success { background-color: var(--theme-success); border-color: var(--theme-success); }
+            .btn { transition: all 0.2s ease; }
+            .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    
+            .nav-tabs .nav-link { transition: all 0.2s ease; color: var(--theme-text-light); }
+            .nav-tabs .nav-link.active { font-weight: 700; color: var(--theme-primary); border-bottom-color: var(--theme-primary); }
+    
+            .badge.bg-warning { background-color: var(--theme-warning) !important; }
+            .badge.bg-primary { background-color: var(--theme-primary) !important; }
+            .badge.bg-success { background-color: var(--theme-success) !important; }
+        </style></head>
+<body>
+    <div class="container-fluid p-3">
+        <!-- 1. KPI 대시보드 -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="card kpi-card shadow-sm" style="animation-delay: 0.1s;">
+                    <div class="card-body">
+                        <div class="kpi-icon text-primary"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div>
+                            <div class="text-muted">배정 대기 강의</div>
+                            <h4 class="mb-0">3 건</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card kpi-card shadow-sm" style="animation-delay: 0.2s;">
+                    <div class="card-body">
+                        <div class="kpi-icon text-success"><i class="fas fa-building-circle-check"></i></div>
+                        <div>
+                            <div class="text-muted">오늘 강의실 사용률</div>
+                            <h4 class="mb-0">72%</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card kpi-card shadow-sm" style="animation-delay: 0.3s;">
+                    <div class="card-body">
+                        <div class="kpi-icon text-danger"><i class="fas fa-triangle-exclamation"></i></div>
+                        <div>
+                            <div class="text-muted">시설 이슈</div>
+                            <h4 class="mb-0">1 건 (공학-305호 프로젝터)</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 2. 메인 콘텐츠 (타임테이블, 사용률) -->
+            <div class="col-lg-9">
+                <div class="card shadow-sm" style="animation-delay: 0.4s;">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="day-tabs">
+                            <li class="nav-item"><a class="nav-link" href="#" data-day="mon">월</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" data-day="tue">화</a></li>
+                            <li class="nav-item"><a class="nav-link active" aria-current="true" href="#" data-day="wed">수</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" data-day="thu">목</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#" data-day="fri">금</a></li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-0 timetable-wrapper">
+                        <table class="table table-bordered timetable">
+                            <thead>
+                                <tr>
+                                    <th class="time-col">시간</th>
+                                    <th class="room-header" data-room-id="101">공학-101<br><small>👤70 <i class="fas fa-video"></i></small></th>
+                                    <th class="room-header" data-room-id="102">공학-102<br><small>👤50 <i class="fas fa-video"></i></small></th>
+                                    <th class="room-header" data-room-id="203">공학-203<br><small>👤50</small></th>
+                                    <th class="room-header" data-room-id="305">공학-305<br><small>👤40 <i class="fas fa-video text-danger"></i></small></th>
+                                    <th class="room-header" data-room-id="501">IT-501<br><small>👤60 <i class="fas fa-video"></i></small></th>
+                                    <th class="room-header" data-room-id="502">IT-502<br><small>👤60 <i class="fas fa-video"></i></small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="time-col">09:00-10:30</td>
+                                    <td class="slot booked">데이터베이스<br><small>김교수</small></td>
+                                    <td class="slot available"></td>
+                                    <td class="slot booked">알고리즘<br><small>최교수</small></td>
+                                    <td class="slot available"></td>
+                                    <td class="slot booked">자료구조<br><small>박교수</small></td>
+                                    <td class="slot available"></td>
+                                </tr>
+                                <tr class="requested-time-row">
+                                    <td class="time-col">10:30-12:00</td>
+                                    <td class="slot requested-time available"></td>
+                                    <td class="slot requested-time booked">운영체제<br><small>이교수</small></td>
+                                    <td class="slot requested-time available"></td>
+                                    <td class="slot requested-time available"></td>
+                                    <td class="slot requested-time booked">컴퓨터구조<br><small>정교수</small></td>
+                                    <td class="slot requested-time available"></td>
+                                </tr>
+                                <tr>
+                                    <td class="time-col">13:00-14:30</td>
+                                    <td class="slot available"></td>
+                                    <td class="slot booked">C프로그래밍<br><small>홍교수</small></td>
+                                    <td class="slot available"></td>
+                                    <td class="slot booked">이산수학<br><small>윤교수</small></td>
+                                    <td class="slot available"></td>
+                                    <td class="slot booked">객체지향<br><small>장교수</small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- 4. 사용률 차트 -->
+                <div class="card shadow-sm mt-3" style="animation-delay: 0.5s;">
+                    <div class="card-header"><h5 class="mb-0">강의실별 사용률 (수요일)</h5></div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <div class="progress-bar-label d-flex justify-content-between"><span>공학-101</span><span>50%</span></div>
+                            <div class="progress"><div class="progress-bar" style="width: 50%;"></div></div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="progress-bar-label d-flex justify-content-between"><span>공학-102</span><span>100%</span></div>
+                            <div class="progress"><div class="progress-bar bg-danger" style="width: 100%;"></div></div>
+                        </div>
+                         <div class="mb-2">
+                            <div class="progress-bar-label d-flex justify-content-between"><span>IT-501</span><span>25%</span></div>
+                            <div class="progress"><div class="progress-bar bg-success" style="width: 25%;"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. 최근 활동 로그 -->
+                <div class="card shadow-sm mt-3" style="animation-delay: 0.8s;">
+                    <div class="card-header"><h5 class="mb-0">최근 활동 로그</h5></div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex align-items-center py-3">
+                                <i class="fas fa-check-circle text-success me-3"></i>
+                                <div>'AI개론' 강의가 <strong>공학-101호</strong>에 배정되었습니다. <small class="text-muted">- by 김교직원</small></div>
+                                <small class="text-muted ms-auto">방금 전</small>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center py-3">
+                                <i class="fas fa-plus-circle text-primary me-3"></i>
+                                <div>'컴퓨터 비전' 강의 개설 신청이 접수되었습니다.</div>
+                                <small class="text-muted ms-auto">15분 전</small>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center py-3">
+                                <i class="fas fa-check-circle text-success me-3"></i>
+                                <div>'모바일 프로그래밍' 강의가 <strong>IT-502호</strong>에 배정되었습니다. <small class="text-muted">- by 박교직원</small></div>
+                                <small class="text-muted ms-auto">1시간 전</small>
+                            </li>
+                            <li class="list-group-item d-flex align-items-center py-3">
+                                <i class="fas fa-exclamation-circle text-danger me-3"></i>
+                                <div>'공학-305호' 프로젝터에 이슈가 보고되었습니다.</div>
+                                <small class="text-muted ms-auto">3시간 전</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 우측 정보 패널 -->
+            <div class="col-lg-3">
+                <div class="card shadow-sm mb-3" style="animation-delay: 0.6s;">
+                    <div class="card-header"><h5 class="mb-0">신청 정보</h5></div>
+                    <div class="card-body">
+                        <p><strong>과목:</strong> AI개론</p>
+                        <p><strong>교수:</strong> 이교수</p>
+                        <p><strong>희망시간:</strong> 월,수 10:30-12:00</p>
+                        <p><strong>상태:</strong> <span class="badge bg-warning text-dark">배정 대기</span></p>
+                        <hr>
+                        <p class="mb-1"><strong>선택된 강의실:</strong> <span id="selected-room">-</span></p>
+                        <p class="mb-1"><strong>선택된 시간:</strong> <span id="selected-time">-</span></p>
+                        <div class="d-grid gap-2 mt-3">
+                            <button class="btn btn-primary" id="assign-btn" disabled>배정하기</button>
+                            <button class="btn btn-success" id="approve-btn" disabled>최종 승인</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm" style="animation-delay: 0.7s;">
+                    <div class="card-header"><h5 class="mb-0">강의실 상세정보</h5></div>
+                    <div id="room-details" class="card-body">
+                        <p class="text-muted">타임테이블 상단의 강의실 이름을 클릭하세요.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 최종 승인 성공 Modal -->
+    <div class="modal fade" id="approvalSuccessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">승인 처리 완료</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-check-circle text-success fa-4x"></i>
+                    </div>
+                    <p class="text-center fw-bold">'AI개론' 강의가 최종 승인되었습니다.</p>
+                    <ul class="list-group list-group-flush mt-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 ps-0">
+                            강의 개설 승인
+                            <span class="badge bg-success">완료</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 ps-0">
+                            담당 교수에게 알림 발송
+                            <span class="badge bg-success">완료</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center border-0 ps-0">
+                            담당 교수 시간표에 업데이트
+                            <span class="badge bg-success">완료</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary w-100" id="returnToListBtn">목록으로 돌아가기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const roomDetails = {
+        '101': { name: '공학-101호', capacity: 70, equipment: ['프로젝터', '대형 화이트보드', '음향 시스템'], image: 'https://via.placeholder.com/400x250.png?text=Room+101' },
+        '102': { name: '공학-102호', capacity: 50, equipment: ['프로젝터', '전자교탁'], image: 'https://via.placeholder.com/400x250.png?text=Room+102' },
+        '203': { name: '공학-203호', capacity: 50, equipment: ['화이트보드'], image: 'https://via.placeholder.com/400x250.png?text=Room+203' },
+        '305': { name: '공학-305호', capacity: 40, equipment: ['프로젝터 (고장)', '화이트보드'], image: 'https://via.placeholder.com/400x250.png?text=Room+305' },
+        '501': { name: 'IT-501호', capacity: 60, equipment: ['프로젝터', '개인별 콘센트'], image: 'https://via.placeholder.com/400x250.png?text=Room+501' },
+        '502': { name: 'IT-502호', capacity: 60, equipment: ['프로젝터', '전자교탁', '개인별 콘센트'], image: 'https://via.placeholder.com/400x250.png?text=Room+502' },
+    };
+
+    let selectedSlot = null;
+    const approvalSuccessModal = new bootstrap.Modal(document.getElementById('approvalSuccessModal'));
+
+    // 강의실 헤더 클릭 -> 상세정보 표시
+    document.querySelectorAll('.room-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const room = roomDetails[header.dataset.roomId];
+            const detailsEl = document.getElementById('room-details');
+            detailsEl.innerHTML = `
+                <img src="${room.image}" class="img-fluid rounded mb-2">
+                <h6>${room.name}</h6>
+                <p><strong>수용인원:</strong> ${room.capacity}명</p>
+                <p><strong>보유장비:</strong></p>
+                <ul>${room.equipment.map(e => `<li>${e}</li>`).join('')}</ul>
+            `;
+        });
+    });
+
+    // 빈 슬롯 클릭 -> 선택
+    document.querySelectorAll('.slot.available').forEach(slot => {
+        slot.addEventListener('click', () => {
+            if(selectedSlot) selectedSlot.classList.remove('selected');
+            slot.classList.add('selected');
+            selectedSlot = slot;
+
+            const time = slot.parentElement.querySelector('.time-col').textContent;
+            const roomIndex = slot.cellIndex - 1;
+            const roomName = document.querySelector('.timetable thead th:nth-child(' + (roomIndex + 2) + ')').innerText.split('\n')[0];
+
+            document.getElementById('selected-room').textContent = roomName;
+            document.getElementById('selected-time').textContent = time;
+            document.getElementById('assign-btn').disabled = false;
+        });
+    });
+
+    // 배정 버튼
+    document.getElementById('assign-btn').addEventListener('click', () => {
+        if(!selectedSlot) return;
+        selectedSlot.classList.remove('available', 'requested-time');
+        selectedSlot.classList.add('booked');
+        selectedSlot.innerHTML = "AI개론<br><small>이교수(배정)</small>";
+        alert(document.getElementById('selected-room').textContent + '에 배정되었습니다.');
+        document.getElementById('assign-btn').disabled = true;
+        document.getElementById('approve-btn').disabled = false;
+        document.querySelector('.badge').className = 'badge bg-primary';
+        document.querySelector('.badge').textContent = '배정 완료';
+    });
+
+    // 최종 승인 버튼
+    document.getElementById('approve-btn').addEventListener('click', () => {
+        // 목록 페이지에 전달할 정보 저장
+        sessionStorage.setItem('lastApprovedTitle', 'AI개론 이교수');
+        // 성공 Modal 표시
+        approvalSuccessModal.show();
+    });
+
+    // 목록으로 돌아가기 버튼
+    document.getElementById('returnToListBtn').addEventListener('click', () => {
+        window.location.href = 'lecture_approval_list.html';
+    });
+
+</script>
+</body>
+</html>

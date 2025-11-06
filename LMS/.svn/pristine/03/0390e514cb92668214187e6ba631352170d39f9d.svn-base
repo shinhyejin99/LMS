@@ -1,0 +1,15 @@
+eclipse.preferences.version=1
+encoding//src/main/java=UTF-8
+encoding//src/main/resources=UTF-8
+encoding//src/main/resources/application.properties=UTF-8
+encoding//src/main/webapp/WEB-INF/fragments/classroom/footer.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/fragments/classroom/header.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/fragments/classroom/postScript.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/fragments/classroom/preStyle.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/fragments/classroom/sidebar-student.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/views/staff/approval/staffApprovalDetail.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/views/staff/professor/staffProfessorInfoList.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/views/user/common/userNotificationScript.jspf=UTF-8
+encoding//src/test/java=UTF-8
+encoding//src/test/resources=UTF-8
+encoding/<project>=UTF-8

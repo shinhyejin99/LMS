@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuLectureMapper">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 17.     	최건우            최초 생성
+ *
+-->
+	<select id="selectStudentLectures" resultType="kr.or.jsu.dto.StudentLectureResponseDTO">
+	    SELECT *
+	    FROM (
+	        SELECT
+	            ROWNUM AS rn,
+	            lectureId,
+	            subjectName,
+	            completionCd,
+	            completionName,
+	            credit,
+	            professorName,
+	            yearTermCd,
+	            yearTermName,
+	            targetGradeNames,
+	            enrollStatusCd,
+	            enrollStatusName
+	        FROM (
+	            SELECT
+	                sel.LECTURE_ID AS lectureId,
+	                s.SUBJECT_NAME AS subjectName,
+	                s.COMPLETION_CD AS completionCd,
+	                cc.CD_NAME AS completionName,
+	                s.CREDIT AS credit,
+	                u.LAST_NAME || u.FIRST_NAME AS professorName,
+	                l.YEARTERM_CD AS yearTermCd,
+	                yc.CD_NAME AS yearTermName,
+	                NVL(sg.targetGradeNames, '전학년') AS targetGradeNames,
+	                sel.ENROLL_STATUS_CD AS enrollStatusCd,
+	                sc.CD_NAME AS enrollStatusName
+	            FROM
+	                STU_ENROLL_LCT sel
+	            JOIN
+	                LECTURE l ON sel.LECTURE_ID = l.LECTURE_ID
+	            JOIN
+	                SUBJECT s ON l.SUBJECT_CD = s.SUBJECT_CD
+	            LEFT JOIN
+	                PROFESSOR p ON l.PROFESSOR_NO = p.PROFESSOR_NO
+	            LEFT JOIN
+	                USERS u ON p.USER_ID = u.USER_ID
+	            LEFT JOIN
+	                COMMON_CODE cc ON s.COMPLETION_CD = cc.COMMON_CD
+	            LEFT JOIN
+	                COMMON_CODE yc ON l.YEARTERM_CD = yc.COMMON_CD
+	            	    LEFT JOIN
+	            	        COMMON_CODE sc ON sel.ENROLL_STATUS_CD = sc.COMMON_CD            LEFT JOIN (
+                SELECT
+                    st.SUBJECT_CD,
+                    CASE
+                        WHEN COUNT(DISTINCT st.GRADE_CD) = 4 THEN '전체학년'
+                        ELSE LISTAGG(DISTINCT cg.CD_NAME, ', ') WITHIN GROUP (ORDER BY cg.CD_NAME)
+                    END AS targetGradeNames
+                FROM
+                    SBJ_TARGET st
+                JOIN
+                    COMMON_CODE cg ON st.GRADE_CD = cg.COMMON_CD
+                GROUP BY
+                    st.SUBJECT_CD
+            ) sg ON s.SUBJECT_CD = sg.SUBJECT_CD
+	            WHERE
+	                sel.STUDENT_NO = #{studentNo}
+	            ORDER BY
+	                CASE WHEN sel.ENROLL_STATUS_CD = 'ENR_ING' THEN 0 ELSE 1 END ASC, l.YEARTERM_CD DESC, s.SUBJECT_NAME ASC
+	        )
+	    )
+	    WHERE rn BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<select id="selectStudentLectureCount" resultType="int">
+	    SELECT
+	        COUNT(*)
+	    FROM
+	        STU_ENROLL_LCT sel
+	    WHERE
+	        sel.STUDENT_NO = #{studentNo}
+	</select>
+
+	<select id="selectLectureDetail" resultType="kr.or.jsu.dto.LectureDetailDTO">
+	    SELECT
+	        s.SUBJECT_NAME AS subjectName,
+	        s.CREDIT AS credit,
+	        s.HOUR AS hour,
+	        l.MAX_CAP AS maxCap,
+	        p_user.LAST_NAME || p_user.FIRST_NAME AS professorName,
+	        cc_comp.CD_NAME AS completionName,
+	        sel.FINAL_GRADE AS finalGrade,
+	        l.LECTURE_GOAL AS lectureGoal,
+	        (SELECT LISTAGG(pl.PLACE_NAME, ', ') WITHIN GROUP (ORDER BY pl.PLACE_NAME)
+	         FROM LCT_ROOM_SCHEDULE lrs
+	         JOIN PLACE pl ON lrs.PLACE_CD = pl.PLACE_CD
+	         WHERE lrs.LECTURE_ID = l.LECTURE_ID) AS lectureRoom,
+	        (SELECT LISTAGG(tb.WEEKDAY || ' ' || tb.START_HHMM || '-' || tb.END_HHMM, '; ') WITHIN GROUP (ORDER BY tb.TIMEBLOCK_CD)
+	         FROM LCT_ROOM_SCHEDULE lrs
+	         JOIN TIMEBLOCK tb ON lrs.TIMEBLOCK_CD = tb.TIMEBLOCK_CD
+	         WHERE lrs.LECTURE_ID = l.LECTURE_ID) AS lectureTime
+	    FROM
+	        LECTURE l
+	    JOIN
+	        SUBJECT s ON l.SUBJECT_CD = s.SUBJECT_CD
+	    JOIN
+	        STU_ENROLL_LCT sel ON l.LECTURE_ID = sel.LECTURE_ID
+	    LEFT JOIN
+	        PROFESSOR p ON l.PROFESSOR_NO = p.PROFESSOR_NO
+	    LEFT JOIN
+	        USERS p_user ON p.USER_ID = p_user.USER_ID
+	    LEFT JOIN
+	        COMMON_CODE cc ON s.COMPLETION_CD = cc.COMMON_CD
+	    WHERE
+	        l.LECTURE_ID = #{lectureId}
+	        AND sel.STUDENT_NO = #{studentNo}
+	</select>
+
+	<select id="countInProgressLectures" resultType="int">
+	    SELECT
+	        COUNT(LECTURE_ID)
+	    FROM
+	        STU_ENROLL_LCT
+	    WHERE
+	        STUDENT_NO = #{studentNo}
+	        AND ENROLL_STATUS_CD = 'ENR_ING'
+	</select>
+
+	<select id="countDroppedLectures" resultType="int">
+	    SELECT
+	        COUNT(LECTURE_ID)
+	    FROM
+	        STU_ENROLL_LCT
+	    WHERE
+	        STUDENT_NO = #{studentNo}
+	        AND ENROLL_STATUS_CD = 'ENR_DROP'
+	</select>
+
+	<update id="updateEnrollStatus">
+	    UPDATE
+	        STU_ENROLL_LCT
+	    SET
+	        ENROLL_STATUS_CD = #{enrollStatusCd},
+	        STATUS_CHANGE_AT = SYSDATE
+	    WHERE
+	        STUDENT_NO = #{studentNo}
+	        AND LECTURE_ID = #{lectureId}
+	</update>
+
+	<select id="getEnrollStatus" resultType="String">
+	    SELECT
+	        ENROLL_STATUS_CD
+	    FROM
+	        STU_ENROLL_LCT
+	    WHERE
+	        STUDENT_NO = #{studentNo}
+	        AND LECTURE_ID = #{lectureId}
+	</select>
+
+</mapper>

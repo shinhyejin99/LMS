@@ -1,0 +1,1354 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 13.     	정태일            최초 생성
+ *  2025. 10. 20.     	정태일            대시보드 피드백 스타일 수정
+ *  2025. 10. 30.     	김수현            포털 UI 구조 조정
+ *  2025. 11. 03.        Claude            반응형 디자인 개선
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* ============================================
+   리뉴얼된 네비게이션 바 스타일 (2단 구조)
+   부트스트랩 충돌해서 class 이름에 portal 접두사 사용함
+   ============================================ */
+
+.portal-navbar {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    z-index: 1040 !important;
+    border-bottom: 3px solid #1565C0;
+}
+
+/* 상단 영역 */
+.portal-navbar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 3rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* 로고 영역 */
+.portal-navbar-logo {
+    display: flex;
+    align-items: center;
+    margin-left: 70px;
+}
+
+.portal-logo-link {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.portal-logo-image {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+}
+
+.portal-logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1565C0;
+    letter-spacing: -0.5px;
+}
+
+/* 상단 우측 영역 */
+.portal-navbar-top-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.portal-navbar-top-right .portal-navbar-nav {
+    display: flex !important;
+    list-style: none;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+}
+
+.portal-navbar-top-right .nav-link {
+    color: #495057 !important;
+    transition: color 0.2s;
+}
+
+.portal-navbar-top-right .nav-link:hover {
+    color: #1565C0 !important;
+}
+
+.portal-logout-btn {
+    color: #495057 !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none !important;
+    padding: 0.4rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.portal-logout-btn:hover {
+    color: #1565C0 !important;
+    border-color: #1565C0;
+    background: #E3F2FD;
+}
+
+/* 하단 메뉴 영역 */
+.portal-navbar-bottom {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background: #f8f9fa;
+    position: relative;
+    min-height: 60px;
+}
+
+.portal-navbar-nav-main {
+    display: flex !important;
+    flex-direction: row !important;
+    list-style: none;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 0;
+}
+
+.portal-nav-item {
+    display: flex;
+    align-items: center;
+}
+
+.portal-nav-link {
+    color: #495057 !important;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none !important;
+    padding: 1rem 2rem;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    display: block;
+}
+
+.portal-nav-link:hover {
+    color: #1565C0 !important;
+    background: #ffffff;
+    border-bottom-color: #1565C0;
+}
+
+/* 학사관리 메뉴 강조 */
+.portal-nav-item-highlight .portal-nav-link {
+    background: #1565C0 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+.portal-nav-item-highlight .portal-nav-link:hover {
+    background: #0D47A1 !important;
+    border-bottom-color: #0D47A1;
+}
+
+/* 학사관리 메뉴 강조 */
+.navbar-nav-main .nav-item-highlight .nav-link {
+    background: #1565C0 !important;
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+.navbar-nav-main .nav-item-highlight .nav-link:hover {
+    background: #0D47A1 !important;
+    border-bottom-color: #0D47A1;
+}
+
+/* 비밀번호 변경 버튼 스타일 */
+.portal-password-btn {
+    color: #495057 !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none !important;
+    padding: 0.4rem 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.portal-password-btn:hover {
+    color: #1565C0 !important;
+    border-color: #1565C0;
+    background: #E3F2FD;
+}
+
+
+/* body padding 조정 (네비바 높이만큼) */
+body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', Roboto, sans-serif !important;
+    background-color: #f4f7f9;
+    color: #333;
+    line-height: 1.6;
+    padding-top: 0 !important;
+}
+
+/* ============================================
+   이미지 슬라이더 스타일
+   ============================================ */
+
+.hero-slider {
+    position: relative;
+    width: 100%;
+    height: 450px;
+    margin-top: 0;
+    overflow: hidden;
+    background: #000;
+}
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.slide.active {
+    opacity: 1;
+}
+
+.slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.7);
+}
+
+.slide-content {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
+    color: #ffffff;
+    z-index: 10;
+    max-width: 600px;
+}
+
+.slide-content h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    line-height: 1.2;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.slide-content p {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    opacity: 0.95;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 슬라이더 버튼 */
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.3);
+    color: white;
+    border: none;
+    font-size: 2rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.slider-btn:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.slider-btn.prev {
+    left: 20px;
+}
+
+.slider-btn.next {
+    right: 20px;
+}
+
+/* 인디케이터 */
+.slider-indicators {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 20;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background: #ffffff;
+    width: 40px;
+    border-radius: 6px;
+}
+
+/* ============================================
+   🔗 바로가기 메뉴 스타일
+   ============================================ */
+
+.quick-menu-section {
+    background: #1565C0;
+    padding: 2rem 0;
+    border-top: 3px solid #0D47A1;
+}
+
+.quick-menu-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+}
+
+.quick-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    width: 160px;
+    height: 130px;
+    text-decoration: none !important;
+    color: #ffffff !important;
+    transition: all 0.3s ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+}
+
+.quick-menu-item:last-child {
+    border-right: none;
+}
+
+.quick-menu-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.quick-menu-item:hover::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 3px;
+    background: #ffffff;
+}
+
+.quick-icon {
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quick-icon svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    stroke-width: 1.5;
+}
+
+.quick-menu-item span {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff !important;
+    text-align: center;
+}
+
+/* ============================================
+   📱 기존 스타일 유지
+   ============================================ */
+
+a {
+    text-decoration: none !important;
+    color: inherit !important;
+    transition: color 0.2s;
+}
+
+.section li a:hover {
+    color: #1565C0 !important;
+}
+
+/* 레이아웃 */
+.container {
+    display: flex;
+    flex-direction: row;
+    max-width: 1600px;
+    margin: 30px auto;
+    background: #fff;
+/*     box-shadow: 0 0 25px rgba(0, 0, 0, 0.08); */
+    border-radius: 18px;
+    overflow: hidden;
+    min-height: 85vh;
+}
+
+/* 좌측 프로필 영역 (Sidebar) */
+.sidebar {
+    width: 280px;
+    padding: 30px 20px;
+    box-sizing: border-box;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-box {
+    padding: 20px 0;
+    width: 100%;
+    text-align: center;
+    flex-grow: 0;
+    margin-bottom: 0;
+}
+
+.profile-box .profile-icon {
+    font-size: 3.5rem;
+    background: #E3F2FD;
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    margin: 0 auto 1rem auto;
+    color: #1565C0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-box strong {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.profile-box p {
+    font-size: 0.95rem;
+    color: #6c757d;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.profile-box .btn-primary {
+    background-color: #1565C0;
+    border-color: #1565C0;
+    padding: 8px 18px;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border: none;
+    color: white;
+}
+
+.profile-box .btn-primary:hover {
+    background-color: #0D47A1;
+    border-color: #0D47A1;
+}
+
+/* 중앙 메인 영역 */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 45px 40px 45px;
+    box-sizing: border-box;
+    background: #fcfdfe;
+}
+
+/* 상단 기능 카드들 */
+.menu-row {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    flex-wrap: nowrap;
+}
+
+.card {
+    min-width: 0;
+    flex-grow: 1;
+    flex-basis: 0;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    min-height: 110px;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #212529;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.card:hover {
+    box-shadow: 0 6px 20px rgba(21, 101, 192, 0.15);
+    transform: translateY(-3px);
+    border: 1px solid #1565C0;
+}
+
+.card div:first-child {
+    font-size: 3.5rem !important;
+    color: #1565C0 !important;
+    margin-bottom: 5px;
+}
+
+.card-schedule div:first-child {
+    color: #dc3545 !important;
+}
+
+.card div:last-child {
+    font-size: 0.85rem !important;
+    color: #888 !important;
+    font-weight: 400;
+    margin-top: 5px;
+}
+
+/* 학사일정 섹션 */
+.calendar-section-full {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    padding: 20px;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.calendar-section-full:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.calendar-section-full h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #212529;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.calendar-section-full h3 .bx {
+    font-size: 1.6rem;
+    color: #1565C0;
+}
+
+/* 학사일정 목록 스타일 */
+.calendar-event-list {
+    width: 300px;
+    margin: 10px 0 15px 50px;
+    text-align: left;
+}
+
+.calendar-event-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.calendar-event-list li {
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.8;
+    padding-left: 1.5em;
+    position: relative;
+}
+
+.calendar-event-list li::before {
+    content: "\2022";
+    color: #1565C0;
+    font-size: 1.2rem;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+/* 하단 콘텐츠 영역 (2열 균등 분할) */
+.content-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+}
+
+.col-left-notice-group {
+    grid-column: span 1;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.col-right-3row {
+    grid-column: span 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.section {
+    background: #ffffff;
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.col-right-3row .section {
+    flex-grow: 1;
+    padding: 15px;
+}
+
+/* 통합된 공지사항 탭 섹션 */
+.section-notice-group {
+    flex-grow: 1;
+    min-height: 250px;
+    padding: 20px;
+}
+
+.tab-menu {
+    display: flex;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #adb5bd;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    line-height: 1;
+}
+
+.tab-btn.active {
+    color: #1565C0;
+    border-bottom: 3px solid #1565C0;
+}
+
+.tab-content-area {
+    height: 220px;
+    overflow: hidden;
+}
+
+.tab-pane {
+    display: none;
+    height: 100%;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.tab-pane ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: block;
+}
+
+.section-notice-group .more-link {
+    margin-top: 10px;
+}
+
+.section h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #212529;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section h3 .bx {
+    font-size: 1.5rem;
+}
+
+.more-link {
+    font-size: 1.1rem;
+    text-decoration: none;
+    font-weight: 600;
+    line-height: 1;
+    margin-left: auto;
+}
+
+/* 목록 공통 스타일 */
+ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.section li::before {
+    content: "\2022";
+    display: inline-block;
+    width: 1em;
+    margin-right: 0.5em;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: #1565C0;
+}
+
+.tab-pane-academic ul li::before {
+    color: #0D47A1;
+}
+
+/* 채용정보 (주황색 강조) */
+.section-job {
+    background: #fff8f0;
+    border: 1px solid #ffc107;
+    box-shadow: 0 4px 18px rgba(255, 193, 7, 0.1);
+}
+
+.section-job h3 .bx,
+.section-job .more-link {
+    color: #ffc107;
+}
+
+.section-job li::before {
+    content: "💼";
+    color: #ffc107;
+}
+
+/* 시설예약 (녹색) */
+.section-reservation h3 .bx,
+.section-reservation .more-link,
+.section-reservation li::before {
+    color: #198754;
+    content: "✅";
+}
+
+/* 증명서 발급내역 (회색) */
+.section-cert h3 .bx,
+.section-cert .more-link,
+.section-cert li::before {
+    color: #6c757d;
+}
+
+.section li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 7px 0px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px dashed #e9ecef;
+    flex-shrink: 0;
+}
+
+.section li:hover {
+    background-color: #E3F2FD;
+}
+
+.section li:last-child {
+    border-bottom: none;
+}
+
+.empty-list-item {
+    display: none !important;
+}
+
+.section li > a {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: block;
+    color: #343a40;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.section li > a .title {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 0.95rem;
+    max-width: unset !important;
+}
+
+.section li .date {
+    flex: 0 0 auto;
+    whitespace: nowrap;
+    color: #adb5bd;
+    font-size: 0.85rem;
+}
+
+/* 챗봇 아이콘 */
+.chatbot-icon {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #1565C0;
+    color: white;
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.2s ease-in-out;
+    z-index: 1000;
+}
+
+.chatbot-icon span {
+    font-size: 0.65rem;
+    margin-top: -6px;
+    font-weight: 600;
+    color: white;
+}
+
+.chatbot-icon:hover {
+    background-color: #0D47A1;
+}
+
+/* 모달 스타일 */
+.pwC-modal {
+    display: none;
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.pwC-modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.pwC-modal .modal-content {
+    background-color: #fefefe;
+    margin: 0;
+    padding: 25px;
+    border: 1px solid #888;
+    width: 400px;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.pwC-modal .modal-title {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    color: #333;
+}
+
+.pwC-modal .close-button {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    line-height: 1;
+}
+
+.pwC-modal .close-button:hover,
+.pwC-modal .close-button:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.modal-submit-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin-top: 15px;
+    background-color: #1565C0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.modal-submit-btn:hover {
+    background-color: #0D47A1;
+}
+
+/* 긴급 공지 뱃지 */
+.badge-urgent {
+    display: inline-block;
+    background-color: #f44336;
+    color: white;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.2;
+    margin-right: 8px;
+    vertical-align: middle;
+    animation: pulse 1.5s infinite;
+    margin-left: 0;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.tab-pane-notice ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.tab-pane-notice ul li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    min-height: 38px;
+    border-bottom: 1px solid #eee;
+}
+
+.tab-pane-notice ul li a {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #495057;
+}
+
+.tab-pane-notice ul li a .title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Dashboard 학사일정 미니 캘린더 */
+#dashboard-calendar-wrapper {
+    flex: 2;
+    min-width: 60%;
+}
+
+.academic-calendar-container {
+    display: flex;
+    gap: 15px;
+}
+
+#dashboard-calendar .fc-toolbar-title {
+    font-size: 1.2rem;
+}
+
+#dashboard-calendar .fc-button {
+    padding: 2px 8px;
+    font-size: 0.8rem;
+}
+
+#dashboard-calendar .fc-daygrid-day-number {
+    font-size: 0.8rem;
+    padding: 3px;
+}
+
+#dashboard-calendar .fc-event {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+}
+
+.upcoming-events-panel {
+    flex: 1;
+    padding: 15px;
+    min-width: 200px;
+}
+
+.upcoming-events-panel h2 {
+    font-size: 1rem;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.event-list {
+    max-height: 200px;
+}
+
+.event-item {
+    padding: 8px 0 8px 10px;
+    font-size: 0.85rem;
+}
+
+/* Footer */
+.footer {
+    background: #1565C0;
+    color: #ffffff;
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   📱 반응형 디자인 - 콘솔창 대응
+   ============================================ */
+
+/* 기본: 1920px 이상에서만 중앙 정렬 absolute 사용 */
+@media (min-width: 1920px) {
+    .portal-navbar-nav-main {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+/* 1919px 이하: absolute 제거, flex로 중앙 정렬 */
+@media (max-width: 1919px) {
+    .portal-navbar-nav-main {
+        position: static !important;
+        transform: none !important;
+        justify-content: center;
+    }
+}
+
+/* 1600px 이하: 메뉴 간격 미세 조정 */
+@media (max-width: 1600px) {
+    .portal-nav-link {
+        padding: 1rem 1.7rem;
+        font-size: 1.05rem;
+    }
+}
+
+/* 1500px 이하: 메뉴 간격 더 줄이기 */
+@media (max-width: 1500px) {
+    .portal-navbar-top {
+        padding: 0.8rem 2rem;
+    }
+    
+    .portal-navbar-logo {
+        margin-left: 40px;
+    }
+    
+    .portal-nav-link {
+        padding: 1rem 1.4rem;
+        font-size: 1rem;
+    }
+}
+
+/* 1400px 이하: 메뉴 간격 조정 */
+@media (max-width: 1400px) {
+    .portal-navbar-top {
+        padding: 0.8rem 1.5rem;
+    }
+    
+    .portal-navbar-logo {
+        margin-left: 20px;
+    }
+    
+    .portal-nav-link {
+        padding: 1rem 1.2rem;
+        font-size: 0.98rem;
+    }
+}
+
+/* 1300px 이하: 더 작게 */
+@media (max-width: 1300px) {
+    .portal-nav-link {
+        padding: 1rem 1rem;
+        font-size: 0.95rem;
+    }
+}
+
+/* 1200px 이하: 줄바꿈 시작 */
+@media (max-width: 1200px) {
+    .portal-navbar-top {
+        padding: 0.8rem 1rem;
+    }
+    
+    .portal-navbar-logo {
+        margin-left: 0;
+    }
+    
+    .portal-logo-image {
+        height: 50px;
+    }
+    
+    .portal-navbar-top-right {
+        gap: 1rem;
+    }
+    
+    .portal-password-btn,
+    .portal-logout-btn {
+        padding: 0.3rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    /* 하단 메뉴 - 줄바꿈 허용 */
+    .portal-navbar-bottom {
+        min-height: auto;
+        padding: 0.5rem 0;
+    }
+    
+    .portal-navbar-nav-main {
+        flex-wrap: wrap !important;
+        max-width: 100%;
+        gap: 0;
+    }
+    
+    .portal-nav-item {
+        flex: 0 0 auto;
+    }
+    
+    .portal-nav-link {
+        padding: 0.9rem 1rem;
+        font-size: 0.92rem;
+        border-bottom: none;
+    }
+    
+    .portal-nav-link:hover {
+        border-bottom: none;
+    }
+    
+    .content-grid-2col {
+        grid-template-columns: 1fr;
+    }
+
+    .col-left-notice-group {
+        gap: 20px;
+    }
+
+    .hero-slider {
+        height: 350px;
+    }
+
+    .slide-content h2 {
+        font-size: 2rem;
+    }
+}
+
+/* 1024px 이하 */
+@media (max-width: 1024px) {
+    .portal-nav-link {
+        padding: 0.8rem 0.9rem;
+        font-size: 0.9rem;
+    }
+    
+    .container {
+        flex-direction: column;
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 20px;
+    }
+
+    .main {
+        padding: 30px 20px;
+    }
+
+    .menu-row {
+        justify-content: space-around;
+        gap: 15px;
+    }
+
+    .card {
+        min-width: 45%;
+    }
+
+    .hero-slider {
+        height: 300px;
+    }
+
+    .slide-content {
+        left: 5%;
+    }
+
+    .slide-content h2 {
+        font-size: 1.8rem;
+    }
+}
+
+/* 920px 이하 */
+@media (max-width: 920px) {
+    .portal-nav-link {
+        padding: 0.7rem 0.85rem;
+        font-size: 0.88rem;
+    }
+}
+
+/* 768px 이하: 모바일 최적화 */
+@media (max-width: 768px) {
+    .portal-navbar-top {
+        padding: 0.6rem 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .portal-logo-image {
+        height: 40px;
+    }
+    
+    .portal-navbar-top-right {
+        order: 3;
+        width: 100%;
+        justify-content: flex-end;
+        margin-top: 0.5rem;
+        gap: 0.5rem;
+    }
+    
+    .portal-password-btn {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .portal-password-btn i {
+        font-size: 0.9rem !important;
+    }
+    
+    .portal-logout-btn {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .portal-navbar-bottom {
+        padding: 0.3rem 0;
+    }
+    
+    .portal-nav-link {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    
+    .portal-nav-item-highlight .portal-nav-link {
+        font-size: 0.85rem;
+    }
+
+    .quick-menu-container {
+        gap: 1rem;
+    }
+
+    .quick-menu-item {
+        width: 110px;
+        height: 110px;
+    }
+
+    .quick-icon svg {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* 640px 이하: 더 작은 모바일 */
+@media (max-width: 640px) {
+    .portal-navbar-nav-main {
+        gap: 0;
+        justify-content: space-around;
+    }
+    
+    .portal-nav-link {
+        padding: 0.5rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .portal-nav-item {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+}

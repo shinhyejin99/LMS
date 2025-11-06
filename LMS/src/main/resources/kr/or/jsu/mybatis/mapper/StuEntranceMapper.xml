@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuEntranceMapper">
+
+    <select id="selectStuEntrance" parameterType="string" resultType="kr.or.jsu.vo.StuEntranceVO">
+        SELECT
+          student_no
+        , entrance_type_cd
+        , grad_highschool
+        , grad_year
+        , grad_exam_yn
+        , target_dept
+        FROM stu_entrance
+        WHERE student_no = #{studentNo}
+    </select>
+
+    <select id="selectStuEntranceList" resultType="kr.or.jsu.vo.StuEntranceVO">
+        SELECT
+          student_no
+        , entrance_type_cd
+        , grad_highschool
+        , grad_year
+        , grad_exam_yn
+        , target_dept
+        FROM stu_entrance
+        ORDER BY student_no DESC
+    </select>
+
+    <insert id="insertStuEntrance" parameterType="kr.or.jsu.vo.StuEntranceVO">
+        INSERT INTO stu_entrance (
+          student_no
+        , entrance_type_cd
+        , grad_highschool
+        , grad_year
+        , grad_exam_yn
+        , target_dept
+        ) VALUES (
+          #{studentNo}
+        , #{entranceTypeCd}
+        , #{gradHighschool}
+        , #{gradYear}
+        , #{gradExamYn}
+        , #{targetDept}
+        )
+    </insert>
+   <insert id="insertBatchStuEntrance" parameterType="java.util.List">
+        INSERT ALL
+        <foreach collection="list" item="item" separator=" ">
+        INTO STU_ENTRANCE (
+            STUDENT_NO,
+            ENTRANCE_TYPE_CD,
+            GRAD_YEAR,
+            GRAD_HIGHSCHOOL,  GRAD_EXAM_YN,
+            TARGET_DEPT
+        ) VALUES (
+            #{item.studentNo},
+            #{item.entranceTypeCd},
+            #{item.gradYear},
+            #{item.gradHighschool}, #{item.gradExamYn},
+            #{item.targetDept}
+        )
+        </foreach>
+        SELECT * FROM DUAL
+    </insert>
+
+  <update id="updateStuEntrance" parameterType="StuEntranceVO">
+        UPDATE stu_entrance
+        <set>
+            <if test="entranceTypeCd != null">
+                entrance_type_cd = #{entranceTypeCd},
+            </if>
+            
+            <if test="gradHighschool != null">
+                grad_highschool  = #{gradHighschool},
+            </if>
+            
+            <if test="gradYear != null">
+                grad_year        = #{gradYear},
+            </if>
+            
+            <if test="gradExamYn != null">
+                grad_exam_yn     = #{gradExamYn},
+            </if>
+            
+            <if test="targetDept != null">
+                target_dept      = #{targetDept}
+            </if>
+        </set>
+        WHERE student_no = #{studentNo}
+    </update>
+
+    <delete id="deleteStuEntrance" parameterType="string">
+        DELETE FROM stu_entrance
+        WHERE student_no = #{studentNo}
+    </delete>
+
+</mapper>

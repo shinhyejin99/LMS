@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuTuitionReqMapper">
+
+    <insert id="insertStuTuitionReq">
+        INSERT INTO stu_tuition_req (
+            tuition_req_id,
+            student_no,
+            yearterm_cd,
+            virtual_account,
+            tuition_sum,
+            scholarship_sum,
+            final_amount,
+            pay_start_day,
+            pay_end_day,
+            pay_done_yn
+        ) VALUES (
+            #{tuitionReqId},
+            #{studentNo},
+            #{yeartermCd},
+            #{virtualAccount},
+            #{tuitionSum},
+            #{scholarshipSum},
+            #{finalAmount},
+            #{payStartDay},
+            #{payEndDay},
+            #{payDoneYn}
+        )
+    </insert>
+
+    <select id="selectStuTuitionReqById" resultType="kr.or.jsu.vo.StuTuitionReqVO">
+        SELECT
+            tuition_req_id,
+            student_no,
+            yearterm_cd,
+            virtual_account,
+            tuition_sum,
+            scholarship_sum,
+            final_amount,
+            pay_start_day,
+            pay_end_day,
+            pay_done_yn
+        FROM
+            stu_tuition_req
+        WHERE
+            tuition_req_id = #{tuitionReqId}
+    </select>
+
+    <select id="selectAllStuTuitionReqs" resultType="kr.or.jsu.vo.StuTuitionReqVO">
+        SELECT
+            tuition_req_id,
+            student_no,
+            yearterm_cd,
+            virtual_account,
+            tuition_sum,
+            scholarship_sum,
+            final_amount,
+            pay_start_day,
+            pay_end_day,
+            pay_done_yn
+        FROM
+            stu_tuition_req
+        ORDER BY
+            tuition_req_id
+    </select>
+
+    <update id="updateStuTuitionReq">
+        UPDATE stu_tuition_req
+        SET
+            student_no = #{studentNo},
+            yearterm_cd = #{yeartermCd},
+            virtual_account = #{virtualAccount},
+            tuition_sum = #{tuitionSum},
+            scholarship_sum = #{scholarshipSum},
+            final_amount = #{finalAmount},
+            pay_start_day = #{payStartDay},
+            pay_end_day = #{payEndDay},
+            pay_done_yn = #{payDoneYn}
+        WHERE
+            tuition_req_id = #{tuitionReqId}
+    </update>
+
+    <delete id="deleteStuTuitionReq">
+        DELETE FROM stu_tuition_req
+        WHERE
+            tuition_req_id = #{tuitionReqId}
+    </delete>
+
+</mapper>

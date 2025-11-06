@@ -1,0 +1,17 @@
+테이블정의서,,,,,,,,,
+테이블명,18 포털공지사항,,테이블ID,PORTAL_NOTICE,,,,,
+작성일,2025-09-29 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,포털 공지사항을 기록하는 테이블입니다.,,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,NOTICE_ID,,공지ID,시퀀스,CHAR(15),NOT NULL,,PK,"사용법 : 'PTLNTC' || LPAD(TO_CHAR(SEQ_PORTAL_NOTICE.NEXTVAL), 9, '0')"
+2.0,STAFF_NO,,등록자사번,사번,CHAR(7),NOT NULL,,FK(직원),
+3.0,NOTICE_TYPE_CD,,공지타입코드,공통코드,VARCHAR2(50),NOT NULL,,FK(공통코드),"GENERAL, ACADENIC"
+4.0,TITLE,,제목,,VARCHAR2(200),NOT NULL,,,
+5.0,CONTENT,,내용,,VARCHAR2(4000),NOT NULL,,,
+6.0,ATTACH_FILE_ID,,첨부파일,파일ID,VARCHAR2(50),,,FK(파일),
+7.0,CREATE_AT,,작성일시,,DATE,NOT NULL,,,
+8.0,MODIFY_AT,,수정일시,,DATE,,,,
+9.0,DELETE_YN,,삭제여부,YN,CHAR(1),NOT NULL,,,
+10.0,VIEW_CNT,,,,NUMBER,NOT NULL,0.0,,
+11.0,IS_URGENT,,,,CHAR(1),NOT NULL,N,,

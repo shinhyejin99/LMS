@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuEnrollLctMapper">
+	
+	<select id="selectEnrollRecord">
+		SELECT
+			<include refid="enroll_all_col"/>
+		FROM
+			STU_ENROLL_LCT sel
+		WHERE 
+			sel.LECTURE_ID = #{lectureId}
+			AND sel.STUDENT_NO = #{studentNo}
+	</select>
+	
+	<select id="selectEnrollingStudent" resultMap="EnrollSimpleMap">
+		SELECT
+			<include refid="enroll_all_col"/>
+			, <include refid="student_users_join_all_col"/>
+		FROM
+			STU_ENROLL_LCT sel
+		JOIN STUDENT s ON
+			sel.STUDENT_NO = s.STUDENT_NO
+		JOIN USERS u ON
+			s.USER_ID = u.USER_ID
+		WHERE
+			sel.LECTURE_ID = #{lectureId}
+			AND s.STUDENT_NO = #{studentNo}
+	</select>
+	
+	<select id="selectAllStudentList">
+		SELECT
+	        <include refid="enroll_all_col"/>
+	    FROM
+	    	STU_ENROLL_LCT sel
+	    WHERE
+	    	LECTURE_ID = #{lectureId}
+	    <choose>
+	        <when test="isNotCancel == true">
+				AND ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW')
+	        </when>
+	        <when test="isNotCancel == false">
+	            AND ENROLL_STATUS_CD IN ('ENR_CANCEL', 'ENR_WITHDRAW')
+	        </when>
+	        <otherwise/>
+	    </choose>
+	</select>
+	
+	<select id="selectAttendanceRecords" resultMap="EnrollSimpleMap">
+		SELECT
+			<include refid="enroll_all_col"/>
+			, <include refid="student_users_join_all_col"/>
+		FROM
+			STU_ENROLL_LCT sel
+		JOIN STUDENT s ON
+			sel.STUDENT_NO = s.STUDENT_NO
+		JOIN USERS u ON
+			s.USER_ID = u.USER_ID
+		WHERE
+			sel.ENROLL_ID IN (
+				SELECT
+					ENROLL_ID
+				FROM
+					LCT_STU_ATT lsa
+				WHERE
+					LECTURE_ID = #{lectureId}
+					AND LCT_ROUND = #{lctRound}
+			)
+	</select>
+	
+	<resultMap type="EnrollSimpleDTO" id="EnrollSimpleMap">
+		<association property="stuEnrollLctInfo"
+					 javaType="StuEnrollLctInfo"
+					 autoMapping="true"/>
+		<association property="studentInfo"
+					 javaType="StudentInfo"
+					 autoMapping="true"/>
+	</resultMap>
+	
+<sql id='enroll_all_col'>
+  sel.ENROLL_ID
+, sel.STUDENT_NO
+, sel.LECTURE_ID
+, sel.ENROLL_STATUS_CD
+, sel.RETAKE_YN
+, sel.STATUS_CHANGE_AT
+, sel.AUTO_GRADE
+, sel.FINAL_GRADE
+, sel.CHANGE_REASON
+</sql>
+
+<sql id="student_users_join_all_col">
+  s.STUDENT_NO
+, s.UNIV_DEPT_CD
+, s.GRADE_CD
+, s.STU_STATUS_CD
+, s.ENG_LNAME
+, s.ENG_FNAME
+, s.GUARD_NAME
+, s.GUARD_RELATION
+, s.GUARD_PHONE
+, s.PROFESSOR_ID
+, u.USER_ID
+, u.FIRST_NAME
+, u.LAST_NAME
+, u.REGI_NO
+, u.PHOTO_ID
+, u.ADDR_ID
+, u.MOBILE_NO
+, u.EMAIL
+, u.BANK_CODE
+, u.BANK_ACCOUNT
+, u.CREATE_AT
+</sql>
+	
+</mapper>

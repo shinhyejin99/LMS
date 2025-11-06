@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.QuestionChoiceMapper">
+
+<!-- 선택지 등록 -->
+  <insert id="insertQuestionChoice" parameterType="kr.or.jsu.vo.QuestionChoiceVO">
+    INSERT INTO QUESTION_CHOICE (
+      CHOICE_NO,
+      LCT_EXAM_ID,
+      QUESTION_NO,
+      CHOICE_CONTENT,
+      IS_CORRECT_YN
+    ) VALUES (
+      #{choiceNo},
+      #{lctExamId},
+      #{questionNo},
+      #{choiceContent},
+      #{isCorrectYn}
+    )
+  </insert>
+
+  <!-- 선택지 목록 조회 -->
+  <select id="selectQuestionChoiceList" resultType="kr.or.jsu.vo.QuestionChoiceVO">
+    SELECT
+      CHOICE_NO,
+      LCT_EXAM_ID,
+      QUESTION_NO,
+      CHOICE_CONTENT,
+      IS_CORRECT_YN
+    FROM QUESTION_CHOICE
+    ORDER BY CHOICE_NO
+  </select>
+
+  <!-- 특정 선택지 조회 -->
+  <select id="selectQuestionChoice" parameterType="int" resultType="kr.or.jsu.vo.QuestionChoiceVO">
+    SELECT
+      CHOICE_NO,
+      LCT_EXAM_ID,
+      QUESTION_NO,
+      CHOICE_CONTENT,
+      IS_CORRECT_YN
+    FROM QUESTION_CHOICE
+    WHERE CHOICE_NO = #{choiceNo}
+  </select>
+
+  <!-- 선택지 수정 -->
+  <update id="updateQuestionChoice" parameterType="kr.or.jsu.vo.QuestionChoiceVO">
+    UPDATE QUESTION_CHOICE
+    SET
+      LCT_EXAM_ID = #{lctExamId},
+      QUESTION_NO = #{questionNo},
+      CHOICE_CONTENT = #{choiceContent},
+      IS_CORRECT_YN = #{isCorrectYn}
+    WHERE CHOICE_NO = #{choiceNo}
+  </update>
+
+  <!-- 선택지 삭제 -->
+  <delete id="deleteQuestionChoice" parameterType="int">
+    DELETE FROM QUESTION_CHOICE
+    WHERE CHOICE_NO = #{choiceNo}
+  </delete>
+</mapper>

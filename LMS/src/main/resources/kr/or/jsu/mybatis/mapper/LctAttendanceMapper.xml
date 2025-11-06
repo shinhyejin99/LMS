@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctAttendanceMapper">
+
+
+	<insert id="insertLctAttround">
+	<selectKey keyProperty="lctRound" resultType="int" order="BEFORE">
+        SELECT NVL(MAX(LCT_ROUND) + 1, 1) 
+        FROM LCT_ATTROUND
+        WHERE LECTURE_ID = #{lectureId}
+    </selectKey>
+        INSERT INTO LCT_ATTROUND (
+            LECTURE_ID
+	        , LCT_ROUND
+	        , ATT_DAY
+	        , QRCODE_FILE_ID
+        ) VALUES (
+            #{lectureId}
+            , #{lctRound}
+            , SYSDATE
+            , #{qrcodeFileId}
+        )
+    </insert>
+	
+	<insert id="insertDefaultAttendanceRecords">
+	    INSERT ALL
+		    <foreach collection="enrollIds" item="enrollId">
+		        INTO LCT_STU_ATT (
+		            LECTURE_ID
+		            , LCT_ROUND
+		            , ENROLL_ID
+		            , ATT_AT
+		            , ATT_STATUS_CD
+		            , ATT_COMMENT
+		        ) VALUES (
+		            #{lectureId}
+		            , #{lctRound}
+		            , #{enrollId}
+		            , SYSDATE
+		            , #{attStatusCd}
+		            , null
+		        )
+		    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+	
+	<select id="selectAttRoundLabelList">
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY lsa.LCT_ROUND ) AS lct_print_round
+			, lsa.LCT_ROUND AS lct_round
+			, la.ATT_DAY AS attDay
+			, COUNT(*) AS total_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_OK' THEN 1 ELSE 0 END) AS ok_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_NO' THEN 1 ELSE 0 END) AS no_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_EARLY' THEN 1 ELSE 0 END) AS early_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_LATE' THEN 1 ELSE 0 END) AS late_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_EXCP' THEN 1 ELSE 0 END) AS excp_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_TBD' THEN 1 ELSE 0 END) AS tbd_cnt
+		FROM LCT_STU_ATT lsa
+		JOIN LCT_ATTROUND la ON
+			lsa.LECTURE_ID = la.LECTURE_ID
+			AND lsa.LCT_ROUND = la.LCT_ROUND 
+		WHERE
+			lsa.LECTURE_ID = #{lectureId} 
+		GROUP BY
+			lsa.LCT_ROUND, la.ATT_DAY 
+		ORDER BY
+			lsa.LCT_ROUND DESC
+	</select>
+	
+	<select id="selectAttendanceRecordList">
+		SELECT
+			  lsa.LECTURE_ID
+			, lsa.LCT_ROUND
+			, lsa.ENROLL_ID
+			, lsa.ATT_AT
+			, lsa.ATT_STATUS_CD
+			, lsa.ATT_COMMENT
+		FROM
+			LCT_STU_ATT lsa
+		WHERE
+			lsa.LECTURE_ID = #{lectureId}
+			AND lsa.LCT_ROUND = #{lctRound}
+	</select>
+
+    <delete id="deleteLctAttRound">
+        DELETE FROM
+        	LCT_ATTROUND la
+		WHERE
+			la.LECTURE_ID = #{lectureId}
+			AND la.LCT_ROUND = #{lctRound}
+    </delete>
+    
+    <delete id="deleteLctAttRecord">
+		DELETE FROM
+			LCT_STU_ATT lsa
+		WHERE
+			lsa.LECTURE_ID = #{lectureId}
+			AND lsa.LCT_ROUND = #{lctRound}
+    </delete>
+    
+    <update id="updateAttendanceRecordList">
+		MERGE INTO
+			LCT_STU_ATT lsa
+		USING (
+		<foreach collection="items" item="it" separator=" UNION ALL ">
+			SELECT
+				#{it.enrollId} AS enroll_id
+				, #{it.attStatusCd} AS att_status_cd
+				, #{it.attComment, jdbcType=VARCHAR} AS att_comment
+			FROM dual
+		</foreach>
+		) src
+		ON (
+			lsa.LECTURE_ID = #{lectureId}
+			AND lsa.LCT_ROUND = #{attRound}
+			AND lsa.ENROLL_ID = src.enroll_id
+		)
+		WHEN MATCHED THEN
+			UPDATE SET
+			lsa.ATT_STATUS_CD = src.att_status_cd
+			, lsa.ATT_COMMENT = src.att_comment
+			, lsa.ATT_AT = SYSTIMESTAMP
+		WHEN NOT MATCHED THEN
+			INSERT (
+				LECTURE_ID
+				, LCT_ROUND
+				, ENROLL_ID
+				, ATT_AT
+				, ATT_STATUS_CD
+				, ATT_COMMENT
+			) VALUES (
+				#{lectureId}
+				, #{attRound}
+				, src.enroll_id
+				, SYSTIMESTAMP
+				, src.att_status_cd
+				, src.att_comment
+			)
+	</update>
+	
+	<select id="selectStudentAttendanceLabel">
+		SELECT
+			lsa.ENROLL_ID
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_OK' THEN 1 ELSE 0 END) AS ok_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_NO' THEN 1 ELSE 0 END) AS no_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_EARLY' THEN 1 ELSE 0 END) AS early_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_LATE' THEN 1 ELSE 0 END) AS late_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_EXCP' THEN 1 ELSE 0 END) AS excp_cnt
+			, SUM(CASE WHEN lsa.ATT_STATUS_CD = 'ATTD_TBD' THEN 1 ELSE 0 END) AS tbd_cnt
+		FROM LCT_STU_ATT lsa 
+		WHERE lecture_id = #{lectureId}
+		GROUP BY lsa.ENROLL_ID
+		ORDER BY lsa.ENROLL_ID
+	</select>
+
+</mapper>

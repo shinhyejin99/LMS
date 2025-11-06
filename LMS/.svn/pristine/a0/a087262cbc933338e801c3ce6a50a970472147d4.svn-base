@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuApplyLctMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectStuApplyLct" parameterType="string" resultType="kr.or.jsu.vo.StuApplyLctVO">
+        SELECT 
+          apply_id
+        , student_no
+        , lecture_id
+        , apply_at
+        FROM stu_apply_lct
+        WHERE apply_id = #{applyId}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStuApplyLctList" resultType="kr.or.jsu.vo.StuApplyLctVO">
+        SELECT 
+          apply_id
+        , student_no
+        , lecture_id
+        , apply_at
+        FROM stu_apply_lct
+        ORDER BY apply_at DESC
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStuApplyLct" parameterType="kr.or.jsu.vo.StuApplyLctVO">
+        INSERT INTO stu_apply_lct (
+          apply_id
+        , student_no
+        , lecture_id
+        , apply_at
+        ) VALUES (
+          #{applyId}
+        , #{studentNo}
+        , #{lectureId}
+        , #{applyAt}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateStuApplyLct" parameterType="kr.or.jsu.vo.StuApplyLctVO">
+        UPDATE stu_apply_lct
+        SET 
+          student_no = #{studentNo}
+        , lecture_id = #{lectureId}
+        , apply_at   = #{applyAt}
+        WHERE apply_id = #{applyId}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStuApplyLct" parameterType="string">
+        DELETE FROM stu_apply_lct
+        WHERE apply_id = #{applyId}
+    </delete>
+
+</mapper>

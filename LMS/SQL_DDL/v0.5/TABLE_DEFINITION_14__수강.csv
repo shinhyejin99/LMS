@@ -1,0 +1,40 @@
+테이블정의서,,,,,,,,,
+테이블명,14 학생_수강,,테이블ID,STU_ENROLL_LCT,,,,,
+작성일,2025-09-26 00:00:00,,작성자,송태호,,UNIQUE,"(STUDENT_NO, LECTURE_ID)",,
+테이블 설명,수강신청 기간이 종료되어 확정된 학생-강의 엔터티의 관계를 기록하는 테이블입니다.,,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,ENROLL_ID,,학생별수강id,시퀀스,CHAR(15),NOT NULL,,PK,"-- 사용법 : 'STENRL' || LPAD(TO_CHAR(SEQ_STU_LCT_APPLY.NEXTVAL), 9, '0')"
+2.0,STUDENT_NO,,학번,학번,CHAR(9),NOT NULL,,FK(학생),
+3.0,LECTURE_ID,,강의번호,시퀀스,CHAR(15),NOT NULL,,FK(강의),
+4.0,ENROLL_STATUS_CD,,수강상태코드,공통코드,VARCHAR2(50),NOT NULL,,,수강상태코드 : 5. LMS 자료사전
+5.0,RETAKE_YN,,재이수여부,YN,CHAR(1),NOT NULL,,,
+6.0,STATUS_CHANGE_AT,,최종상태변경일,,DATE,NOT NULL,,,
+7.0,AUTO_GRADE,,자동산출평점,평점,"NUMBER(2, 1)",,,,"4.5, 4.0, 3.5 ... 공통코드 테이블 참고."
+8.0,FINAL_GRADE,,최종평점,평점,"NUMBER(2, 1)",,,,
+9.0,CHANGE_REASON,,보정이유,,VARCHAR2(500),,,,자동산출평점과 최종평점이 다를 경우 작성
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,14.1 학생_강의평가,,테이블ID,STU_REVIEW_LCT,,,,,
+작성일,2025-09-29 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,"강의가 종료되고, 학생이 해당 강의에 대한 평가를 작성하는 테이블입니다.
+강의평가를 JSON 형태로 저장합니다(프로토타입)",,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,ENROLL_ID,,학생별수강id,시퀀스,CHAR(15),NOT NULL,,"PK, FK(수강)",
+2.0,CREATE_AT,,작성일시,,DATE,NOT NULL,,,
+3.0,RESULT_JSON,,강평JSON,JSON,VARCHAR2(4000),NOT NULL,,,
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,14.2 학생_강의성적이의제기,,테이블ID,STU_OBJECTION,,,,,
+작성일,2025-09-29 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,,,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,ENROLL_ID,,학생별수강id,시퀀스,CHAR(15),NOT NULL,,"PK, FK(수강)",
+2.0,OBJECTION_DETAIL,,이의내용,,VARCHAR2(4000),NOT NULL,,,
+3.0,ATTACH_FILE_ID,,첨부파일,파일ID,VARCHAR2(50),,,,
+4.0,OBJECTION_AT,,생성일,,DATE,NOT NULL,,,
+5.0,REPLY_COMMENT,,답변,,VARCHAR2(4000),,,,

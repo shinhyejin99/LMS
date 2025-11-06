@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>등록금 납부확인서</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm 20mm;
+        }
+
+        body {
+            font-family: 'NanumGothic', sans-serif;
+            font-size: 10pt;
+            color: #222;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 22pt;
+            font-weight: 700;
+            margin-bottom: 25px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #333;
+            letter-spacing: 1px;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .info-row {
+            margin-bottom: 8px;
+        }
+
+        .info-label {
+            display: inline-block;
+            width: 100px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .confirmation-text {
+            text-align: center;
+            font-size: 11pt;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-left: 4px solid #555;
+        }
+
+        .section-title {
+            padding: 6px 0;
+            font-weight: 700;
+            margin-bottom: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #555;
+            padding-left: 10px;
+            font-size: 11pt;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            border: none;
+        }
+
+        th, td {
+            border: none;
+            border-bottom: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: left;
+        }
+
+        thead tr {
+            border-bottom: 2px solid #555;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #e8e8e8;
+            font-size: 11pt;
+        }
+
+        .total-row td {
+            color: #000;
+            font-weight: 700;
+            border-bottom: 2px solid #333;
+        }
+
+        /* 통합 테이블 스타일 */
+        .combined-table th,
+        .combined-table td {
+            border-bottom: 1px solid #ddd;
+            padding: 6px 8px;
+        }
+
+        .combined-table thead th {
+            background-color: #f0f0f0;
+            font-weight: 600;
+            color: #444;
+            border-bottom: 2px solid #555;
+        }
+
+        .combined-table td:nth-child(2),
+        .combined-table th:nth-child(2) {
+            border-right: 2px solid #999;
+        }
+
+        .total-amount-table {
+            border: 2px solid #333;
+            background-color: #f9f9f9;
+        }
+
+        .total-amount-table .total-row th,
+        .total-amount-table .total-row td {
+            font-size: 14pt;
+            padding: 12px 8px;
+        }
+
+        .footer {
+		    margin-top: 40px;
+		    padding-top: 10px;
+		    text-align: center;
+		    position: relative;
+		}
+
+		.footer-date {
+		    font-size: 11pt;
+		    margin-bottom: 20px;
+		    color: #555;
+		}
+
+		.university-info {
+		    font-size: 15pt;
+		    font-weight: 700;
+		    line-height: 1.6;
+		    margin-bottom: 5px;
+		    position: relative;
+		    display: inline-block;
+		}
+
+		.stamp-container {
+		    display: inline-block;
+		    width: 80px;
+		    height: 80px;
+		    margin-top: 10px;
+		}
+
+		.stamp-img {
+		    width: 80px;
+		    height: 80px;
+		    opacity: 0.85;
+		}
+
+		.footer-table {
+		    width: 100%;
+		    border: none;
+		    margin-top: 20px;
+		}
+
+		.footer-table td {
+		    border: none;
+		    vertical-align: middle;
+		    text-align: center;
+		}
+
+		.footer-left {
+		    width: 40%;
+		}
+
+		.footer-center {
+		    width: 30%;
+		    position: relative;
+		}
+
+		.footer-right {
+		    width: 30%;
+		}
+
+		.stamp-container-inline {
+		    position: absolute;
+		    right: -47px;
+		    top: -15px;
+		    z-index: 10;
+		}
+
+		.signature-text-block {
+		    display: flex;
+		    flex-direction: column;
+		    align-items: center;
+		    margin-right: 1px;
+		}
+    </style>
+</head>
+<body>
+    <div class="header">
+        등록금 납부확인서
+    </div>
+
+    <!-- 인적사항 -->
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">학과:</span>
+            <span th:text="${data.deptName}">컴퓨터공학과</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">학번:</span>
+            <span th:text="${data.studentNo}">20251234</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">생년월일:</span>
+            <span th:text="${data.birthDate}">990101</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">성명:</span>
+            <span th:text="${data.studentName}">홍길동</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">납부일자:</span>
+            <span th:text="${data.payDate}">2025년 03월 15일</span>
+        </div>
+    </div>
+
+    <!-- 확인 문구 -->
+    <div class="confirmation-text">
+        위 학생은 <strong th:text="${data.yearTerm}">2025학년도 1학기</strong> 등록금을 납부하였음을 확인합니다.
+    </div>
+
+    <!-- 등록금 및 감면액 통합 내역 -->
+    <div class="section-title">등록금 및 감면액 내역</div>
+    <table class="combined-table">
+        <thead>
+            <tr>
+                <th width="25%" class="text-center">등록금 항목</th>
+                <th width="25%" class="text-right">금액</th>
+                <th width="25%" class="text-center">감면액 항목</th>
+                <th width="25%" class="text-right">금액</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 데이터 행 -->
+            <tr th:each="i : ${#numbers.sequence(0, T(java.lang.Math).max(data.tuitionDetails.size() - 1, data.scholarshipDetails.size() - 1))}">
+                <td th:if="${i < data.tuitionDetails.size()}" th:text="${data.tuitionDetails[i].itemName}">등록금항목</td>
+                <td th:if="${i >= data.tuitionDetails.size()}"></td>
+
+                <td th:if="${i < data.tuitionDetails.size()}" class="text-right"
+                    th:text="${#numbers.formatDecimal(data.tuitionDetails[i].amount, 0, 'COMMA', 0, 'POINT')} + ' 원'">금액</td>
+                <td th:if="${i >= data.tuitionDetails.size()}"></td>
+
+                <td th:if="${i < data.scholarshipDetails.size()}" th:text="${data.scholarshipDetails[i].itemName}">장학금항목</td>
+                <td th:if="${i >= data.scholarshipDetails.size()}"></td>
+
+                <td th:if="${i < data.scholarshipDetails.size()}" class="text-right"
+                    th:text="'-' + ${#numbers.formatDecimal(data.scholarshipDetails[i].amount, 0, 'COMMA', 0, 'POINT')} + ' 원'">감면액</td>
+                <td th:if="${i >= data.scholarshipDetails.size()}"></td>
+            </tr>
+
+            <!-- 합계 행 -->
+            <tr class="total-row">
+                <td>등록금 합계 (A)</td>
+                <td class="text-right" th:text="${#numbers.formatDecimal(data.tuitionSum, 0, 'COMMA', 0, 'POINT')} + ' 원'">합계</td>
+                <td>감면액 합계 (B)</td>
+                <td class="text-right" th:text="'-' + ${#numbers.formatDecimal(data.scholarshipSum, 0, 'COMMA', 0, 'POINT')} + ' 원'">합계</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 실 납입액 -->
+    <table class="total-amount-table">
+        <tbody>
+            <tr class="total-row">
+                <th width="50%" style="border-right: 1px solid #555;">실 납입액 (A - B)</th>
+                <td width="50%" class="text-right" style="font-weight: 700;" th:text="${#numbers.formatDecimal(data.finalAmount, 0, 'COMMA', 0, 'POINT')} + ' 원'">실납입액</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 발급 정보 (가로 정렬) -->
+	<div class="footer">
+	    <table class="footer-table">
+	        <tbody>
+	            <tr>
+	                <td class="footer-left"></td>
+	                <td class="footer-center">
+	                    <div class="university-info">
+	                        <span th:text="${data.universityName}">○○ 대학교</span>
+	                        <span>총장</span>
+	                    </div>
+	                    <div class="stamp-container-inline">
+	                        <img th:src="${stampImage}" alt="직인" class="stamp-img" />
+	                    </div>
+	                </td>
+	                <td class="footer-right"></td>
+	            </tr>
+	        </tbody>
+	    </table>
+	</div>
+</body>
+</html>

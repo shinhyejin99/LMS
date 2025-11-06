@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.UnivYeartermMapper">
+
+    <insert id="insertUnivYearterm">
+        INSERT INTO univ_yearterm (
+            yearterm_cd,
+            start_at,
+            end_at
+        ) VALUES (
+            #{yeartermCd},
+            #{startAt},
+            #{endAt}
+        )
+    </insert>
+
+    <select id="selectUnivYeartermByCd" resultType="kr.or.jsu.vo.UnivYeartermVO">
+        SELECT
+            yearterm_cd,
+            start_at,
+            end_at
+        FROM
+            univ_yearterm
+        WHERE
+            yearterm_cd = #{yeartermCd}
+    </select>
+
+	<!-- 교수) 수강신청 학생 내역 관련 -->
+    <select id="selectAvailableYearTerms" resultType="kr.or.jsu.vo.UnivYeartermVO">
+        SELECT
+            yearterm_cd
+            , start_at
+            , end_at
+        FROM
+            univ_yearterm
+        WHERE
+        	START_AT &lt;= #{limitDate}
+    	ORDER BY YEARTERM_CD DESC
+    </select>
+
+    <update id="updateUnivYearterm">
+        UPDATE univ_yearterm
+        SET
+            start_at = #{startAt},
+            end_at = #{endAt}
+        WHERE
+            yearterm_cd = #{yeartermCd}
+    </update>
+
+    <delete id="deleteUnivYearterm">
+        DELETE FROM univ_yearterm
+        WHERE
+            yearterm_cd = #{yeartermCd}
+    </delete>
+
+</mapper>

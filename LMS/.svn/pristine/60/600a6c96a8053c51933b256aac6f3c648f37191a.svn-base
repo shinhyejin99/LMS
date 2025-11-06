@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.09        정태일            MyBatis XML 포맷 정리
+-->
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.CertificateDetailMapper">
+
+	<!-- 증명서 상세 등록 -->
+	<insert id="insertCertificateDetail" parameterType="kr.or.jsu.vo.CertificateDetailVO">
+		INSERT INTO certificate_detail (
+			  cert_req_id
+			, certificate_cd
+			, item
+			, value
+		) VALUES (
+			  #{certReqId}
+			, #{certificateCd}
+			, #{item}
+			, #{value}
+		)
+	</insert>
+
+	<!-- 증명서 상세 전체 목록 조회 -->
+	<select id="selectCertificateDetailList" resultType="kr.or.jsu.vo.CertificateDetailVO">
+		SELECT
+			  cert_req_id
+			, certificate_cd
+			, item
+			, value
+		FROM
+			certificate_detail
+		ORDER BY
+			  cert_req_id
+			, certificate_cd
+	</select>
+
+	<!-- 요청 ID 기준 증명서 상세 조회 -->
+	<select id="selectCertificateDetailsByReqId" parameterType="string" resultType="kr.or.jsu.vo.CertificateDetailVO">
+		SELECT
+			  item
+			, value
+		FROM
+			certificate_detail
+		WHERE
+			cert_req_id = #{certReqId}
+	</select>
+
+	<!-- 증명서 상세 수정 -->
+	<update id="updateCertificateDetail" parameterType="kr.or.jsu.vo.CertificateDetailVO">
+		UPDATE certificate_detail
+		SET
+			  item  = #{item}
+			, value = #{value}
+		WHERE
+			  cert_req_id    = #{certReqId}
+			AND certificate_cd = #{certificateCd}
+	</update>
+
+	<!-- 증명서 상세 삭제 -->
+	<delete id="deleteCertificateDetail" parameterType="kr.or.jsu.vo.CertificateDetailVO">
+		DELETE FROM certificate_detail
+		WHERE
+			  cert_req_id    = #{certReqId}
+			AND certificate_cd = #{certificateCd}
+	</delete>
+
+</mapper>

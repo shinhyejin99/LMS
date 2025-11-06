@@ -1,0 +1,268 @@
+import React, { useEffect, useMemo, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+
+const fmtDateTime = (iso) => {
+  if (!iso) return '-'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '-'
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+const resolveStatus = (startAt, endAt) => {
+  const now = Date.now()
+  const s = startAt ? new Date(startAt).getTime() : null
+  const e = endAt ? new Date(endAt).getTime() : null
+  if (s && s > now) return 'upcoming'
+  if (s && s <= now) {
+    if (!e || e >= now) return 'ongoing'
+    if (e < now) return 'closed'
+  }
+  return 'ongoing'
+}
+
+function Section({ title, items }) {
+  const buckets = useMemo(() => {
+    const b = { all: [], upcoming: [], ongoing: [], closed: [] }
+    for (const t of items) {
+      const st = resolveStatus(t.startAt, t.endAt)
+      b.all.push(t)
+      b[st].push(t)
+    }
+    return b
+  }, [items])
+
+  const Row = ({ t }) => (
+    <div className="list-group-item">
+      <div className="d-flex justify-content-between align-items-center">
+        <div className="me-3 overflow-hidden">
+          <div className="h6 mb-1 text-truncate" title={t.title || t.taskName}>{t.title || t.taskName || '(?�목 ?�음)'}</div>
+          <div className="text-muted small">{fmtDateTime(t.startAt)} ~ {fmtDateTime(t.endAt)}</div>
+        </div>
+        <div className="text-end small text-muted">
+          ?�성: {fmtDateTime(t.createAt || t.createdAt)}
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <section className="mb-4">
+      <div className="d-flex align-items-center justify-content-between mb-2">
+        <h2 className="h6 mb-0">{title}</h2>
+        <div className="text-muted small">?�체 {buckets.all.length} · ?�정 {buckets.upcoming.length} · 진행 {buckets.ongoing.length} · 마감 {buckets.closed.length}</div>
+      </div>
+      <div className="list-group list-group-flush">
+        {buckets.all.length === 0 ? (
+          <div className="list-group-item text-center text-muted">??��???�습?�다.</div>
+        ) : (
+          buckets.all.map((t, i) => <RowItem key={t.indivtaskId||t.grouptaskId||t.id || t.taskId || i} t={t} lectureId={lectureId} kind={(t.indivtaskId||t.indivtaskName)?'indiv':'group'} />)
+        )}
+      </div>
+    </section>
+  )
+}
+
+// ?��??�서???�용?????�도�?Row�?모듈 ?�코?�에 ?�의
+const Row = ({ t }) => (
+  <div className="list-group-item">
+    <div className="d-flex justify-content-between align-items-center">
+      <div className="me-3 overflow-hidden">
+        <div className="h6 mb-1 text-truncate" title={t.title || t.taskName}>{t.title || t.taskName || '(?�목 ?�음)'}</div>
+        <div className="text-muted small">{fmtDateTime(t.startAt)} ~ {fmtDateTime(t.endAt)}</div>
+      </div>
+      <div className="text-end small text-muted">
+        ?�성: {fmtDateTime(t.createAt || t.createdAt)}
+      </div>
+    </div>
+  </div>
+)
+
+// ?�릭 가?�한 과제/조별과제 Row
+const RowItem = ({ t, lectureId, kind }) => {
+  const title = t.title || t.taskName || t.indivtaskName || t.grouptaskName || '(?�목 ?�음)'
+  const start = fmtDateTime(t.startAt)
+  const end = fmtDateTime(t.endAt)
+  const created = fmtDateTime(t.createAt || t.createdAt)
+  const indivId = t.indivtaskId || t.id || t.taskId
+  const groupId = t.grouptaskId || t.id || t.taskId
+  const to = kind === 'indiv'
+    ? `/classroom/professor/${encodeURIComponent(lectureId)}/task/indiv/${encodeURIComponent(indivId || '')}`
+    : `/classroom/professor/${encodeURIComponent(lectureId)}/task/group/${encodeURIComponent(groupId || '')}`
+  return (
+    <Link to={to} className="list-group-item list-group-item-action text-reset text-decoration-none">
+      <div className="d-flex justify-content-between align-items-center">
+        <div className="me-3 overflow-hidden">
+          <div className="h6 mb-1 text-truncate" title={title}>{title}</div>
+          <div className="text-muted small">{start} ~ {end}</div>
+        </div>
+        <div className="text-end small text-muted">
+          ?�성: {created}
+        </div>
+      </div>
+    </Link>
+  )
+}
+export default function Task() {
+  const { lectureId } = useParams()
+  const [indiv, setIndiv] = useState([])
+  const [group, setGroup] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // JSX ?��??�서??useMemo ???�출�??�한 ??규칙 ?�반??방�??�기 ?�한 ?��?계산??  // ?�재 ?�면?�서??간단??카운??계산�??�요?��?�?즉시 ?��?�??�체합?�다.
+  const useMemo = (fn) => fn()
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const base = `/classroom/api/v1/professor/task/${encodeURIComponent(lectureId)}`
+        const [ri, rg] = await Promise.all([
+          fetch(`${base}/indiv`, { headers: { Accept: 'application/json' }, credentials: 'include' }),
+          fetch(`${base}/group`, { headers: { Accept: 'application/json' }, credentials: 'include' }),
+        ])
+        if (!ri.ok || !rg.ok) throw new Error('과제 목록??불러?��? 못했?�니??')
+        const [li, lg] = await Promise.all([ri.json(), rg.json()])
+        if (!alive) return
+        setIndiv(Array.isArray(li) ? li : [])
+        setGroup(Array.isArray(lg) ? lg : [])
+      } catch (e) {
+        if (!alive) return
+        setError(e)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
+    return () => { alive = false }
+  }, [lectureId])
+
+  return (
+    <section id="task-root" className="container py-0" data-lecture-id={lectureId}>
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <h1 className="h3 mb-0">과제</h1>
+        <div className="btn-group">
+          <button type="button" className="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" disabled>??과제</button>
+          <ul className="dropdown-menu">
+            <li><a className="dropdown-item" href="#">개인과제</a></li>
+            <li><a className="dropdown-item" href="#">조별과제</a></li>
+          </ul>
+        </div>
+      </div>
+
+      {loading && <div className="text-muted">로딩 중�?/div>}
+      {error && <div className="alert alert-danger" role="alert">{String(error.message || error)}</div>}
+
+      {!loading && !error && (
+        <div className="row g-4 align-items-start">
+          {/* 개인과제 */}
+          <div className="col-12 col-xl-6">
+            <div className="card shadow-sm">
+              <div className="card-header d-flex align-items-center justify-content-between">
+                <h2 className="h5 mb-0">개인과제</h2>
+                <div className="small text-muted">?�시: 과제�??�작/마감/?�록??/div>
+              </div>
+              <div className="card-body">
+                <ul className="nav nav-pills mb-3" id="indiv-status-tabs" role="tablist">
+                  <li className="nav-item" role="presentation"><button className="nav-link active" id="indiv-all-tab" data-bs-toggle="tab" data-bs-target="#indiv-all" type="button" role="tab">?�체 <span className="badge bg-secondary ms-1" id="indiv-count-all">{indiv.length}</span></button></li>
+                  <li className="nav-item" role="presentation"><button className="nav-link" id="indiv-upcoming-tab" data-bs-toggle="tab" data-bs-target="#indiv-upcoming" type="button" role="tab">?�작 ??<span className="badge bg-secondary ms-1" id="indiv-count-upcoming">{useMemo(()=>indiv.filter(t=>resolveStatus(t.startAt,t.endAt)==='upcoming').length,[indiv])}</span></button></li>
+                  <li className="nav-item" role="presentation"><button className="nav-link" id="indiv-ongoing-tab" data-bs-toggle="tab" data-bs-target="#indiv-ongoing" type="button" role="tab">진행�?<span className="badge bg-secondary ms-1" id="indiv-count-ongoing">{useMemo(()=>indiv.filter(t=>resolveStatus(t.startAt,t.endAt)==='ongoing').length,[indiv])}</span></button></li>
+                  <li className="nav-item" role="presentation"><button className="nav-link" id="indiv-closed-tab" data-bs-toggle="tab" data-bs-target="#indiv-closed" type="button" role="tab">마감 <span className="badge bg-secondary ms-1" id="indiv-count-closed">{useMemo(()=>indiv.filter(t=>resolveStatus(t.startAt,t.endAt)==='closed').length,[indiv])}</span></button></li>
+                </ul>
+                <div className="tab-content" id="indiv-status-content">
+                  <div id="indiv-all" className="tab-pane fade show active" role="tabpanel" aria-labelledby="indiv-all-tab">
+                    <div id="indiv-list-all" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {indiv.length===0 ? <div className="list-group-item text-center text-muted">??��???�습?�다.</div> : indiv.map((t,i)=>(<RowItem key={t.indivtaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="indiv"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="개인과제 ?�체 ?�이지 ?�동"><ul id="indiv-pagination-all" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                  <div id="indiv-upcoming" className="tab-pane fade" role="tabpanel" aria-labelledby="indiv-upcoming-tab">
+                    <div id="indiv-list-upcoming" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {indiv.filter(t=>resolveStatus(t.startAt,t.endAt)==='upcoming').map((t,i)=>(<RowItem key={t.indivtaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="indiv"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="개인과제 ?�작???�이지 ?�동"><ul id="indiv-pagination-upcoming" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                  <div id="indiv-ongoing" className="tab-pane fade" role="tabpanel" aria-labelledby="indiv-ongoing-tab">
+                    <div id="indiv-list-ongoing" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {indiv.filter(t=>resolveStatus(t.startAt,t.endAt)==='ongoing').map((t,i)=>(<RowItem key={t.indivtaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="indiv"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="개인과제 진행 ?�이지 ?�동"><ul id="indiv-pagination-ongoing" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                  <div id="indiv-closed" className="tab-pane fade" role="tabpanel" aria-labelledby="indiv-closed-tab">
+                    <div id="indiv-list-closed" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {indiv.filter(t=>resolveStatus(t.startAt,t.endAt)==='closed').map((t,i)=>(<RowItem key={t.indivtaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="indiv"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="개인과제 마감 ?�이지 ?�동"><ul id="indiv-pagination-closed" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 조별과제 */}
+          <div className="col-12 col-xl-6">
+            <div className="card shadow-sm">
+              <div className="card-header d-flex align-items-center justify-content-between">
+                <h2 className="h5 mb-0">조별과제</h2>
+                <div className="small text-muted">?�시: 과제�??�작/마감/?�록??/div>
+              </div>
+              <div className="card-body">
+                <ul className="nav nav-pills mb-3" id="group-status-tabs" role="tablist">
+                  <li className="nav-item" role="presentation"><button className="nav-link active" id="group-all-tab" data-bs-toggle="tab" data-bs-target="#group-all" type="button" role="tab">?�체 <span className="badge bg-secondary ms-1" id="group-count-all">{group.length}</span></button></li>
+                  <li className="nav-item" role="presentation"><button className="nav-link" id="group-upcoming-tab" data-bs-toggle="tab" data-bs-target="#group-upcoming" type="button" role="tab">?�작 ??<span className="badge bg-secondary ms-1" id="group-count-upcoming">{useMemo(()=>group.filter(t=>resolveStatus(t.startAt,t.endAt)==='upcoming').length,[group])}</span></button></li>
+                  <li className="nav-item" role="presentation"><button className="nav-link" id="group-ongoing-tab" data-bs-toggle="tab" data-bs-target="#group-ongoing" type="button" role="tab">진행�?<span className="badge bg-secondary ms-1" id="group-count-ongoing">{useMemo(()=>group.filter(t=>resolveStatus(t.startAt,t.endAt)==='ongoing').length,[group])}</span></button></li>
+                  <li className="nav-item" role="presentation"><button className="nav-link" id="group-closed-tab" data-bs-toggle="tab" data-bs-target="#group-closed" type="button" role="tab">마감 <span className="badge bg-secondary ms-1" id="group-count-closed">{useMemo(()=>group.filter(t=>resolveStatus(t.startAt,t.endAt)==='closed').length,[group])}</span></button></li>
+                </ul>
+                <div className="tab-content" id="group-status-content">
+                  <div id="group-all" className="tab-pane fade show active" role="tabpanel" aria-labelledby="group-all-tab">
+                    <div id="group-list-all" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {group.length===0 ? <div className="list-group-item text-center text-muted">??��???�습?�다.</div> : group.map((t,i)=>(<RowItem key={t.grouptaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="group"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="조별과제 ?�체 ?�이지 ?�동"><ul id="group-pagination-all" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                  <div id="group-upcoming" className="tab-pane fade" role="tabpanel" aria-labelledby="group-upcoming-tab">
+                    <div id="group-list-upcoming" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {group.filter(t=>resolveStatus(t.startAt,t.endAt)==='upcoming').map((t,i)=>(<RowItem key={t.grouptaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="group"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="조별과제 ?�작???�이지 ?�동"><ul id="group-pagination-upcoming" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                  <div id="group-ongoing" className="tab-pane fade" role="tabpanel" aria-labelledby="group-ongoing-tab">
+                    <div id="group-list-ongoing" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {group.filter(t=>resolveStatus(t.startAt,t.endAt)==='ongoing').map((t,i)=>(<RowItem key={t.grouptaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="group"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="조별과제 진행 ?�이지 ?�동"><ul id="group-pagination-ongoing" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                  <div id="group-closed" className="tab-pane fade" role="tabpanel" aria-labelledby="group-closed-tab">
+                    <div id="group-list-closed" className="table-responsive">
+                      <div className="list-group list-group-flush">
+                        {group.filter(t=>resolveStatus(t.startAt,t.endAt)==='closed').map((t,i)=>(<RowItem key={t.grouptaskId||t.id||t.taskId||i} t={t} lectureId={lectureId} kind="group"/>))}
+                      </div>
+                    </div>
+                    <nav className="mt-3" aria-label="조별과제 마감 ?�이지 ?�동"><ul id="group-pagination-closed" className="pagination pagination-sm mb-0"></ul></nav>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div id="task-notice-box" className="alert alert-danger mt-3 d-none" role="alert"></div>
+    </section>
+  )
+}

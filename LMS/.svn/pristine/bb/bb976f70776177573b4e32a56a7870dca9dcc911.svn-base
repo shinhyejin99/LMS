@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="${data['certificateName']}"></title>
+  <style>
+    /* (선택) openhtmltopdf 사용 시 한글 폰트를 직접 지정하려면 실제 경로로 교체
+    @font-face {
+      font-family: 'NanumGothic';
+      src: url('fonts/NanumGothic.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    */
+
+    body {
+      font-family: 'NanumGothic', 'Malgun Gothic', 'Noto Sans KR', AppleSDGothicNeo, sans-serif;
+      margin: 40px;
+      color: #333;
+    }
+
+    .cert-container {
+      border: 5px double #000;
+      padding: 30px;
+      width: 80%;
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      position: relative;
+      overflow: visible; /* PDF 렌더러에서 내용 클리핑 방지 */
+    }
+
+    /* ===== 워터마크(미리보기일 때만 표시) ===== */
+    .wm-fixed { display: none; }
+    .preview-mode .wm-fixed {
+      display: block;
+      position: fixed; /* 모든 페이지에 반복 표시 */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      font-size: 120px;
+      font-weight: 800;
+      color: rgba(0, 0, 0, 0.08);
+      letter-spacing: 2px;
+      z-index: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* ===== 헤더(로고 + 제목) ===== */
+    .header {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 15px;
+    }
+    .header img.logo {
+      width: 120px;     /* 로고 크기 */
+      height: auto;
+      display: block;
+      margin: 0 auto 12px; /* 중앙 정렬 */
+    }
+
+    /* ===== 표 ===== */
+    .content-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+      border: 1px solid #eee;
+    }
+    .content-table th, .content-table td {
+      border: 1px solid #eee;
+      padding: 12px;
+      text-align: left;
+      font-size: 15px;
+    }
+    .content-table th {
+      background-color: #f9f9f9;
+      width: 30%;
+      font-weight: normal;
+    }
+
+    /* ===== 본문 문구 ===== */
+    .purpose-section {
+      text-align: center;
+      font-size: 14pt;
+      line-height: 1.8;
+      margin: 40px 0;
+    }
+
+    /* ===== 푸터 ===== */
+    .footer {
+      text-align: center;
+      margin-top: 50px;
+    }
+    .issue-date {
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+	.school-president {
+	  font-size: 22px;
+	  font-weight: bold;
+	  margin-top: 20px;
+	  text-align: center;
+	  white-space: nowrap; /* 줄바꿈 방지 */
+	}
+	
+	/* 직인이 있을 때만 왼쪽 스페이서로 균형 맞춤 */
+	.school-president.has-stamp::before {
+	  content: "";
+	  display: inline-block;
+	  width: 100px;          /* 직인과 동일 폭 */
+	  height: 1px;
+	  vertical-align: middle;
+	  margin-right: 15px;    /* 텍스트와 간격 */
+	}
+	
+	.school-president .label {
+	  display: inline-block;
+	  vertical-align: middle;
+	}
+	
+	.school-president img.seal {
+	  width: 100px;
+	  height: auto;
+	  vertical-align: middle;
+	  margin-left: 15px;     /* 텍스트와 간격 */
+	}
+
+    /* 인쇄 시 약간 더 촘촘하게 */
+    @media print {
+      body { margin: 0; }
+      .cert-container { border: 4px double #000; padding: 28px; }
+    }
+  </style>
+</head>
+<body th:class="${data['bodyClass']}">
+  <!-- 미리보기 모드에서만 보이는 고정 워터마크 -->
+  <div class="wm-fixed">미리보기용</div>
+
+  <div class="cert-container">
+    <div class="header">
+      <img th:src="${data['logoImage']}" alt="대학교 로고" class="logo" />
+      <span th:text="${data['certificateName']}"></span>
+    </div>
+
+    <table class="content-table">
+      <tr>
+        <th>성 명</th>
+        <td th:text="${data['lastName']} + ${data['firstName']}"></td>
+      </tr>
+      <tr>
+        <th>주민등록번호</th>
+        <td th:text="${data['formattedRegiNo']}"></td>
+      </tr>
+      <tr>
+        <th>사번 / 교번</th>
+        <td th:text="${data['employeeId']}"></td>
+      </tr>
+      <tr>
+        <th>소 속</th>
+        <td th:text="${data['departmentName']}"></td>
+      </tr>
+      <tr>
+        <th>직 위</th>
+        <td th:text="${data['position']}"></td>
+      </tr>
+      <tr>
+        <th>재직상태</th>
+        <td th:text="${data['statusName']}"></td>
+      </tr>
+      <tr>
+        <th>임용일</th>
+        <td th:text="${data['hireDate']}"></td>
+      </tr>
+    </table>
+
+    <div class="purpose-section">
+      위 사람은 본교에 재직 중임을 증명합니다.
+    </div>
+
+	<div class="footer">
+	  <div class="issue-date" th:text="'발급일: ' + ${data['requestAt']}"></div>
+	
+	  <div class="school-president"
+	       th:classappend="${data['stampImage']} ? ' has-stamp' : ''">
+	    <span class="label">JSU 대학교 총장</span>
+	    <img th:if="${data['stampImage']}"
+	         th:src="${data['stampImage']}"
+	         alt="총장 직인"
+	         class="seal"/>
+	  </div>
+	</div>
+ 	</div>
+</body>
+</html>

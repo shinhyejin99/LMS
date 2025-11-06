@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 26.     	정태일            최초 생성
+ *	2025.10. 01.		정태일			조회수 추가
+ *	2025.10. 23.		정태일			긴급공지 추가
+ *	2025.10. 29.		정태일			긴급공지 수정
+-->
+<mapper namespace="kr.or.jsu.mybatis.mapper.PortalNoticeMapper">
+
+	<sql id="simpleSearchFrag">
+		<if test="simpleSearch != null">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleSearch.searchWord)">
+				AND (
+				<!-- 제목,내용,부서로 검색 -->
+					<choose>
+						<when test="simpleSearch.searchType eq 'title'">
+							TITLE LIKE '%' || #{simpleSearch.searchWord} || '%'
+						</when>
+						<when test="simpleSearch.searchType eq 'content'">
+							CONTENT LIKE '%' || #{simpleSearch.searchWord} || '%'
+						</when>
+						<when test="simpleSearch.searchType eq 'company'">
+							STF_DEPT_NAME LIKE '%' || #{simpleSearch.searchWord} || '%'
+						</when>
+						<otherwise>
+							TITLE LIKE '%' || #{simpleSearch.searchWord} || '%'
+						</otherwise>
+					</choose>
+
+				<!-- 통합 검색 -->
+<!-- 					TITLE LIKE '%' || #{simpleSearch.searchWord} || '%' -->
+<!-- 					OR CONTENT LIKE '%' || #{simpleSearch.searchWord} || '%' -->
+<!-- 					OR STF_DEPT_NAME LIKE '%' || #{simpleSearch.searchWord} || '%' -->
+				)
+			</if>
+		</if>
+	</sql>
+
+	<!-- 공지사항 등록 (selectKey 사용) -->
+	<insert id="insertPortalNotice" parameterType="kr.or.jsu.vo.PortalNoticeVO">
+	
+	    <!-- PK 생성 -->
+	    <selectKey keyProperty="noticeId" order="BEFORE" resultType="string">
+	        SELECT 'PTLNTC' || LPAD(TO_CHAR(SEQ_PORTAL_NOTICE.NEXTVAL), 9, '0') 
+	        FROM DUAL
+	    </selectKey>
+	    INSERT INTO PORTAL_NOTICE (
+	          NOTICE_ID
+	        , STAFF_NO
+	        , NOTICE_TYPE_CD
+	        , TITLE
+	        , CONTENT
+	        , ATTACH_FILE_ID
+	        , CREATE_AT
+	        , MODIFY_AT
+	        , DELETE_YN
+	        , VIEW_CNT
+	        , IS_URGENT
+	    ) VALUES (
+	          #{noticeId}
+	        , #{staffNo}
+	        , #{noticeTypeCd}
+	        , #{title}
+	        , #{content}
+	        , #{attachFileId}
+	        , #{createAt}
+	        , #{modifyAt}
+	        , #{deleteYn}
+	        , 0
+	        , #{isUrgent}
+	    )
+	</insert>
+
+	<select id="selectTotalRecord" resultType="int" parameterType="kr.or.jsu.core.paging.PaginationInfo">
+	    SELECT 
+	          COUNT(*)
+	    FROM PORTAL_NOTICE PN
+	    LEFT JOIN STAFF S ON PN.STAFF_NO = S.STAFF_NO
+	    LEFT JOIN STAFF_DEPT SD ON S.STF_DEPT_CD = SD.STF_DEPT_CD 
+	    WHERE DELETE_YN = 'N'
+	    <if test="noticeTypeCd != null and noticeTypeCd != ''">
+	        AND NOTICE_TYPE_CD = #{noticeTypeCd}
+	    </if>
+	    
+	    <include refid="simpleSearchFrag"/> 
+	    
+	</select>
+	
+	<!-- 공지사항 조회 (페이징+검색)-->
+    <select id="selectPortalNoticeList" parameterType="kr.or.jsu.core.paging.PaginationInfo" resultType="kr.or.jsu.vo.PortalNoticeVO">
+        WITH MV AS (
+            SELECT 
+                ROWNUM RNUM
+                , A.*
+            FROM (
+                SELECT 
+                      PN.NOTICE_ID
+                    , PN.STAFF_NO
+                    , PN.NOTICE_TYPE_CD
+                    , PN.TITLE
+                    , PN.CONTENT
+                    , PN.ATTACH_FILE_ID
+                    , PN.CREATE_AT
+                    , PN.MODIFY_AT
+                    , PN.DELETE_YN
+                    , PN.VIEW_CNT
+                    , PN.IS_URGENT
+                    , SD.STF_DEPT_NAME
+                FROM 
+                    PORTAL_NOTICE PN
+                    LEFT JOIN STAFF S ON PN.STAFF_NO = S.STAFF_NO
+                    LEFT JOIN STAFF_DEPT SD ON S.STF_DEPT_CD = SD.STF_DEPT_CD
+                WHERE 
+                    PN.DELETE_YN = 'N' 
+                    <if test="noticeTypeCd != null and noticeTypeCd != ''">
+                        AND PN.NOTICE_TYPE_CD = #{noticeTypeCd}
+                    </if>
+                    
+                    <include refid="simpleSearchFrag"/> 
+<!--                 ORDER BY PN.CREATE_AT DESC -->
+                ORDER BY PN.IS_URGENT DESC, PN.CREATE_AT DESC
+            ) A
+        )
+        SELECT 
+            NOTICE_ID
+            , STAFF_NO
+            , NOTICE_TYPE_CD
+            , TITLE
+            , CONTENT
+            , ATTACH_FILE_ID
+            , CREATE_AT
+            , MODIFY_AT
+            , DELETE_YN
+            , VIEW_CNT
+            , IS_URGENT 
+            , STF_DEPT_NAME
+        FROM MV
+        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+    </select>
+
+	<!-- 공지사항 상세 조회 (부서명 포함) -->
+	<select id="selectPortalNoticeDetail"
+	        parameterType="string"
+	        resultType="kr.or.jsu.vo.PortalNoticeVO">
+	    SELECT
+	          PN.NOTICE_ID
+	        , PN.STAFF_NO
+	        , PN.NOTICE_TYPE_CD
+	        , PN.TITLE
+	        , PN.CONTENT
+	        , PN.ATTACH_FILE_ID
+	        , PN.CREATE_AT
+	        , PN.MODIFY_AT
+	        , PN.DELETE_YN
+	        , PN.VIEW_CNT
+	        , PN.IS_URGENT
+	        , SD.STF_DEPT_NAME
+	        -- mapUnderscoreToCamelCase=false면 아래 라인을 사용
+	        -- , SD.STF_DEPT_NAME AS stfDeptName
+	    FROM PORTAL_NOTICE PN
+	    LEFT JOIN STAFF S         ON S.STAFF_NO     = PN.STAFF_NO
+	    LEFT JOIN STAFF_DEPT SD   ON SD.STF_DEPT_CD = S.STF_DEPT_CD
+	    WHERE PN.NOTICE_ID = #{noticeId}
+	      AND PN.DELETE_YN = 'N'
+	</select>
+
+    <!-- 긴급 공지 상태 변경 -->
+    <update id="updatePortalNoticeUrgentStatus">
+        UPDATE PORTAL_NOTICE
+        SET   IS_URGENT = #{isUrgent, jdbcType=CHAR}
+        WHERE NOTICE_ID = #{noticeId}
+    </update>
+
+    <!-- 공지사항 수정 -->
+    <update id="updatePortalNotice" parameterType="kr.or.jsu.vo.PortalNoticeVO">
+        UPDATE PORTAL_NOTICE
+        SET   STAFF_NO      = #{staffNo}
+            , NOTICE_TYPE_CD = #{noticeTypeCd}
+            , TITLE          = #{title}
+            , CONTENT        = #{content}
+            , ATTACH_FILE_ID = #{attachFileId}
+            , MODIFY_AT      = #{modifyAt}
+            , DELETE_YN      = #{deleteYn}
+            , IS_URGENT      = #{isUrgent}
+        WHERE NOTICE_ID     = #{noticeId}
+    </update>
+
+    <!-- 공지사항 삭제 (DELETE_YN = 'Y' 처리) -->
+    <update id="deletePortalNotice" parameterType="string">
+        UPDATE PORTAL_NOTICE
+        SET   DELETE_YN = 'Y'
+        WHERE NOTICE_ID = #{noticeId}
+    </update>
+    
+    	<!-- 조회수 증가 -->
+	<update id="incrementViewCount">
+		UPDATE
+	        PORTAL_NOTICE
+	    SET
+	        VIEW_CNT = VIEW_CNT + 1
+	    WHERE
+	        NOTICE_ID = #{noticeId}
+	
+	</update>
+
+<!-- 대시보드용 긴급 공지 목록 조회 (최신 5개) -->
+    <select id="selectUrgentNoticeList" resultType="kr.or.jsu.vo.PortalNoticeVO">
+        SELECT 
+              NOTICE_ID
+            , TITLE
+            , CREATE_AT
+            , IS_URGENT
+        FROM (
+            SELECT 
+                  NOTICE_ID
+                , TITLE
+                , CREATE_AT
+                , IS_URGENT
+            FROM PORTAL_NOTICE
+            WHERE IS_URGENT = 'Y'
+              AND DELETE_YN = 'N'
+            ORDER BY CREATE_AT DESC
+        )
+        WHERE ROWNUM &lt;= 5
+    </select>
+
+</mapper>

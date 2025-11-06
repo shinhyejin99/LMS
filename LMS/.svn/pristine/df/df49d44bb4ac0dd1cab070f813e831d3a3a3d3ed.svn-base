@@ -1,0 +1,927 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.dummy.DummyDataMapper">
+
+	<insert id="insertOneDummyAddress">
+        INSERT INTO ADDRESS (
+              ADDR_ID
+            , BASE_ADDR
+            , DETAIL_ADDR
+            , ZIP_CODE
+            , LATITUDE
+            , LONGITUDE
+            , USING_YN
+        ) VALUES (
+              #{addrId}
+            , #{baseAddr}
+            , #{detailAddr}
+            , #{zipCode}
+            , #{latitude}
+            , #{longitude}
+            , #{usingYn}
+        )
+	</insert>
+
+	<insert id="insertDummyAddress">
+	    INSERT ALL
+	    <foreach collection="list" item="addr">
+	        INTO ADDRESS (
+	              ADDR_ID
+	            , BASE_ADDR
+	            , DETAIL_ADDR
+	            , ZIP_CODE
+	            , LATITUDE
+	            , LONGITUDE
+	            , USING_YN
+	        ) VALUES (
+	              #{addr.addrId}
+	            , #{addr.baseAddr}
+	            , #{addr.detailAddr}
+	            , #{addr.zipCode}
+	            , #{addr.latitude}
+	            , #{addr.longitude}
+	            , #{addr.usingYn}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertOneDummyUser">
+	    INSERT INTO "USERS" (
+	          USER_ID
+	        , PW_HASH
+	        , FIRST_NAME
+	        , LAST_NAME
+	        , REGI_NO
+	        , PHOTO_ID
+	        , ADDR_ID
+	        , MOBILE_NO
+	        , EMAIL
+	        , BANK_CODE
+	        , BANK_ACCOUNT
+	        , CREATE_AT
+	    ) VALUES (
+	          #{userId}
+	        , #{pwHash}
+	        , #{firstName}
+	        , #{lastName}
+	        , #{regiNo}
+	        , #{photoId}
+	        , #{addrId}
+	        , #{mobileNo}
+	        , #{email}
+	        , #{bankCode}
+	        , #{bankAccount}
+	        , COALESCE(#{createAt}, SYSDATE)
+	    )
+	</insert>
+
+	<!-- 여러 User 등록 -->
+	<insert id="insertDummyUser">
+	    INSERT ALL
+	    <foreach collection="list" item="u">
+	        INTO "USERS" (
+	              USER_ID
+	            , PW_HASH
+	            , FIRST_NAME
+	            , LAST_NAME
+	            , REGI_NO
+	            , PHOTO_ID
+	            , ADDR_ID
+	            , MOBILE_NO
+	            , EMAIL
+	            , BANK_CODE
+	            , BANK_ACCOUNT
+	            , CREATE_AT
+	        ) VALUES (
+	              #{u.userId}
+	            , #{u.pwHash}
+	            , #{u.firstName}
+	            , #{u.lastName}
+	            , #{u.regiNo}
+	            , #{u.photoId}
+	            , #{u.addrId}
+	            , #{u.mobileNo}
+	            , #{u.email}
+	            , #{u.bankCode}
+	            , #{u.bankAccount}
+	            , COALESCE(#{u.createAt}, SYSDATE)
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertOneDummyStudent" parameterType="kr.or.jsu.vo.StudentVO">
+	    INSERT INTO STUDENT (
+	          STUDENT_NO
+	        , USER_ID
+	        , UNIV_DEPT_CD
+	        , GRADE_CD
+	        , STU_STATUS_CD
+	        , ENG_LNAME
+	        , ENG_FNAME
+	        , GUARD_NAME
+	        , GUARD_RELATION
+	        , GUARD_PHONE
+	        , PROFESSOR_ID
+	    ) VALUES (
+	          #{studentNo}
+	        , #{userId}
+	        , #{univDeptCd}
+	        , #{gradeCd}
+	        , #{stuStatusCd}
+	        , #{engLname}
+	        , #{engFname}
+	        , #{guardName}
+	        , #{guardRelation}
+	        , #{guardPhone}
+	        , #{professorId}
+	    )
+	</insert>
+
+	<insert id="insertOneDummyStuEntrance">
+	    INSERT INTO STU_ENTRANCE (
+	          STUDENT_NO
+	        , ENTRANCE_TYPE_CD
+	        , GRAD_HIGHSCHOOL
+	        , GRAD_YEAR
+	        , GRAD_EXAM_YN
+	        , TARGET_DEPT
+	    ) VALUES (
+	          #{studentNo}
+	        , #{entranceTypeCd}
+	        , #{gradHighschool}
+	        , #{gradYear}
+	        , #{gradExamYn}
+	        , #{targetDept}
+	    )
+	</insert>
+
+	<insert id="insertDummyStuGraduations" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="records" item="record">
+	        INTO STU_GRADUATION (
+	              STUDENT_NO
+	            , EXPECTED_YEARTERM_CD
+	            , GRADUATE_YEARTERM_CD
+	            , GRADUATION_GPA
+	            , DEGREE_NO
+	            , UPDATE_AT
+	        ) VALUES (
+	              #{record.studentNo}
+	            , #{record.expectedYeartermCd}
+	            , #{record.graduateYeartermCd}
+	            , #{record.graduationGpa, jdbcType=DECIMAL}
+	            , #{record.degreeNo}
+	            , COALESCE(#{record.updateAt, jdbcType=TIMESTAMP}, SYSDATE)
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertOneDummyStuGraduation" parameterType="kr.or.jsu.vo.StuGraduationVO">
+	    INSERT INTO STU_GRADUATION (
+	          STUDENT_NO
+	        , EXPECTED_YEARTERM_CD
+	        , GRADUATE_YEARTERM_CD
+	        , GRADUATION_GPA
+	        , DEGREE_NO
+	        , UPDATE_AT
+	    ) VALUES (
+	          #{studentNo}
+	        , #{expectedYeartermCd}
+	        , #{graduateYeartermCd}
+	        , #{graduationGpa, jdbcType=DECIMAL}
+	        , #{degreeNo}
+	        , COALESCE(#{updateAt, jdbcType=TIMESTAMP}, SYSDATE)
+	    )
+	</insert>
+
+	<insert id="insertOneDummyProfessor">
+		INSERT INTO PROFESSOR (
+		          PROFESSOR_NO
+	        , USER_ID
+	        , UNIV_DEPT_CD
+	        , ENG_LNAME
+	        , ENG_FNAME
+	        , PRF_STATUS_CD
+	        , PRF_APPNT_CD
+	        , PRF_POSIT_CD
+	        , OFFICE_NO
+	    ) VALUES (
+	          #{professorNo}
+	        , #{userId}
+	        , #{univDeptCd}
+	        , #{engLname}
+	        , #{engFname}
+	        , #{prfStatusCd}
+	        , #{prfAppntCd}
+	        , #{prfPositCd}
+	        , #{officeNo}
+	    )
+	</insert>
+
+	<insert id="insertOneDummyPrfCareer">
+		INSERT INTO PRF_CAREER (
+	          CAREER_NAME
+	        , PROFESSOR_NO
+	        , START_DAY
+	        , END_DAY
+	    ) VALUES (
+	          #{careerName}
+	        , #{professorNo}
+	        , #{startDay}
+	        , #{endDay}
+	    )
+	</insert>
+
+	<insert id="insertOneDummyPrfDegree">
+		INSERT INTO PRF_DEGREE (
+	          DEGREE_REGI_ID
+	        , PROFESSOR_NO
+	        , DEGREE_NAME
+	        , INSTITUTION
+	        , ACQUIRE_AT
+	        , FINAL_YN
+	    ) VALUES (
+	          #{degreeRegiId}
+	        , #{professorNo}
+	        , #{degreeName}
+	        , #{institution}
+	        , #{acquireAt}
+	        , #{finalYn}
+	    )
+	</insert>
+
+	<insert id="insertOneDummySubject">
+		INSERT INTO SUBJECT (
+	        SUBJECT_CD
+	      , UNIV_DEPT_CD
+	      , SUBJECT_NAME
+	      , COMPLETION_CD
+	      , SUBJECT_TYPE_CD
+	      , CREDIT
+	      , HOUR
+	      , CREATE_AT
+	      , DELETE_AT
+	    ) VALUES (
+	        #{subjectCd}
+	      , #{univDeptCd}
+	      , #{subjectName}
+	      , #{completionCd}
+	      , #{subjectTypeCd}
+	      , #{credit}
+	      , #{hour}
+	      , #{createAt}
+	      , #{deleteAt}
+	    )
+	</insert>
+
+	<insert id="insertOneDummySbjTarget">
+		INSERT INTO SBJ_TARGET (
+	        SUBJECT_CD
+	      , GRADE_CD
+	      , TERM_CD
+	    ) VALUES (
+	        #{subjectCd}
+	      , #{gradeCd}
+	      , #{termCd}
+	    )
+	</insert>
+
+	<insert id="insertOneDummyLecture">
+	    INSERT INTO LECTURE (
+	        LECTURE_ID
+	      , SUBJECT_CD
+	      , PROFESSOR_NO
+	      , YEARTERM_CD
+	      , MAX_CAP
+	      , LECTURE_INDEX
+	      , LECTURE_GOAL
+	      , PREREQ_SUBJECT
+	      , CANCEL_YN
+	      , END_AT
+	      , SCORE_FINALIZE_YN
+	    )
+	    VALUES (
+	        #{lectureId}
+	      , #{subjectCd}
+	      , #{professorNo}
+	      , #{yeartermCd}
+	      , #{maxCap}
+	      , #{lectureIndex}
+	      , #{lectureGoal}
+	      , #{prereqSubject}
+	      , #{cancelYn}
+	      , #{endAt}
+	      , #{scoreFinalizeYn}
+	    )
+	</insert>
+
+	<update id="clearLectureEndAtByYearterm">
+	    UPDATE LECTURE
+	       SET END_AT = NULL
+	     WHERE YEARTERM_CD = #{yeartermCd}
+	</update>
+
+	<insert id="insertOneDummyEnrollment">
+	    INSERT INTO STU_ENROLL_LCT (
+	        ENROLL_ID
+	      , STUDENT_NO
+	      , LECTURE_ID
+	      , ENROLL_STATUS_CD
+	      , RETAKE_YN
+	      , STATUS_CHANGE_AT
+	      , AUTO_GRADE
+	      , FINAL_GRADE
+	      , CHANGE_REASON
+	    )
+	    VALUES (
+	        #{enrollId}
+	      , #{studentNo}
+	      , #{lectureId}
+	      , #{enrollStatusCd}
+	      , #{retakeYn}
+	      , #{statusChangeAt,jdbcType=DATE}
+	      , #{autoGrade}
+	      , #{finalGrade}
+	      , #{changeReason}
+	    )
+	</insert>
+
+	<insert id="insertColleges">
+	    INSERT ALL
+	    <foreach collection="list" item="college">
+	        INTO COLLEGE (
+	            COLLEGE_CD,
+	            COLLEGE_NAME,
+	            CREATE_AT,
+	            DELETE_AT
+	        ) VALUES (
+	            #{college.collegeCd},
+	            #{college.collegeName},
+	            #{college.createAt, jdbcType=TIMESTAMP},
+	            #{college.deleteAt, jdbcType=TIMESTAMP}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertUnivDepartments">
+	    INSERT ALL
+	    <foreach collection="list" item="dept">
+	        INTO UNIV_DEPT (
+	            UNIV_DEPT_CD,
+	            COLLEGE_CD,
+	            UNIV_DEPT_NAME,
+	            CREATE_AT,
+	            DELETE_AT
+	        ) VALUES (
+	            #{dept.univDeptCd},
+	            #{dept.collegeCd},
+	            #{dept.univDeptName},
+	            #{dept.createAt, jdbcType=TIMESTAMP},
+	            #{dept.deleteAt, jdbcType=TIMESTAMP}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertStaffDepartments">
+	    INSERT ALL
+	    <foreach collection="list" item="stf">
+	        INTO STAFF_DEPT (
+	            STF_DEPT_CD,
+	            STF_DEPT_NAME,
+	            DEPT_TELE_NO,
+	            CREATE_AT,
+	            DELETE_AT
+	        ) VALUES (
+	            #{stf.stfDeptCd},
+	            #{stf.stfDeptName},
+	            #{stf.deptTeleNo},
+	            #{stf.createAt, jdbcType=TIMESTAMP},
+	            #{stf.deleteAt, jdbcType=TIMESTAMP}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertOneDummyStaff">
+	    INSERT INTO STAFF (
+	        STAFF_NO,
+	        USER_ID,
+	        STF_DEPT_CD,
+	        TELE_NO
+	    ) VALUES (
+	        #{staffNo},
+	        #{userId},
+	        #{stfDeptCd},
+	        #{teleNo}
+	    )
+	</insert>
+
+	<insert id="insertDummyApproval">
+	    INSERT INTO APPROVAL (
+	        APPROVE_ID
+	      , PREV_APPROVE_ID
+	      , USER_ID
+	      , APPROVE_YNNULL
+	      , APPLY_TYPE_CD
+	      , APPLICANT_USER_ID
+	      , APPROVE_AT
+	      , COMMENTS
+	      , ATTACH_FILE_ID
+	    ) VALUES (
+	        #{approveId}
+	      , #{prevApproveId}
+	      , #{userId}
+	      , #{approveYnnull}
+	      , #{applyTypeCd}
+	      , #{applicantUserId}
+	      , #{approveAt}
+	      , #{comments}
+	      , #{attachFileId}
+	    )
+	</insert>
+
+	<insert id="insertDummyLctOpenApply">
+	    INSERT INTO LCT_OPEN_APPLY (
+	        LCT_APPLY_ID
+	      , SUBJECT_CD
+	      , PROFESSOR_NO
+	      , YEARTERM_CD
+	      , LECTURE_INDEX
+	      , LECTURE_GOAL
+	      , PREREQ_SUBJECT
+	      , EXPECT_CAP
+	      , DESIRE_OPTION
+	      , CANCEL_YN
+	      , APPROVE_ID
+	      , APPLY_AT
+	    ) VALUES (
+	        #{lctApplyId}
+	      , #{subjectCd}
+	      , #{professorNo}
+	      , #{yeartermCd}
+	      , #{lectureIndex}
+	      , #{lectureGoal}
+	      , #{prereqSubject}
+	      , #{expectCap}
+	      , #{desireOption}
+	      , #{cancelYn}
+	      , #{approveId}
+	      , #{applyAt}
+	    )
+	</insert>
+
+	<insert id="insertDummyLctApplyWeekby" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="weekbyList" item="item">
+	        INTO LCT_APPLY_WEEKBY (
+	            LECTURE_WEEK
+	          , LCT_APPLY_ID
+	          , WEEK_GOAL
+	          , WEEK_DESC
+	        ) VALUES (
+	            #{item.lectureWeek}
+	          , #{item.lctApplyId}
+	          , #{item.weekGoal}
+	          , #{item.weekDesc}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyLctApplyGraderatio" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="graderatioList" item="item">
+	        INTO LCT_APPLY_GRADERATIO (
+	            LCT_APPLY_ID
+	          , GRADE_CRITEIRA_CD
+	          , RATIO
+	        ) VALUES (
+	            #{item.lctApplyId}
+	          , #{item.gradeCriteiraCd}
+	          , #{item.ratio}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyLctWeekby" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="weekbyList" item="item">
+	        INTO LCT_WEEKBY (
+	            LECTURE_WEEK
+	          , LECTURE_ID
+	          , WEEK_GOAL
+	          , WEEK_DESC
+	        ) VALUES (
+	            #{item.lectureWeek}
+	          , #{item.lectureId}
+	          , #{item.weekGoal}
+	          , #{item.weekDesc}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyLctGraderatio" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="graderatioList" item="item">
+	        INTO LCT_GRADERATIO (
+	            GRADE_CRITERIA_CD
+	          , LECTURE_ID
+	          , RATIO
+	        ) VALUES (
+	            #{item.gradeCriteiraCd}
+	          , #{item.lectureId}
+	          , #{item.ratio}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyPlaces" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="placeList" item="place">
+	        INTO PLACE (
+	            PLACE_CD
+	          , PARENT_CD
+	          , PLACE_NAME
+	          , CREATE_AT
+	          , MODIFY_AT
+	          , USING_YN
+	          , ADDR_ID
+	          , PLACE_TYPE_CD
+	          , CAPACITY
+	          , PLACE_USAGE_CD
+	        ) VALUES (
+	            #{place.placeCd}
+	          , #{place.parentCd}
+	          , #{place.placeName}
+	          , #{place.createAt}
+	          , #{place.modifyAt}
+	          , #{place.usingYn}
+	          , #{place.addrId}
+	          , #{place.placeTypeCd}
+	          , #{place.capacity}
+	          , #{place.placeUsageCd}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+
+	<insert id="insertDummyEnrollGpa" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="gpaList" item="item">
+	        INTO ENROLL_GPA (
+	            ENROLL_ID
+	          , GPA_CD
+	          , CREATE_AT
+	          , UPDATE_AT
+	        ) VALUES (
+	            #{item.enrollId}
+	          , #{item.gpaCd}
+	          , #{item.createAt}
+	          , #{item.updateAt}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertOneEnrollGpa">
+	    INSERT INTO ENROLL_GPA (
+	        ENROLL_ID,
+	        GPA_CD,
+	        CREATE_AT,
+	        UPDATE_AT
+	    ) VALUES (
+	        #{enrollId},
+	        #{gpaCd},
+	        #{createAt},
+	        #{updateAt}
+	    )
+	</insert>
+
+<select id="findAvailableRoom" resultType="string">
+	    SELECT
+	        A.PLACE_CD
+	    FROM
+	        PLACE A
+	    WHERE
+	        A.PLACE_TYPE_CD = 'ROOM'
+	        AND A.CAPACITY >= #{maxCap}
+
+	        <!-- 1. roomPrefix 매개변수를 사용-->
+	        AND A.PLACE_CD LIKE #{roomPrefix}
+
+	        AND A.USING_YN = 'Y'
+
+	        <!-- 2. 강의실 시간 중복 체크 -->
+	        AND NOT EXISTS (
+	            SELECT 1
+	            FROM LCT_ROOM_SCHEDULE B
+	            WHERE B.PLACE_CD = A.PLACE_CD
+	            -- 전달받은 timeBlocks 배열의 모든 요소를 검사
+	            AND B.TIMEBLOCK_CD IN
+	            <foreach collection="timeBlocks" item="item" open="(" close=")" separator=",">
+	                #{item}
+	            </foreach>
+	        )
+	    -- 가장 정원이 작은 강의실부터 배정하여 공간을 효율적으로 사용
+	    ORDER BY A.CAPACITY ASC
+	    FETCH FIRST 1 ROW ONLY
+	</select>
+
+	<insert id="insertSchedule">
+	    INSERT INTO LCT_ROOM_SCHEDULE (LECTURE_ID, PLACE_CD, TIMEBLOCK_CD)
+	    VALUES (#{lectureId}, #{roomPlaceCd}, #{timeBlockCd})
+	</insert>
+
+	<select id="isProfessorBusy" resultType="int">
+	    SELECT
+	        COUNT(T2.LECTURE_ID)  -- 겹치는 강의 건수 계산
+	    FROM
+	        LECTURE T1  -- T1: 이미 배정된 강의 정보를 가져오기 위함
+	    INNER JOIN
+	        LCT_ROOM_SCHEDULE T2 ON T1.LECTURE_ID = T2.LECTURE_ID
+	    WHERE
+	        -- 1. 중복 확인 대상 교수 지정
+	        T1.PROFESSOR_NO = #{professorNo}
+	        -- 2. 해당 교수가 배정받으려는 시간 블록들 중 하나라도 사용 중인지 확인
+	        AND T2.TIMEBLOCK_CD IN
+	        <foreach collection="timeBlocks" item="item" open="(" close=")" separator=",">
+	            #{item}
+	        </foreach>
+	</select>
+
+	<insert id="insertDummyLctPosts" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="posts" item="post">
+	        INTO LCT_POST (
+	            LCT_POST_ID,
+	            LECTURE_ID,
+	            TITLE,
+	            CONTENT,
+	            CREATE_AT,
+	            ATTACH_FILE_ID,
+	            DELETE_YN,
+	            POST_TYPE,
+	            TEMP_SAVE_YN,
+	            REVEAL_AT
+	        ) VALUES (
+	            #{post.lctPostId},
+	            #{post.lectureId},
+	            #{post.title},
+	            #{post.content},
+	            #{post.createAt, jdbcType=TIMESTAMP},
+	            #{post.attachFileId},
+	            #{post.deleteYn},
+	            #{post.postType},
+	            #{post.tempSaveYn},
+	            #{post.revealAt, jdbcType=TIMESTAMP}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyLctAttrounds" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="rounds" item="round">
+	        INTO LCT_ATTROUND (
+	            LCT_ROUND,
+	            LECTURE_ID,
+	            ATT_DAY,
+	            QRCODE_FILE_ID
+	        ) VALUES (
+	            #{round.lctRound},
+	            #{round.lectureId},
+	            #{round.attDay, jdbcType=DATE},
+	            #{round.qrcodeFileId}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyLctStuAtt" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="records" item="record">
+	        INTO LCT_STU_ATT (
+	            LECTURE_ID,
+	            LCT_ROUND,
+	            ENROLL_ID,
+	            ATT_AT,
+	            ATT_STATUS_CD,
+	            ATT_COMMENT
+	        ) VALUES (
+	            #{record.lectureId},
+	            #{record.lctRound},
+	            #{record.enrollId},
+	            #{record.attAt, jdbcType=TIMESTAMP},
+	            #{record.attStatusCd},
+	            NULL
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyIndivtasks" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="tasks" item="task">
+	        INTO LCT_INDIVTASK (
+	            INDIVTASK_ID,
+	            LECTURE_ID,
+	            INDIVTASK_NAME,
+	            INDIVTASK_DESC,
+	            CREATE_AT,
+	            START_AT,
+	            END_AT,
+	            DELETE_YN,
+	            ATTACH_FILE_ID
+	        ) VALUES (
+	            #{task.indivtaskId},
+	            #{task.lectureId},
+	            #{task.indivtaskName},
+	            #{task.indivtaskDesc},
+	            #{task.createAt, jdbcType=TIMESTAMP},
+	            #{task.startAt, jdbcType=TIMESTAMP},
+	            #{task.endAt, jdbcType=TIMESTAMP},
+	            #{task.deleteYn},
+	            #{task.attachFileId}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyIndivtaskSubmits" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="submits" item="submit">
+	        INTO INDIVTASK_SUBMIT (
+	            ENROLL_ID,
+	            INDIVTASK_ID,
+	            SUBMIT_DESC,
+	            SUBMIT_FILE_ID,
+	            SUBMIT_AT,
+	            EVALU_SCORE,
+	            EVALU_AT,
+	            EVALU_DESC
+	        ) VALUES (
+	            #{submit.enrollId},
+	            #{submit.indivtaskId},
+	            #{submit.submitDesc},
+	            #{submit.submitFileId},
+	            #{submit.submitAt, jdbcType=TIMESTAMP},
+	            #{submit.evaluScore, jdbcType=DECIMAL},
+	            #{submit.evaluAt, jdbcType=TIMESTAMP},
+	            #{submit.evaluDesc}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyGrouptasks" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="tasks" item="task">
+	        INTO LCT_GROUPTASK (
+	            GROUPTASK_ID,
+	            LECTURE_ID,
+	            GROUPTASK_NAME,
+	            GROUPTASK_DESC,
+	            CREATE_AT,
+	            START_AT,
+	            END_AT,
+	            DELETE_YN,
+	            ATTACH_FILE_ID
+	        ) VALUES (
+	            #{task.grouptaskId},
+	            #{task.lectureId},
+	            #{task.grouptaskName},
+	            #{task.grouptaskDesc},
+	            #{task.createAt, jdbcType=TIMESTAMP},
+	            #{task.startAt, jdbcType=TIMESTAMP},
+	            #{task.endAt, jdbcType=TIMESTAMP},
+	            #{task.deleteYn},
+	            #{task.attachFileId}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyGrouptaskGroups" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="groups" item="group">
+	        INTO GROUPTASK_GROUP (
+	            GROUP_ID,
+	            LEADER_ENROLL_ID,
+	            GROUPTASK_ID,
+	            GROUP_NAME,
+	            CREATE_AT,
+	            USING_YN
+	        ) VALUES (
+	            #{group.groupId},
+	            #{group.readerEnrollId},
+	            #{group.grouptaskId},
+	            #{group.groupName},
+	            #{group.createAt, jdbcType=TIMESTAMP},
+	            #{group.usingYn}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyGrouptaskCrews" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="crews" item="crew">
+	        INTO GROUPTASK_CREW (
+	            GROUP_ID,
+	            ENROLL_ID,
+	            EVALU_SCORE,
+	            EVALU_AT,
+	            EVALU_DESC
+	        ) VALUES (
+	            #{crew.groupId},
+	            #{crew.enrollId},
+	            #{crew.evaluScore, jdbcType=DECIMAL},
+	            #{crew.evaluAt, jdbcType=TIMESTAMP},
+	            #{crew.evaluDesc}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyGrouptaskSubmits" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="submits" item="submit">
+	        INTO GROUPTASK_SUBMIT (
+	            GROUPTASK_ID,
+	            GROUP_ID,
+	            SUBMIT_DESC,
+	            SUBMIT_FILE_ID,
+	            SUBMIT_AT
+	        ) VALUES (
+	            #{submit.grouptaskId},
+	            #{submit.groupId},
+	            #{submit.submitDesc},
+	            #{submit.submitFileId},
+	            #{submit.submitAt, jdbcType=TIMESTAMP}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyExams" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="exams" item="exam">
+	        INTO LCT_EXAM (
+	            LCT_EXAM_ID,
+	            LECTURE_ID,
+	            EXAM_NAME,
+	            EXAM_DESC,
+	            EXAM_TYPE,
+	            CREATE_AT,
+	            START_AT,
+	            END_AT,
+	            WEIGHT_VALUE,
+	            DELETE_YN
+	        ) VALUES (
+	            #{exam.lctExamId},
+	            #{exam.lectureId},
+	            #{exam.examName},
+	            #{exam.examDesc},
+	            #{exam.examType},
+	            #{exam.createAt, jdbcType=TIMESTAMP},
+	            #{exam.startAt, jdbcType=TIMESTAMP},
+	            #{exam.endAt, jdbcType=TIMESTAMP},
+	            #{exam.weightValue, jdbcType=DECIMAL},
+	            #{exam.deleteYn}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+	<insert id="insertDummyExamSubmits" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="submits" item="submit">
+	        INTO EXAM_SUBMIT (
+	            ENROLL_ID,
+	            LCT_EXAM_ID,
+	            SUBMIT_AT,
+	            AUTO_SCORE,
+	            MODIFIED_SCORE,
+	            MODIFY_REASON
+	        ) VALUES (
+	            #{submit.enrollId},
+	            #{submit.lctExamId},
+	            #{submit.submitAt, jdbcType=TIMESTAMP},
+	            #{submit.autoScore, jdbcType=DECIMAL},
+	            #{submit.modifiedScore, jdbcType=DECIMAL},
+	            #{submit.modifyReason}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+</mapper>

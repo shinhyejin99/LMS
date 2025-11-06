@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title th:text="${data['certificateName']}"></title>
+    <style>
+        /* (선택) openhtmltopdf에서 한글 폰트가 필요하면 실제 경로로 교체
+        @font-face {
+          font-family: 'NanumGothic';
+          src: url('fonts/NanumGothic.ttf') format('truetype');
+          font-weight: normal;
+          font-style: normal;
+        }
+        */
+
+        body {
+            font-family: 'NanumGothic', 'Malgun Gothic', AppleSDGothicNeo, 'Noto Sans KR', sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+
+        .cert-container {
+            border: 5px double #000;
+            padding: 30px;
+            width: 80%;
+            max-width: 800px;
+            margin: 30px auto;
+            background-color: #fff;
+            position: relative;      /* 기준 컨테이너 */
+            overflow: visible;       /* PDF에서 클리핑 방지 */
+        }
+
+        /* ===== 워터마크(미리보기 모드에서만 표시) =====
+           openhtmltopdf 호환을 위해 텍스트 + fixed 사용 */
+        .wm-fixed {
+            display: none;
+        }
+        .preview-mode .wm-fixed {
+            display: block;
+            position: fixed;                    /* 모든 페이지에 반복 */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 120px;
+            font-weight: 800;
+            color: rgba(0,0,0,0.08);           /* 연한 투명도 */
+            letter-spacing: 2px;
+            z-index: 0;                         /* 본문보다 뒤 */
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* ===== 헤더(로고 + 제목) ===== */
+        .header {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+        .header img.logo {
+            width: 120px;           /* 로고 크기 */
+            height: auto;
+            display: block;
+            margin: 0 auto 12px;    /* 중앙 정렬 */
+        }
+
+        /* ===== 표 ===== */
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            border: 1px solid #eee;
+        }
+        .content-table th, .content-table td {
+            border: 1px solid #eee;
+            padding: 12px;
+            text-align: left;
+            font-size: 15px;
+        }
+        .content-table th {
+            background-color: #f9f9f9;
+            width: 30%;
+            font-weight: normal;
+        }
+
+        /* ===== 본문 문구 ===== */
+        .main-text {
+            text-align: center;
+            font-size: 14pt;
+            line-height: 1.8;
+            margin: 40px 0;
+        }
+
+        /* ===== 푸터 ===== */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .issue-date {
+            font-size: 15px;
+            margin-bottom: 20px;
+        }
+		.school-president {
+		  font-size: 22px;
+		  font-weight: bold;
+		  margin-top: 20px;
+		  text-align: center;
+		}
+		
+		/* 직인이 있을 때만 왼쪽에 동일 폭 스페이서 삽입 */
+		.school-president.has-stamp::before {
+		  content: "";
+		  display: inline-block;
+		  width: 100px;      /* 직인과 동일 폭 */
+		  height: 1px;       /* 라인 높이 영향 최소화 */
+		  vertical-align: middle;
+		  margin-right: 12px; /* label과의 간격 */
+		}
+		
+		.school-president .label {
+		  display: inline-block;
+		  vertical-align: middle;
+		}
+		
+		.school-president img.seal {
+		  width: 100px;
+		  height: auto;
+		  vertical-align: middle;
+		  margin-left: 12px;  /* label과의 간격 */
+		}
+
+        /* 인쇄 시 약간 더 촘촘하게 */
+        @media print {
+            body { margin: 0; }
+            .cert-container { border: 4px double #000; padding: 28px; }
+        }
+    </style>
+</head>
+<body th:class="${data['bodyClass']}">
+    <!-- 미리보기 모드에서만 보이는 텍스트 워터마크 -->
+    <div class="wm-fixed">미리보기용</div>
+
+    <div class="cert-container">
+        <div class="header">
+            <img th:src="${data['logoImage']}" alt="대학교 로고" class="logo" />
+            <span th:text="${data['certificateName']}"></span>
+        </div>
+
+        <table class="content-table">
+            <tr>
+                <th>성 명</th>
+                <td th:text="${data['lastName']} + ${data['firstName']}"></td>
+            </tr>
+            <tr>
+                <th>주민등록번호</th>
+                <td th:text="${data['formattedRegiNo']}"></td>
+            </tr>
+            <tr>
+                <th>학 번</th>
+                <td th:text="${data['studentNo']}"></td>
+            </tr>
+            <tr>
+                <th>발급번호</th>
+                <td th:text="${data['certReqId']}"></td>
+            </tr>
+            <tr>
+                <th>소 속</th>
+                <td th:text="${data['univDeptName']}"></td>
+            </tr>
+            <tr>
+                <th>입학일자</th>
+                <td th:text="${data['entryDate']}"></td>
+            </tr>
+            <tr>
+                <th>졸업일자</th>
+                <td th:text="${data['graduationDate']}"></td>
+            </tr>
+        </table>
+
+        <div class="main-text">
+            위 사람은 본교 소정의 전 과정을 이수하여<br/>
+            학칙에 의거 학사 학위를 취득하고 졸업하였음을 증명합니다.
+        </div>
+
+        <div class="footer">
+            <div class="issue-date" th:text="'발급일: ' + ${data['requestAt']}">
+            </div>
+			<div class="school-president"
+     th:classappend="${stampImage} ? ' has-stamp' : ''">
+			  <span class="label">JSU 대학교 총장</span>
+			  <img th:if="${stampImage}" th:src="${stampImage}" class="seal" alt="직인"/>
+			</div>
+        </div>
+    </div>
+</body>
+</html>

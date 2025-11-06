@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      		수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.02        정태일            최초 생성
+ *  2025.10.09        정태일            표준 포맷 정리 및 주석 보완
+-->
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.PortalCertificateMapper">
+
+    <!-- 증명서 요청 등록 -->
+    <insert id="insertCertificateReq" parameterType="kr.or.jsu.vo.CertificateReqVO">
+        <selectKey keyProperty="certReqId" order="BEFORE" resultType="string">
+            SELECT TO_CHAR(SYSDATE, 'YYYY') || 'REQ' || LPAD(SEQ_CERTIFICATE_REQ.NEXTVAL, 8, '0') FROM DUAL
+        </selectKey>
+        INSERT INTO certificate_req (
+              cert_req_id
+            , user_id
+            , certificate_cd
+            , request_at
+            , expire_at
+            , copies
+            , submission_place
+            , purpose
+            , status_cd
+        ) VALUES (
+              #{certReqId}
+            , #{userId}
+            , #{certificateCd}
+            , #{requestAt}
+            , #{expireAt}
+            , #{copies}
+            , #{submissionPlace}
+            , #{purpose}
+            , #{statusCd}
+        )
+    </insert>
+
+    <!-- 사용자별 증명서 요청 목록 조회 -->
+    <select id="selectCertificateReqList" parameterType="string" resultType="kr.or.jsu.vo.CertificateReqVO">
+        SELECT
+              cr.cert_req_id
+            , cr.user_id
+            , cr.certificate_cd
+            , c.certificate_name AS "certificateName"
+            , cr.request_at
+            , cr.expire_at
+            , cr.copies             <!-- 발급 부수 -->
+            , cr.submission_place   <!-- 제출처 -->
+            , cr.purpose            <!-- 용도 -->
+            , cr.status_cd          <!-- 신청 상태 코드 -->
+        FROM
+            certificate_req cr
+            JOIN certificate c ON cr.certificate_cd = c.certificate_cd
+        WHERE
+            cr.user_id = #{userId}
+        ORDER BY
+            cr.request_at DESC
+    </select>
+
+    <!-- 모든 증명서 정보 조회 -->
+    <select id="selectAllCertificates" resultType="kr.or.jsu.vo.CertificateVO">
+        SELECT
+              certificate_cd
+            , certificate_name
+            , expire_period
+            , share_scope_cd
+            , template_path
+        FROM
+            certificate
+        ORDER BY
+            certificate_name
+    </select>
+
+    <!-- 증명서 코드로 단일 증명서 조회 -->
+    <select id="selectCertificateByCd" parameterType="string" resultType="kr.or.jsu.vo.CertificateVO">
+        SELECT
+              certificate_cd
+            , certificate_name
+            , expire_period
+            , share_scope_cd
+            , template_path
+        FROM
+            certificate
+        WHERE
+            certificate_cd = #{certificateCd}
+    </select>
+
+    <!-- 증명서 요청 ID로 단일 요청 정보 조회 -->
+    <select id="selectCertificateReqById" parameterType="string" resultType="kr.or.jsu.vo.CertificateReqVO">
+        SELECT
+              cert_req_id
+            , user_id
+            , certificate_cd
+            , request_at
+            , expire_at
+            , copies            <!-- 발급 부수 -->
+            , submission_place  <!-- 제출처 -->
+            , purpose           <!-- 용도 -->
+            , status_cd         <!-- 신청 상태 코드 -->
+        FROM
+            certificate_req
+        WHERE
+            cert_req_id = #{certReqId}
+    </select>
+
+    <!-- 사용자 ID로 사용자 유형(STUDENT, PROFESSOR, STAFF) 조회 -->
+    <select id="selectUserTypeByUserId" parameterType="string" resultType="string">
+        SELECT
+            CASE
+                WHEN EXISTS (SELECT 1 FROM STUDENT   WHERE user_id = #{userId}) THEN 'STUDENT'
+                WHEN EXISTS (SELECT 1 FROM PROFESSOR WHERE user_id = #{userId}) THEN 'PROFESSOR'
+                WHEN EXISTS (SELECT 1 FROM STAFF     WHERE user_id = #{userId}) THEN 'STAFF'
+                ELSE 'UNKNOWN'
+            END AS user_type
+        FROM DUAL
+    </select>
+
+</mapper>

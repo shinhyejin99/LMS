@@ -1,0 +1,128 @@
+DECLARE
+  PROCEDURE drop_t(p_tbl VARCHAR2) IS
+  BEGIN
+    EXECUTE IMMEDIATE 'DROP TABLE '||p_tbl||' CASCADE CONSTRAINTS PURGE';
+  EXCEPTION
+    WHEN OTHERS THEN
+      -- ORA-00942: table or view does not exist -> 무시
+      IF SQLCODE != -942 THEN
+        RAISE;
+      END IF;
+  END;
+BEGIN
+  drop_t('"INDIVTASK_SUBMIT"');
+  drop_t('"PROFESSOR"');
+  drop_t('"DEPT_CONDITION"');
+  drop_t('"STU_SCHOLAR_DETAIL"');
+  drop_t('"LCT_INDIVTASK"');
+  drop_t('"PLACE_EQUIP"');
+  drop_t('"PORTAL_RECRUIT"');
+  drop_t('"LCT_GROUPTASK"');
+  drop_t('"GROUPTASK_SUBMIT"');
+  drop_t('"LCT_GRADERATIO"');
+  drop_t('"STU_GRADU_REQ"');
+  drop_t('"EXAM_SUBMIT"');
+  drop_t('"STU_REVIEW_LCT"');
+  drop_t('"PUSH_NOTICE_TARGET"');
+  drop_t('"LCT_WEEKBY"');
+  drop_t('"APPROVAL"');
+  drop_t('"CERTIFICATE_ITEM"');
+  drop_t('"LCT_EXAM"');
+  drop_t('"PRF_ROOM"');
+  drop_t('"LCT_APPLY_WISHLIST"');
+  drop_t('"LCT_APPLY_WEEKBY"');
+  drop_t('"LCT_POST_REPLY"');
+  drop_t('"COLLEGE"');
+  drop_t('"UNIV_RECORD_APPLY"');
+  drop_t('"TUITION"');
+  drop_t('"STU_TERM_TUITION"');
+  drop_t('"UNIV_YEARTERM"');
+  drop_t('"UNIV_DEPT"');
+  drop_t('"UNIV_AFFIL_APPLY"');
+  drop_t('"LCT_APPLY_GRADERATIO"');
+  drop_t('"ADDRESS"');
+  drop_t('"CERTIFICATE"');
+  drop_t('"LCT_POST"');
+  drop_t('"PUSH_NOTICE"');
+  drop_t('"STU_ENTRANCE"');
+  drop_t('"UNIV_AFFIL_HISTORY"');
+  drop_t('"PORTAL_RECRUIT_API"');
+  drop_t('"SUBJECT"');
+  drop_t('"USERS"');
+  drop_t('"STAFF_DEPT"');
+  drop_t('"SBJ_TARGET"');
+  drop_t('"SCHOLARSHIP"');
+  drop_t('"GROUPTASK_GROUP"');
+  drop_t('"CERTIFICATE_DETAIL"');
+  drop_t('"STU_SCHOLARSHIP"');
+  drop_t('"STU_APPLY_LCT"');
+  drop_t('"UNIV_CALENDAR"');
+  drop_t('"LCT_OPEN_APPLY"');
+  drop_t('"STAFF"');
+  drop_t('"STU_TUITION_REQ"');
+  drop_t('"UNIV_RECORD_HISTORY"');
+  drop_t('"PLACE"');
+  drop_t('"SBJ_RVW_QUESTION"');
+  drop_t('"CERTIFICATE_REQ"');
+  drop_t('"GROUPTASK_CREW"');
+  drop_t('"STU_APPLY_LCT_LOG"');
+  drop_t('"STUDENT"');
+  drop_t('"USER_RESERVE"');
+  drop_t('"STU_MILITARY"');
+  drop_t('"EXAM_QUESTION"');
+  drop_t('"PRF_CAREER"');
+  drop_t('"LCT_STU_ATT"');
+  drop_t('"LECTURE"');
+  drop_t('"STU_ENROLL_LCT"');
+  drop_t('"LCT_ATTROUND"');
+  drop_t('"STU_TUITION_DETAIL"');
+  drop_t('"TIMEBLOCK"');
+  drop_t('"PRF_DEGREE"');
+  drop_t('"PORTAL_NOTICE"');
+  drop_t('"STU_OBJECTION"');
+  drop_t('"LCT_ROOM_SCHEDULE"');
+  drop_t('"STU_COUNSEL"');
+  drop_t('"EXAM_SUBMIT_DETAIL"');
+  drop_t('"FILE_DETAIL"');
+  drop_t('"QUESTION_CHOICE"');
+  drop_t('"LOGIN_HISTORY"');
+  drop_t('"FILES"');
+  drop_t('"COMMON_CODE_SORT"');
+  drop_t('"COMMON_CODE"');
+  drop_t('"ROLE_NO_COUNTER"');
+  drop_t('"ENROLL_GPA"');
+  drop_t('"LCT_SECTION_SCORE"');
+  drop_t('"STU_EXTRA_MAJOR"');
+  drop_t('"STU_GRADUATION"');
+END;
+
+-- 시퀀스 삭제
+
+DROP SEQUENCE SEQ_ADDRESS;
+DROP SEQUENCE SEQ_USER;
+DROP SEQUENCE SEQ_SUBJECT;
+DROP SEQUENCE SEQ_LECTURE;
+DROP SEQUENCE SEQ_SCHOLARSHIP;
+DROP SEQUENCE SEQ_TUITION;
+DROP SEQUENCE SEQ_LCT_OPEN_APPLY;
+DROP SEQUENCE SEQ_PORTAL_RECRUIT;
+DROP SEQUENCE SEQ_FILE;
+DROP SEQUENCE SEQ_APPROVAL;
+DROP SEQUENCE SEQ_STU_LCT_APPLY;
+DROP SEQUENCE SEQ_AFFIL_APPLY;
+DROP SEQUENCE SEQ_CERTIFICATE_REQ;
+DROP SEQUENCE SEQ_DEPT_COND;
+DROP SEQUENCE SEQ_JO_FOR_TASK;
+DROP SEQUENCE SEQ_LCT_EXAM;
+DROP SEQUENCE SEQ_LCT_POST;
+DROP SEQUENCE SEQ_LCT_POST_REPLY;
+DROP SEQUENCE SEQ_LOGIN_HISTORY;
+DROP SEQUENCE SEQ_PORTAL_NOTICE;
+DROP SEQUENCE SEQ_PUSH_NOTICE;
+DROP SEQUENCE SEQ_STU_APPLY_LCT_LOG;
+DROP SEQUENCE SEQ_STU_ENROLL;
+DROP SEQUENCE SEQ_TASK_GROUP;
+DROP SEQUENCE SEQ_TASK_INDIV;
+DROP SEQUENCE SEQ_TT_REQ;
+DROP SEQUENCE SEQ_UNIV_CALENDAR;
+DROP SEQUENCE SEQ_USER_RESERVE;

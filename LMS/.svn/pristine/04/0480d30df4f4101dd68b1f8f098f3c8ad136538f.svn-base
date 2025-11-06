@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 17.     	김수현            최초 생성
+ *	2025. 10. 18.		김수현			강의 검색 조건 수정
+-->
+<mapper namespace="kr.or.jsu.mybatis.mapper.ClassRegistWishListMapper">
+	<!-- ===== 코드조각 ===== -->
+
+    <!-- 강의 검색 조건 -->
+    <sql id="lectureSearchFrag">
+        <if test="paging.simpleSearch != null">
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(paging.simpleSearch.searchWord)">
+                AND (
+                    <choose>
+                        <when test="paging.simpleSearch.searchType eq 'SUBJECT'">
+                            S.SUBJECT_NAME LIKE '%' || #{paging.simpleSearch.searchWord} || '%'
+                        </when>
+                        <when test="paging.simpleSearch.searchType eq 'LECTURE'">
+                            S.SUBJECT_NAME LIKE '%' || #{paging.simpleSearch.searchWord} || '%'
+                        </when>
+                        <when test="paging.simpleSearch.searchType eq 'PROFESSOR'">
+                            (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{paging.simpleSearch.searchWord} || '%'
+                        </when>
+                        <otherwise>
+                            <!-- ALL: 전체 검색 -->
+                            (S.SUBJECT_NAME LIKE '%' || #{simpleSearch.searchWord} || '%'
+                            OR (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{paging.simpleSearch.searchWord} || '%')
+                        </otherwise>
+                    </choose>
+                )
+            </if>
+        </if>
+    </sql>
+
+    <!-- 시간 정보 서브쿼리 -->
+    <sql id="timeInfoSubquery">
+        (
+            SELECT LISTAGG(
+                CASE TB.WEEKDAY
+                    WHEN 'MO' THEN '월'
+                    WHEN 'TU' THEN '화'
+                    WHEN 'WE' THEN '수'
+                    WHEN 'TH' THEN '목'
+                    WHEN 'FR' THEN '금'
+                END || ' ' ||
+                SUBSTR(TB.START_HHMM, 1, 2) || ':' || SUBSTR(TB.START_HHMM, 3, 2) || '-' ||
+                SUBSTR(TB.END_HHMM, 1, 2) || ':' || SUBSTR(TB.END_HHMM, 3, 2),
+                ', '
+            ) WITHIN GROUP (ORDER BY TB.WEEKDAY, TB.START_HHMM)
+            FROM
+            	LCT_ROOM_SCHEDULE LRS
+            JOIN TIMEBLOCK TB ON LRS.TIMEBLOCK_CD = TB.TIMEBLOCK_CD
+            WHERE LRS.LECTURE_ID = L.LECTURE_ID
+        ) AS TIME_INFO
+    </sql>
+
+    <!-- ===== 찜 목록 ===== -->
+
+    <!-- 찜 목록 조회 -->
+    <select id="selectWishlistWithPaging" resultType="kr.or.jsu.classregist.dto.WishlistDTO">
+	    WITH MV AS (
+	        SELECT
+	            T.*,  ROWNUM RNUM
+	        FROM (
+	            SELECT DISTINCT
+	                W.LECTURE_ID
+	                , W.STUDENT_NO
+	                , S.SUBJECT_NAME
+	                , S.SUBJECT_NAME AS LECTURE_NAME
+	                , U.LAST_NAME || U.FIRST_NAME AS PROFESSOR_NAME
+	                , (
+	                    SELECT DISTINCT PLACE_NAME
+	                    FROM LCT_ROOM_SCHEDULE LRS2
+	                    JOIN PLACE PL2 ON LRS2.PLACE_CD = PL2.PLACE_CD
+	                    WHERE LRS2.LECTURE_ID = L.LECTURE_ID
+	                    AND ROWNUM = 1
+	                ) AS PLACE_NAME
+	                -- 수정된 TIME_INFO: 연속된 시간대를 그룹화하여 "월 13:00~14:30" 형식으로 표시
+	                , (
+	                    SELECT LISTAGG(lbl, ', ') WITHIN GROUP (ORDER BY worder, min_start)
+	                    FROM (
+	                        SELECT
+	                            CASE weekday
+	                                WHEN 'MO' THEN '월'
+	                                WHEN 'TU' THEN '화'
+	                                WHEN 'WE' THEN '수'
+	                                WHEN 'TH' THEN '목'
+	                                WHEN 'FR' THEN '금'
+	                            END || ' '
+	                            || SUBSTR(min_start_hhmm,1,2) || ':' || SUBSTR(min_start_hhmm,3,2)
+	                            || '~'
+	                            || SUBSTR(max_end_hhmm,1,2)   || ':' || SUBSTR(max_end_hhmm,3,2) AS lbl,
+	                            CASE weekday
+	                                WHEN 'MO' THEN 1
+	                                WHEN 'TU' THEN 2
+	                                WHEN 'WE' THEN 3
+	                                WHEN 'TH' THEN 4
+	                                WHEN 'FR' THEN 5
+	                            END AS worder,
+	                            min_start_hhmm AS min_start
+	                        FROM (
+	                            SELECT
+	                                weekday,
+	                                MIN(start_hhmm) AS min_start_hhmm,
+	                                MAX(end_hhmm)   AS max_end_hhmm
+	                            FROM (
+	                                SELECT DISTINCT
+	                                    tb.weekday,
+	                                    tb.start_hhmm,
+	                                    tb.end_hhmm,
+	                                    (
+	                                        TO_NUMBER(SUBSTR(tb.start_hhmm,1,2))*60
+	                                        + TO_NUMBER(SUBSTR(tb.start_hhmm,3,2))
+	                                    ) - 30 * ROW_NUMBER() OVER (
+	                                        PARTITION BY tb.weekday
+	                                        ORDER BY tb.start_hhmm
+	                                    ) AS grp
+	                                FROM LCT_ROOM_SCHEDULE lrs2
+	                                JOIN TIMEBLOCK tb ON lrs2.TIMEBLOCK_CD = tb.TIMEBLOCK_CD
+	                                WHERE lrs2.LECTURE_ID = L.LECTURE_ID
+	                            )
+	                            GROUP BY weekday, grp
+	                        )
+	                    )
+	                ) AS TIME_INFO
+	                , S.CREDIT
+	                , S.HOUR
+	                , CC.CD_NAME AS COMPLETION_NAME
+	                , L.MAX_CAP
+	                -- 대상학년
+	                , NVL(
+	                    (
+	                    SELECT LISTAGG(
+	                        DISTINCT
+	                        CASE ST.GRADE_CD
+	                            WHEN '1ST' THEN '1'
+	                            WHEN '2ND' THEN '2'
+	                            WHEN '3RD' THEN '3'
+	                            WHEN '4TH' THEN '4'
+	                        END || '학년',
+	                        ', '
+	                    ) WITHIN GROUP (ORDER BY ST.GRADE_CD)
+	                    FROM SBJ_TARGET ST
+	                    WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+	                    ),
+	                    '전학년'  -- NULL이면 전학년
+	                ) AS TARGET_GRADES
+	                , (SELECT COUNT(*) FROM STU_APPLY_LCT SAL WHERE SAL.LECTURE_ID = L.LECTURE_ID) AS CURRENT_ENROLL
+	                , TO_CHAR(W.WISHLIST_AT, 'YYYY-MM-DD HH24:MI:SS') AS WISHLIST_AT
+	            FROM
+	                LCT_APPLY_WISHLIST W
+	            JOIN LECTURE L ON W.LECTURE_ID = L.LECTURE_ID
+	            JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	            JOIN PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+	            JOIN USERS U ON P.USER_ID = U.USER_ID
+	            LEFT JOIN COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD
+	            WHERE W.STUDENT_NO = #{studentNo}
+	            AND L.CANCEL_YN = 'N'
+	            AND L.YEARTERM_CD = '2026_REG1'
+	            ) T
+	        ORDER BY T.WISHLIST_AT ASC
+	    )
+	    SELECT * FROM MV
+	    WHERE RNUM BETWEEN #{offset} + 1 AND #{offset} + #{pageSize}
+	</select>
+
+
+    <!-- 찜 목록 개수 -->
+    <select id="countWishlist" resultType="int">
+        SELECT COUNT(*)
+        FROM LCT_APPLY_WISHLIST W
+        JOIN LECTURE L ON W.LECTURE_ID = L.LECTURE_ID
+        WHERE W.STUDENT_NO = #{studentNo}
+        AND L.CANCEL_YN = 'N'
+        AND L.YEARTERM_CD = '2026_REG1'
+    </select>
+
+    <!-- ===== 강의 목록 ===== -->
+
+    <!-- 강의 목록 조회 (검색 + 페이지네이션) -->
+	<select id="selectLectureListWithSearch" resultType="kr.or.jsu.classregist.dto.LectureListDTO">
+		SELECT * FROM (
+			SELECT DISTINCT
+				L.LECTURE_ID,
+				S.SUBJECT_NAME,
+				S.SUBJECT_NAME AS LECTURE_NAME,
+				U.LAST_NAME || U.FIRST_NAME AS PROFESSOR_NAME,
+				(
+					SELECT DISTINCT PLACE_NAME
+					FROM LCT_ROOM_SCHEDULE LRS2
+					JOIN PLACE PL2 ON LRS2.PLACE_CD = PL2.PLACE_CD
+					WHERE LRS2.LECTURE_ID = L.LECTURE_ID
+					AND ROWNUM = 1
+				) AS PLACE_NAME,
+				(
+					SELECT LISTAGG(lbl, ', ') WITHIN GROUP (ORDER BY worder, min_start)
+					FROM (
+						SELECT
+							CASE weekday
+								WHEN 'MO' THEN '월'
+								WHEN 'TU' THEN '화'
+								WHEN 'WE' THEN '수'
+								WHEN 'TH' THEN '목'
+								WHEN 'FR' THEN '금'
+							END || ' '
+							|| SUBSTR(min_start_hhmm,1,2) || ':' || SUBSTR(min_start_hhmm,3,2)
+							|| '~'
+							|| SUBSTR(max_end_hhmm,1,2)   || ':' || SUBSTR(max_end_hhmm,3,2) AS lbl,
+							CASE weekday
+								WHEN 'MO' THEN 1
+								WHEN 'TU' THEN 2
+								WHEN 'WE' THEN 3
+								WHEN 'TH' THEN 4
+								WHEN 'FR' THEN 5
+							END AS worder,
+							min_start_hhmm AS min_start
+						FROM (
+							SELECT
+								weekday,
+								MIN(start_hhmm) AS min_start_hhmm,
+								MAX(end_hhmm)   AS max_end_hhmm
+							FROM (
+								SELECT DISTINCT
+									tb.weekday,
+									tb.start_hhmm,
+									tb.end_hhmm,
+									(
+										TO_NUMBER(SUBSTR(tb.start_hhmm,1,2))*60
+										+ TO_NUMBER(SUBSTR(tb.start_hhmm,3,2))
+									) - 30 * ROW_NUMBER() OVER (
+										PARTITION BY tb.weekday
+										ORDER BY tb.start_hhmm
+									) AS grp
+								FROM LCT_ROOM_SCHEDULE lrs2
+								JOIN TIMEBLOCK tb ON lrs2.TIMEBLOCK_CD = tb.TIMEBLOCK_CD
+								WHERE lrs2.LECTURE_ID = L.LECTURE_ID
+							)
+							GROUP BY weekday, grp
+						)
+					)
+				) AS TIME_INFO,
+				S.CREDIT,
+				S.HOUR,
+				CC.CD_NAME AS COMPLETION_NAME,
+				L.MAX_CAP,
+				-- 대상학년
+				NVL(
+					(
+						SELECT LISTAGG(
+							DISTINCT
+							CASE ST.GRADE_CD
+								WHEN '1ST' THEN '1'
+								WHEN '2ND' THEN '2'
+								WHEN '3RD' THEN '3'
+								WHEN '4TH' THEN '4'
+							END || '학년',
+							', '
+						) WITHIN GROUP (ORDER BY ST.GRADE_CD)
+						FROM SBJ_TARGET ST
+						WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+					),
+					'전학년'
+				) AS TARGET_GRADES,
+				-- 정원 정보
+				(SELECT COUNT(*) FROM STU_APPLY_LCT SAL WHERE SAL.LECTURE_ID = L.LECTURE_ID) AS CURRENT_ENROLL,
+				L.MAX_CAP - (SELECT COUNT(*) FROM STU_APPLY_LCT SAL WHERE SAL.LECTURE_ID = L.LECTURE_ID) AS REMAIN_SEATS,
+				-- 찜 여부
+				CASE
+					WHEN EXISTS (
+						SELECT 1 FROM LCT_APPLY_WISHLIST W
+						WHERE W.LECTURE_ID = L.LECTURE_ID
+						AND W.STUDENT_NO = #{studentNo}
+					) THEN 1
+					ELSE 0
+				END AS WISHLISTED,
+				-- 수강신청 여부
+				CASE
+					WHEN EXISTS (
+						SELECT 1 FROM STU_APPLY_LCT SAL
+						WHERE SAL.LECTURE_ID = L.LECTURE_ID
+						AND SAL.STUDENT_NO = #{studentNo}
+					) THEN 1
+					ELSE 0
+				END AS APPLIED,
+				-- 정렬용 ROW_NUMBER (우선순위 정렬)
+				ROW_NUMBER() OVER (
+					ORDER BY
+						CASE
+							WHEN EXISTS (
+								SELECT DISTINCT 1
+								FROM SBJ_TARGET ST
+								WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+								AND ST.GRADE_CD =
+									NVL(
+										NULLIF(#{searchCondition.gradeFilter}, 'ALL'),
+										#{searchCondition.studentGrade}
+									)
+							) THEN 1
+							WHEN NOT EXISTS (
+								SELECT 1 FROM SBJ_TARGET ST
+								WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+							) THEN 2
+							ELSE 3
+						END,
+						L.LECTURE_ID
+				) AS RN
+			FROM LECTURE L
+			JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+			JOIN PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+			JOIN USERS U ON P.USER_ID = U.USER_ID
+			LEFT JOIN COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD
+			WHERE L.CANCEL_YN = 'N'
+			AND L.YEARTERM_CD = #{searchCondition.yearTermCd}
+			-- 학년 필터 조건
+			<if test="searchCondition.gradeFilter != null and searchCondition.gradeFilter != 'ALL'">
+				AND (
+					EXISTS (
+						SELECT 1 FROM SBJ_TARGET ST
+						WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+						AND ST.GRADE_CD = #{searchCondition.gradeFilter}
+					)
+					OR NOT EXISTS (
+						SELECT 1 FROM SBJ_TARGET ST
+						WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+					)
+				)
+			</if>
+			<if test="searchCondition.searchWord != null and searchCondition.searchWord != ''">
+				AND (
+					<choose>
+						<when test='searchCondition.searchType == "SUBJECT"'>
+							S.SUBJECT_NAME LIKE '%' || #{searchCondition.searchWord} || '%'
+						</when>
+						<when test='searchCondition.searchType == "PROFESSOR"'>
+							(U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{searchCondition.searchWord} || '%'
+						</when>
+						<otherwise>
+							S.SUBJECT_NAME LIKE '%' || #{searchCondition.searchWord} || '%'
+							OR (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{searchCondition.searchWord} || '%'
+						</otherwise>
+					</choose>
+				)
+			</if>
+		)
+		WHERE RN BETWEEN #{searchCondition.offset} + 1 AND #{searchCondition.offset} + #{searchCondition.pageSize}
+	</select>
+
+
+
+    <!-- 강의 목록 전체 개수 -->
+	<select id="countLectureList" resultType="int">
+	    SELECT COUNT(DISTINCT L.LECTURE_ID)
+	    FROM LECTURE L
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    JOIN PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+	    JOIN USERS U ON P.USER_ID = U.USER_ID
+	    WHERE L.CANCEL_YN = 'N'
+	    AND L.YEARTERM_CD = #{yearTermCd}
+	    <!-- 학년 필터 조건 추가 -->
+	    <if test="gradeFilter != null and gradeFilter != 'ALL'">
+	        AND (
+	            EXISTS (
+	                SELECT 1 FROM SBJ_TARGET ST
+	                WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+	                AND ST.GRADE_CD = #{gradeFilter}
+	            )
+	            OR NOT EXISTS (
+	                SELECT 1 FROM SBJ_TARGET ST
+	                WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+	            )
+	        )
+	    </if>
+	    <!-- 검색 조건 -->
+	    <if test="searchWord != null and searchWord != ''">
+	        AND (
+	            <choose>
+	                <when test='searchType == "SUBJECT"'>
+	                    S.SUBJECT_NAME LIKE '%' || #{searchWord} || '%'
+	                </when>
+	                <when test='searchType == "PROFESSOR"'>
+	                    (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{searchWord} || '%'
+	                </when>
+	                <otherwise>
+	                    S.SUBJECT_NAME LIKE '%' || #{searchWord} || '%'
+	                    OR (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{searchWord} || '%'
+	                </otherwise>
+	            </choose>
+	        )
+	    </if>
+	</select>
+
+    <!-- ===== 찜하기/취소 ===== -->
+
+    <insert id="insertWishlist">
+        INSERT INTO LCT_APPLY_WISHLIST (LECTURE_ID, STUDENT_NO, WISHLIST_AT)
+        VALUES (#{lectureId}, #{studentNo}, SYSDATE)
+    </insert>
+
+    <delete id="deleteWishlist">
+        DELETE FROM LCT_APPLY_WISHLIST
+        WHERE STUDENT_NO = #{studentNo}
+        AND LECTURE_ID = #{lectureId}
+    </delete>
+
+    <select id="existsWishlist" resultType="int">
+        SELECT COUNT(*)
+        FROM LCT_APPLY_WISHLIST
+        WHERE STUDENT_NO = #{studentNo}
+        AND LECTURE_ID = #{lectureId}
+    </select>
+
+    <!-- ===== 찜 경고 체크(중복 담기 X) ===== -->
+
+    <select id="existsSameSubjectInWishlist" resultType="int">
+        SELECT COUNT(*)
+        FROM LCT_APPLY_WISHLIST W
+        JOIN LECTURE L ON W.LECTURE_ID = L.LECTURE_ID
+        WHERE W.STUDENT_NO = #{studentNo}
+        AND L.SUBJECT_CD = #{subjectCd}
+    </select>
+
+    <select id="countTimeConflictInWishlist" resultType="int">
+        SELECT COUNT(*)
+        FROM LCT_APPLY_WISHLIST W
+        JOIN LCT_ROOM_SCHEDULE LRS1 ON W.LECTURE_ID = LRS1.LECTURE_ID
+        JOIN TIMEBLOCK TB1 ON LRS1.TIMEBLOCK_CD = TB1.TIMEBLOCK_CD
+        WHERE W.STUDENT_NO = #{studentNo}
+        AND EXISTS (
+            SELECT 1
+            FROM LCT_ROOM_SCHEDULE LRS2
+            JOIN TIMEBLOCK TB2 ON LRS2.TIMEBLOCK_CD = TB2.TIMEBLOCK_CD
+            WHERE LRS2.LECTURE_ID = #{lectureId}
+            AND TB1.WEEKDAY = TB2.WEEKDAY
+            AND (
+                (TB1.START_HHMM <![CDATA[<]]> TB2.END_HHMM AND TB1.END_HHMM > TB2.START_HHMM)
+                OR
+                (TB2.START_HHMM <![CDATA[<]]> TB1.END_HHMM AND TB2.END_HHMM > TB1.START_HHMM)
+            )
+        )
+    </select>
+
+	<!-- 찜한 강의들의 총 학점 조회 -->
+    <select id="sumWishlistCredits" resultType="int">
+        SELECT NVL(SUM(S.CREDIT), 0)
+        FROM LCT_APPLY_WISHLIST W
+        JOIN LECTURE L ON W.LECTURE_ID = L.LECTURE_ID
+        JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+        WHERE W.STUDENT_NO = #{studentNo}
+        AND L.CANCEL_YN = 'N'
+    	AND L.YEARTERM_CD = '2026_REG1'
+    </select>
+
+    <!-- 찜한 과목 수 조회 -->
+	<select id="countWishlistSubjects" resultType="int">
+	    SELECT COUNT(*)
+	    FROM LCT_APPLY_WISHLIST W
+	    JOIN LECTURE L ON W.LECTURE_ID = L.LECTURE_ID
+	    WHERE W.STUDENT_NO = #{studentNo}
+	    AND L.CANCEL_YN = 'N'
+	    AND L.YEARTERM_CD = '2026_REG1'
+	</select>
+
+    <!-- ===== 기타 조회 ===== -->
+
+    <select id="selectLectureWithSubject" resultType="kr.or.jsu.vo.LectureVO">
+        SELECT
+	        L.LECTURE_ID
+	        , L.SUBJECT_CD
+	        , L.PROFESSOR_NO
+	        , L.YEARTERM_CD
+	        , L.MAX_CAP
+	        , L.LECTURE_INDEX
+	        , L.LECTURE_GOAL
+	        , L.PREREQ_SUBJECT
+	        , L.CANCEL_YN
+	        , L.END_AT
+	        , S.CREDIT        -- SUBJECT 테이블에서
+	        , S.SUBJECT_NAME     -- 과목명
+	    FROM LECTURE L
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE L.LECTURE_ID = #{lectureId}
+    </select>
+
+	<select id="selectLectureForWishlistCheck" resultType="kr.or.jsu.classregist.dto.WishlistCheckDTO">
+	    SELECT
+	        L.LECTURE_ID
+	        , L.SUBJECT_CD
+	        , L.PROFESSOR_NO
+	        , L.MAX_CAP
+	        , S.CREDIT
+	        , S.SUBJECT_NAME
+	    FROM LECTURE L
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE L.LECTURE_ID = #{lectureId}
+	</select>
+
+    <select id="selectStudentGrade" resultType="string">
+        SELECT GRADE_CD
+        FROM STUDENT
+        WHERE STUDENT_NO = #{studentNo}
+    </select>
+
+    <select id="selectTargetGrades" resultType="string">
+        SELECT GRADE_CD
+        FROM SBJ_TARGET
+        WHERE SUBJECT_CD = #{subjectCd}
+    </select>
+
+    <select id="selectLectureDetail" resultType="kr.or.jsu.classregist.dto.LectureDetailDTO">
+	    SELECT
+	        L.LECTURE_ID,
+	        L.SUBJECT_CD,
+	        L.PROFESSOR_NO,
+	        L.LECTURE_INDEX,
+	        L.LECTURE_GOAL,
+	        L.PREREQ_SUBJECT,
+	        L.MAX_CAP,
+	        S.SUBJECT_NAME,
+	        S.CREDIT,
+	        S.HOUR,
+	        (
+	            SELECT U.LAST_NAME || U.FIRST_NAME
+	            FROM PROFESSOR P
+	            JOIN USERS U ON P.USER_ID = U.USER_ID
+	            WHERE P.PROFESSOR_NO = L.PROFESSOR_NO
+	        ) AS PROFESSOR_NAME,
+	        (
+	            SELECT CC.CD_NAME
+	            FROM COMMON_CODE CC
+	            WHERE CC.COMMON_CD = S.COMPLETION_CD
+	        ) AS COMPLETION_NAME,
+	        (
+	            SELECT DISTINCT PL.PLACE_NAME
+	            FROM LCT_ROOM_SCHEDULE LRS
+	            JOIN PLACE PL ON LRS.PLACE_CD = PL.PLACE_CD
+	            WHERE LRS.LECTURE_ID = L.LECTURE_ID
+	            AND ROWNUM = 1
+	        ) AS PLACE_NAME,
+	        (
+			    SELECT LISTAGG(
+			        CASE TB.WEEKDAY
+			            WHEN 'MO' THEN '월요일'
+			            WHEN 'TU' THEN '화요일'
+			            WHEN 'WE' THEN '수요일'
+			            WHEN 'TH' THEN '목요일'
+			            WHEN 'FR' THEN '금요일'
+			        END || ' ' ||
+			        SUBSTR(MIN(TB.START_HHMM), 1, 2) || ':' || SUBSTR(MIN(TB.START_HHMM), 3, 2) || '-' ||
+			        SUBSTR(MAX(TB.END_HHMM), 1, 2) || ':' || SUBSTR(MAX(TB.END_HHMM), 3, 2),
+			        ', '
+			    ) WITHIN GROUP (ORDER BY TB.WEEKDAY)
+			    FROM LCT_ROOM_SCHEDULE LRS
+			    JOIN TIMEBLOCK TB ON LRS.TIMEBLOCK_CD = TB.TIMEBLOCK_CD
+			    WHERE LRS.LECTURE_ID = L.LECTURE_ID
+			    GROUP BY TB.WEEKDAY
+			) AS TIME_INFO,
+			-- 대상학년
+		    NVL(
+		    (
+		        SELECT LISTAGG(
+		        	DISTINCT
+		            CASE ST.GRADE_CD
+		                WHEN '1ST' THEN '1'
+		                WHEN '2ND' THEN '2'
+		                WHEN '3RD' THEN '3'
+		                WHEN '4TH' THEN '4'
+		            END || '학년',
+		            ', '
+		        ) WITHIN GROUP (ORDER BY ST.GRADE_CD)
+		        FROM SBJ_TARGET ST
+		        WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+		        ),
+    			'전학년'  -- NULL이면 전학년
+		    ) AS TARGET_GRADES,
+	        (SELECT COUNT(*) FROM STU_APPLY_LCT SAL WHERE SAL.LECTURE_ID = L.LECTURE_ID) AS CURRENT_ENROLL,
+	        L.MAX_CAP - (SELECT COUNT(*) FROM STU_APPLY_LCT SAL WHERE SAL.LECTURE_ID = L.LECTURE_ID) AS REMAIN_SEATS
+	    FROM LECTURE L
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE L.LECTURE_ID = #{lectureId}
+	</select>
+
+	<!-- ===== 수강신청 관련 ===== -->
+
+	<!-- 수강신청 여부 확인 -->
+	<select id="existsAppliedLecture" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT
+	    WHERE STUDENT_NO = #{studentNo}
+	    AND LECTURE_ID = #{lectureId}
+	</select>
+
+	<!-- 현재 수강신청 인원 -->
+	<select id="countCurrentEnroll" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT
+	    WHERE LECTURE_ID = #{lectureId}
+	</select>
+
+	<!-- 강의 정보 조회 (비관적 락) -->
+	<select id="selectLectureForApplyWithLock" resultType="kr.or.jsu.classregist.dto.WishlistCheckDTO">
+	    SELECT
+	        L.LECTURE_ID,
+	        L.SUBJECT_CD,
+	        L.PROFESSOR_NO,
+	        L.MAX_CAP,
+	        S.CREDIT,
+	        S.SUBJECT_NAME
+	    FROM LECTURE L
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE L.LECTURE_ID = #{lectureId}
+	    FOR UPDATE  <!-- 비관적 락 -->
+	</select>
+
+	<!-- 신청한 강의들의 총 학점 조회 -->
+	<select id="sumAppliedCredits" resultType="int">
+	    SELECT NVL(SUM(S.CREDIT), 0)
+	    FROM STU_APPLY_LCT A
+	    JOIN LECTURE L ON A.LECTURE_ID = L.LECTURE_ID
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE A.STUDENT_NO = #{studentNo}
+	</select>
+
+	<!-- 시간표 겹침 체크 (신청 내역 기준) -->
+	<select id="countTimeConflictInApplied" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT A
+	    JOIN LECTURE L_APPLIED ON A.LECTURE_ID = L_APPLIED.LECTURE_ID
+	    JOIN LCT_ROOM_SCHEDULE LRS1 ON A.LECTURE_ID = LRS1.LECTURE_ID
+	    JOIN TIMEBLOCK TB1 ON LRS1.TIMEBLOCK_CD = TB1.TIMEBLOCK_CD
+	    WHERE A.STUDENT_NO = #{studentNo}
+	    AND L_APPLIED.YEARTERM_CD = '2026_REG1'
+	    AND EXISTS (
+	        SELECT 1
+	        FROM LCT_ROOM_SCHEDULE LRS2
+	        JOIN TIMEBLOCK TB2 ON LRS2.TIMEBLOCK_CD = TB2.TIMEBLOCK_CD
+	        WHERE LRS2.LECTURE_ID = #{lectureId}
+	        AND TB1.WEEKDAY = TB2.WEEKDAY
+	        AND (
+	            (TB1.START_HHMM <![CDATA[<]]> TB2.END_HHMM AND TB1.END_HHMM > TB2.START_HHMM)
+	            OR
+	            (TB2.START_HHMM <![CDATA[<]]> TB1.END_HHMM AND TB2.END_HHMM > TB1.START_HHMM)
+	        )
+	    )
+	</select>
+
+	<!-- 같은 과목 신청 여부 체크 -->
+	<select id="existsSameSubjectInApplied" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT A
+	    JOIN LECTURE L ON A.LECTURE_ID = L.LECTURE_ID
+	    WHERE A.STUDENT_NO = #{studentNo}
+	    AND L.SUBJECT_CD = #{subjectCd}
+	    AND L.YEARTERM_CD = '2026_REG1'
+	</select>
+
+	<!-- 수강신청 -->
+	<insert id="insertApplyLecture">
+	    INSERT INTO STU_APPLY_LCT (
+	        APPLY_ID
+	        , STUDENT_NO
+	        , LECTURE_ID
+	        , APPLY_AT
+	    ) VALUES (
+	        'SLA' || LPAD(TO_CHAR(SEQ_STU_LCT_APPLY.NEXTVAL), 12, '0')
+	        , #{studentNo}
+	        , #{lectureId}
+	        , SYSDATE
+	    )
+	</insert>
+
+	<!-- 수강신청 취소 -->
+	<delete id="deleteApplyLecture">
+	    DELETE FROM STU_APPLY_LCT
+	    WHERE STUDENT_NO = #{studentNo}
+	    AND LECTURE_ID = #{lectureId}
+	</delete>
+
+	<!-- 수강신청 로그 기록 -->
+	<insert id="insertApplyLog">
+	    INSERT INTO STU_APPLY_LCT_LOG (
+	        LCT_APPLY_LOG_ID,
+	        STUDENT_NO,
+	        LECTURE_ID,
+	        TRY_AT,
+	        CONFLICT_YN,
+	        SUCCESS_YN,
+	        ACTION_TYPE
+	    ) VALUES (
+	        #{logId},
+	        #{studentNo},
+	        #{lectureId},
+	        SYSTIMESTAMP,
+	        #{conflictYn},
+	        #{successYn},
+	        #{actionType}
+	    )
+	</insert>
+
+	<select id="getNextLogSeq" resultType="long">
+	    SELECT SEQ_STU_APPLY_LCT_LOG.NEXTVAL FROM DUAL
+	</select>
+
+	<!-- 수강신청 목록 조회 -->
+	<select id="selectAppliedLectureList" resultType="kr.or.jsu.classregist.dto.AppliedLectureDTO">
+	    WITH MV AS (
+	        SELECT
+	            ROWNUM RNUM,
+	            A.LECTURE_ID,
+	            A.STUDENT_NO,
+	            S.SUBJECT_NAME,
+	            S.SUBJECT_NAME AS LECTURE_NAME,
+	            U.LAST_NAME || U.FIRST_NAME AS PROFESSOR_NAME,
+	            (
+	                SELECT DISTINCT PLACE_NAME
+	                FROM LCT_ROOM_SCHEDULE LRS2
+	                JOIN PLACE PL2 ON LRS2.PLACE_CD = PL2.PLACE_CD
+	                WHERE LRS2.LECTURE_ID = L.LECTURE_ID
+	                AND ROWNUM = 1
+	            ) AS PLACE_NAME,
+	            -- 수정된 TIME_INFO: "월 13:00~14:30, 화 13:00~14:30" 형식!!!
+	            (
+	                SELECT LISTAGG(lbl, ', ') WITHIN GROUP (ORDER BY worder, min_start)
+	                FROM (
+	                    SELECT
+	                        CASE weekday
+	                            WHEN 'MO' THEN '월'
+	                            WHEN 'TU' THEN '화'
+	                            WHEN 'WE' THEN '수'
+	                            WHEN 'TH' THEN '목'
+	                            WHEN 'FR' THEN '금'
+	                        END || ' '
+	                        || SUBSTR(min_start_hhmm,1,2) || ':' || SUBSTR(min_start_hhmm,3,2)
+	                        || '~'
+	                        || SUBSTR(max_end_hhmm,1,2)   || ':' || SUBSTR(max_end_hhmm,3,2) AS lbl,
+	                        CASE weekday
+	                            WHEN 'MO' THEN 1
+	                            WHEN 'TU' THEN 2
+	                            WHEN 'WE' THEN 3
+	                            WHEN 'TH' THEN 4
+	                            WHEN 'FR' THEN 5
+	                        END AS worder,
+	                        min_start_hhmm AS min_start
+	                    FROM (
+	                        SELECT
+	                            weekday,
+	                            MIN(start_hhmm) AS min_start_hhmm,
+	                            MAX(end_hhmm)   AS max_end_hhmm
+	                        FROM (
+	                            SELECT DISTINCT
+	                                tb.weekday,
+	                                tb.start_hhmm,
+	                                tb.end_hhmm,
+	                                (
+	                                    TO_NUMBER(SUBSTR(tb.start_hhmm,1,2))*60
+	                                    + TO_NUMBER(SUBSTR(tb.start_hhmm,3,2))
+	                                ) - 30 * ROW_NUMBER() OVER (
+	                                    PARTITION BY tb.weekday
+	                                    ORDER BY tb.start_hhmm
+	                                ) AS grp
+	                            FROM LCT_ROOM_SCHEDULE lrs2
+	                            JOIN TIMEBLOCK tb ON lrs2.TIMEBLOCK_CD = tb.TIMEBLOCK_CD
+	                            WHERE lrs2.LECTURE_ID = L.LECTURE_ID
+	                        )
+	                        GROUP BY weekday, grp
+	                    )
+	                )
+	            ) AS TIME_INFO,
+	            S.CREDIT,
+	            S.HOUR,
+	            CC.CD_NAME AS COMPLETION_NAME,
+	            L.MAX_CAP,
+	            NVL(
+	                (
+	                    SELECT LISTAGG(
+	                        DISTINCT
+	                        CASE ST.GRADE_CD
+	                            WHEN '1ST' THEN '1'
+	                            WHEN '2ND' THEN '2'
+	                            WHEN '3RD' THEN '3'
+	                            WHEN '4TH' THEN '4'
+	                        END || '학년',
+	                        ', '
+	                    ) WITHIN GROUP (ORDER BY ST.GRADE_CD)
+	                    FROM SBJ_TARGET ST
+	                    WHERE ST.SUBJECT_CD = L.SUBJECT_CD
+	                ),
+	                '전학년'
+	            ) AS TARGET_GRADES,
+	            (SELECT COUNT(*) FROM STU_APPLY_LCT SAL WHERE SAL.LECTURE_ID = L.LECTURE_ID) AS CURRENT_ENROLL,
+	            TO_CHAR(A.APPLY_AT, 'YYYY-MM-DD HH24:MI:SS') AS APPLY_AT
+	        FROM
+	            STU_APPLY_LCT A
+	        JOIN LECTURE L ON A.LECTURE_ID = L.LECTURE_ID
+	        JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	        JOIN PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+	        JOIN USERS U ON P.USER_ID = U.USER_ID
+	        LEFT JOIN COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD
+	        WHERE A.STUDENT_NO = #{studentNo}
+	        AND L.CANCEL_YN = 'N'
+	        AND L.YEARTERM_CD = '2026_REG1'
+	        ORDER BY A.APPLY_AT DESC
+	    )
+	    SELECT * FROM MV
+	    WHERE RNUM BETWEEN #{offset} + 1 AND #{offset} + #{pageSize}
+	</select>
+
+	<!-- 수강신청 전체 개수 -->
+	<select id="countAppliedLecture" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT A
+	    JOIN LECTURE L ON A.LECTURE_ID = L.LECTURE_ID
+	    WHERE A.STUDENT_NO = #{studentNo}
+	    AND L.CANCEL_YN = 'N'
+	    AND L.YEARTERM_CD = '2026_REG1'
+	</select>
+
+	<!-- 수강신청 내역 기준 통계 -->
+	<select id="countAppliedCredits" resultType="int">
+	    SELECT NVL(SUM(S.CREDIT), 0)
+	    FROM STU_APPLY_LCT A
+	    JOIN LECTURE L ON A.LECTURE_ID = L.LECTURE_ID
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE A.STUDENT_NO = #{studentNo}
+	    AND L.CANCEL_YN = 'N'
+	    AND L.YEARTERM_CD = '2026_REG1'
+	</select>
+
+	<select id="countAppliedSubjects" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT A
+	    JOIN LECTURE L ON A.LECTURE_ID = L.LECTURE_ID
+	    WHERE A.STUDENT_NO = #{studentNo}
+	    AND L.CANCEL_YN = 'N'
+	    AND L.YEARTERM_CD = '2026_REG1'
+	</select>
+
+
+</mapper>

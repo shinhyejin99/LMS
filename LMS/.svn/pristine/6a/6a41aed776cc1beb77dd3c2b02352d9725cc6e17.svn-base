@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.lms.professor.lecture.mapper.ProfLectureMapper">
+
+    <select id="selectProfLectures" parameterType="map" resultType="map">
+        SELECT
+            S.SUBJECT_NAME AS 강의명,
+            COUNT(STE.ENROLL_ID) AS 학생수,
+            LISTAGG(DISTINCT TB.WEEKDAY || ' ' || TB.START_HHMM || '~' || TB.END_HHMM, ', ') WITHIN GROUP (ORDER BY TB.WEEKDAY, TB.START_HHMM) AS 수업시간,
+            LISTAGG(DISTINCT P.PLACE_NAME, ', ') WITHIN GROUP (ORDER BY P.PLACE_NAME) AS 강의실,
+            CC_COMPLETION.CD_NAME AS 이수구분,
+            '개설 확정' AS 강의상태
+        FROM
+            LECTURE L
+        JOIN
+            SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+        LEFT JOIN
+            STU_ENROLL_LCT STE ON L.LECTURE_ID = STE.LECTURE_ID
+        LEFT JOIN
+            LCT_ROOM_SCHEDULE LRS ON L.LECTURE_ID = LRS.LECTURE_ID
+        LEFT JOIN
+            TIMEBLOCK TB ON LRS.TIMEBLOCK_CD = TB.TIMEBLOCK_CD
+        LEFT JOIN
+            PLACE P ON LRS.PLACE_CD = P.PLACE_CD
+        LEFT JOIN
+            COMMON_CODE CC_COMPLETION ON S.COMPLETION_CD = CC_COMPLETION.COMMON_CD AND CC_COMPLETION.COMMON_SORT_CD = 'COMPLETION_CD'
+        WHERE
+            L.PROFESSOR_NO = #{professorNo}
+            AND L.CANCEL_YN = 'N'
+        GROUP BY
+            L.LECTURE_ID, S.SUBJECT_NAME, CC_COMPLETION.CD_NAME, L.CANCEL_YN
+        ORDER BY
+            강의명
+    </select>
+    <select id="selectLectureDetails" parameterType="string" resultType="map">
+        SELECT
+            L.LECTURE_ID AS lectureId,
+            S.SUBJECT_NAME AS courseTitle,
+            CC.CD_NAME AS courseType,
+            U.LAST_NAME || U.FIRST_NAME AS professorName,
+            L.MAX_CAP AS studentCount,
+            L.LECTURE_GOAL AS courseDescription,
+            L.YEARTERM_CD AS academicYearSemester,
+            (SELECT LISTAGG(LRS.PLACE_CD, ', ') WITHIN GROUP (ORDER BY LRS.PLACE_CD) FROM LCT_ROOM_SCHEDULE LRS WHERE LRS.LECTURE_ID = L.LECTURE_ID) AS classroom,
+            (SELECT LISTAGG(LRS.TIMEBLOCK_CD, ', ') WITHIN GROUP (ORDER BY LRS.TIMEBLOCK_CD) FROM LCT_ROOM_SCHEDULE LRS WHERE LRS.LECTURE_ID = L.LECTURE_ID) AS courseTime
+        FROM
+            LECTURE L
+        JOIN
+            SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+        JOIN
+            PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+        JOIN
+            USERS U ON P.USER_ID = U.USER_ID
+        LEFT JOIN
+            COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD AND CC.COMMON_SORT_CD = 'COMPLETION_CD'
+        WHERE
+            L.LECTURE_ID = #{lectureId}
+    </select>
+
+</mapper>

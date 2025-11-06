@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.CertificateStudentMapper">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      		수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.09        정태일            포맷 정리 및 주석 추가
+-->
+    <!-- StudentDetailDTO 매핑을 위한 ResultMap 정의 -->
+    <resultMap id="studentDetailDTOResultMap" type="kr.or.jsu.dto.StudentDetailDTO">
+        <id     property="studentNo"       column="STUDENT_NO" />
+        <result property="userId"          column="USER_ID" />
+        <result property="firstName"       column="FIRST_NAME" />
+        <result property="lastName"        column="LAST_NAME" />
+        <result property="regiNo"          column="REGI_NO" />
+        <result property="mobileNo"        column="MOBILE_NO" />
+        <result property="email"           column="EMAIL" />
+        <result property="bankCode"        column="BANK_CODE" />
+        <result property="bankName"        column="BANK_NAME" />
+        <result property="bankAccount"     column="BANK_ACCOUNT" />
+        <result property="createAt"        column="CREATE_AT" />
+        <result property="univDeptCd"      column="UNIV_DEPT_CD" />
+        <result property="univDeptName"    column="UNIV_DEPT_NAME" />
+        <result property="gradeCd"         column="GRADE_CD" />
+        <result property="gradeName"       column="GRADE_NAME" />
+        <result property="stuStatusCd"     column="STU_STATUS_CD" />
+        <result property="stuStatusName"   column="STU_STATUS_NAME" />
+        <result property="engLname"        column="ENG_LNAME" />
+        <result property="engFname"        column="ENG_FNAME" />
+        <result property="guardName"       column="GUARD_NAME" />
+        <result property="guardRelation"   column="GUARD_RELATION" />
+        <result property="guardPhone"      column="GUARD_PHONE" />
+        <result property="professorId"     column="PROFESSOR_ID" />
+        <result property="professorName"   column="PROFESSOR_NAME" />
+        <result property="entranceTypeCd"  column="ENTRANCE_TYPE_CD" />
+        <result property="entranceTypeName" column="ENTRANCE_TYPE_NAME" />
+        <result property="gradHighschool"  column="GRAD_HIGHSCHOOL" />
+        <result property="gradYear"        column="GRAD_YEAR" />
+        <result property="gradExamYn"      column="GRAD_EXAM_YN" />
+        <result property="targetDept"      column="TARGET_DEPT" />
+        <result property="militaryTypeCd"  column="MILITARY_TYPE_CD" />
+        <result property="militaryTypeName" column="MILITARY_TYPE_NAME" />
+        <result property="joinAt"          column="JOIN_AT" />
+        <result property="exitAt"          column="EXIT_AT" />
+        <result property="baseAddr"        column="BASE_ADDR" />
+        <result property="detailAddr"      column="DETAIL_ADDR" />
+        <result property="zipCode"         column="ZIP_CODE" />
+        <result property="gender"          column="GENDER" />
+        <result property="collegeName"     column="COLLEGE_NAME" />
+    </resultMap>
+
+    <!-- userId로 학생 상세 정보를 조회합니다. -->
+    <select id="selectStudentDetailInfo" parameterType="string" resultMap="studentDetailDTOResultMap">
+        SELECT
+            u.USER_ID
+            , u.PW_HASH
+            , u.FIRST_NAME
+            , u.LAST_NAME
+            , u.REGI_NO
+            , u.PHOTO_ID
+            , u.ADDR_ID
+            , u.MOBILE_NO
+            , u.EMAIL
+            , u.BANK_CODE
+            , c1.CD_NAME AS BANK_NAME
+            , u.BANK_ACCOUNT
+            , u.CREATE_AT
+            , s.STUDENT_NO
+            , s.UNIV_DEPT_CD
+            , ud.UNIV_DEPT_NAME
+            , s.GRADE_CD
+            , c2.CD_NAME AS GRADE_NAME
+            , s.STU_STATUS_CD
+            , c3.CD_NAME AS STU_STATUS_NAME
+            , s.ENG_LNAME
+            , s.ENG_FNAME
+            , s.GUARD_NAME
+            , s.GUARD_RELATION
+            , s.GUARD_PHONE
+            , s.PROFESSOR_ID
+            , pu.FIRST_NAME ||' '|| pu.LAST_NAME AS PROFESSOR_NAME -- 담당교수명
+            , se.ENTRANCE_TYPE_CD
+            , c4.CD_NAME AS ENTRANCE_TYPE_NAME -- 입학타입명
+            , se.GRAD_HIGHSCHOOL
+            , se.GRAD_YEAR
+            , se.GRAD_EXAM_YN
+            , se.TARGET_DEPT
+            , sm.MILITARY_TYPE_CD
+            , c5.CD_NAME AS MILITARY_TYPE_NAME -- 병역타입명
+            , sm.JOIN_AT
+            , sm.EXIT_AT
+            , a.BASE_ADDR
+            , a.DETAIL_ADDR
+            , a.ZIP_CODE
+            , SUBSTR(u.REGI_NO, 8, 1) AS GENDER 
+            , col.COLLEGE_NAME
+        FROM
+            USERS u
+            JOIN STUDENT s ON u.USER_ID = s.USER_ID
+            LEFT JOIN UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+            LEFT JOIN COLLEGE col ON ud.COLLEGE_CD = col.COLLEGE_CD
+            LEFT JOIN COMMON_CODE c1 ON u.BANK_CODE = c1.COMMON_CD
+            LEFT JOIN COMMON_CODE c2 ON s.GRADE_CD = c2.COMMON_CD
+            LEFT JOIN COMMON_CODE c3 ON s.STU_STATUS_CD = c3.COMMON_CD
+            LEFT JOIN STU_ENTRANCE se ON s.STUDENT_NO = se.STUDENT_NO 
+            LEFT JOIN STU_MILITARY sm ON s.STUDENT_NO = sm.STUDENT_NO 
+            LEFT JOIN COMMON_CODE c4 ON se.ENTRANCE_TYPE_CD = c4.COMMON_CD 
+            LEFT JOIN COMMON_CODE c5 ON sm.MILITARY_TYPE_CD = c5.COMMON_CD 
+            LEFT JOIN PROFESSOR p ON s.PROFESSOR_ID = p.PROFESSOR_NO 
+            LEFT JOIN USERS pu ON p.USER_ID = pu.USER_ID 
+            LEFT JOIN ADDRESS a ON u.ADDR_ID = a.ADDR_ID 
+        WHERE
+            u.USER_ID = #{userId}
+    </select>
+    
+        <!-- userId로 증명서 발급에 필요한 학생 정보를 조회합니다. -->
+    <select id="selectStudentCertificateDetailInfo" parameterType="string" resultType="kr.or.jsu.dto.CertificateStudentDetailDTO">
+        SELECT
+            u.LAST_NAME         AS "lastName",
+            u.FIRST_NAME        AS "firstName",
+            u.REGI_NO           AS "regiNo",
+            s.STUDENT_NO        AS "studentNo",
+            ud.UNIV_DEPT_NAME   AS "univDeptName",
+            c3.CD_NAME          AS "stuStatusName",
+            u.CREATE_AT         AS "createAt",
+            (SELECT MAX(urh.CHANGE_AT)
+               FROM UNIV_RECORD_HISTORY urh
+              WHERE urh.STUDENT_NO = s.STUDENT_NO
+                AND urh.RECORD_CHANGE_CD = 'REC-GRAD') AS "graduationDate"
+        FROM
+            USERS u
+            JOIN STUDENT s ON u.USER_ID = s.USER_ID
+            LEFT JOIN UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+            LEFT JOIN COMMON_CODE c3 ON s.STU_STATUS_CD = c3.COMMON_CD
+        WHERE
+            u.USER_ID = #{userId}
+    </select>
+    
+
+</mapper>

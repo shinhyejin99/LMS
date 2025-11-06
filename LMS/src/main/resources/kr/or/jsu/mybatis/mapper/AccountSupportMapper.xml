@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 10.     	정태일            최초 생성
+ *
+-->
+<mapper namespace="kr.or.jsu.mybatis.mapper.AccountSupportMapper">
+
+    <!-- ACCOUNT_VIEW 정의 (AuthAccountMapper.xml에서 가져옴) -->                                      
+     <sql id="accountViewSql">                                                                           
+		WITH ACCOUNT_VIEW AS (
+		SELECT 
+		U.USER_ID, PW_HASH, FIRST_NAME, LAST_NAME, REGI_NO, PHOTO_ID, ADDR_ID, MOBILE_NO, EMAIL, BANK_CODE, BANK_ACCOUNT, CREATE_AT
+		, STUDENT_NO, 
+		NVL(S.UNIV_DEPT_CD, P.UNIV_DEPT_CD ) UNIV_DEPT_CD,
+		GRADE_CD, STU_STATUS_CD, 
+		NVL(S.ENG_LNAME, P.ENG_LNAME) ENG_LNAME, 
+		NVL(S.ENG_FNAME, P.ENG_FNAME) ENG_FNAME,
+		GUARD_NAME, GUARD_RELATION, GUARD_PHONE, PROFESSOR_ID
+		, PROFESSOR_NO, 
+		
+		PRF_STATUS_CD, PRF_APPNT_CD, PRF_POSIT_CD
+		, STAFF_NO, STF_DEPT_CD, TELE_NO
+		, NVL(STUDENT_NO, NVL(PROFESSOR_NO, STAFF_NO) ) USER_NO
+		
+		, CASE
+		WHEN STUDENT_NO IS NOT NULL THEN 'ROLE_STUDENT' 
+		WHEN PROFESSOR_NO IS NOT NULL THEN 'ROLE_PROFESSOR'
+		ELSE 'ROLE_STAFF'
+		END USER_TYPE
+		FROM USERS U LEFT OUTER JOIN STUDENT S ON( U.USER_ID = S.USER_ID)
+		
+		
+		LEFT OUTER JOIN PROFESSOR P ON( U.USER_ID = P.USER_ID) 
+		LEFT OUTER JOIN STAFF ST ON( U.USER_ID = ST.USER_ID) 
+		)                                                                                            
+     </sql> 
+
+
+
+  <!-- 이름과 이메일로 사용자 아이디 조회 -->
+    <select id="findUserIdByNameAndEmail" parameterType="map" resultType="string">
+        <include refid="accountViewSql"/> 
+        SELECT
+            USER_NO
+        FROM
+            ACCOUNT_VIEW
+        WHERE
+            LAST_NAME || FIRST_NAME = #{name} 
+            AND EMAIL = #{email}
+    </select>
+
+    <!-- 아이디와 이메일로 사용자 존재 여부 확인 (비밀번호 재설정 전 유효성 검사) -->
+    <select id="validateUserForPasswordReset" parameterType="map" resultType="int">
+   		<include refid="accountViewSql"/> 
+        SELECT
+            COUNT(*)
+        FROM
+            ACCOUNT_VIEW
+        WHERE
+            USER_NO = #{username}
+            AND EMAIL = #{email}
+    </select>
+
+    <!-- 사용자 비밀번호 업데이트 -->
+    <update id="updatePassword" parameterType="map">
+        UPDATE
+            USERS
+        SET
+            PW_HASH = #{newPassword}
+        WHERE
+            USER_ID = (
+	            SELECT USER_ID FROM (
+	                SELECT
+	                    U.USER_ID
+	                    , U.EMAIL
+	                    , NVL(S.STUDENT_NO, NVL(P.PROFESSOR_NO, ST.STAFF_NO)) AS USER_NO
+	                FROM
+	                    USERS U
+	                LEFT OUTER JOIN
+	                    STUDENT S ON U.USER_ID = S.USER_ID
+	                LEFT OUTER JOIN
+	                    PROFESSOR P ON U.USER_ID = P.USER_ID
+	                LEFT OUTER JOIN
+	                    STAFF ST ON U.USER_ID = ST.USER_ID
+	            )
+	            WHERE USER_NO = #{username} AND EMAIL = #{email}
+	        )
+    </update>
+
+		<!-- 로그인 된 사용자 비밀번호 업데이트 -->
+	<update id="updatePasswordByUserNo">
+	  UPDATE USERS
+	     SET PW_HASH = #{encodedPassword}
+	   WHERE USER_ID = (
+	     SELECT U.USER_ID
+	       FROM USERS U
+	       LEFT JOIN STUDENT   S  ON U.USER_ID = S.USER_ID
+	       LEFT JOIN PROFESSOR P  ON U.USER_ID = P.USER_ID
+	       LEFT JOIN STAFF     ST ON U.USER_ID = ST.USER_ID
+	      WHERE NVL(S.STUDENT_NO, NVL(P.PROFESSOR_NO, ST.STAFF_NO)) = #{userNo}
+	   )
+	</update>
+
+</mapper>
+

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuApplyLctLogMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectStuApplyLctLog" parameterType="string" resultType="kr.or.jsu.vo.StuApplyLctLogVO">
+        SELECT 
+          lct_apply_log_id
+        , student_no
+        , lecture_id
+        , try_at
+        , conflict_yn
+        , success_yn
+        FROM stu_apply_lct_log
+        WHERE lct_apply_log_id = #{lctApplyLogId}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStuApplyLctLogList" resultType="kr.or.jsu.vo.StuApplyLctLogVO">
+        SELECT 
+          lct_apply_log_id
+        , student_no
+        , lecture_id
+        , try_at
+        , conflict_yn
+        , success_yn
+        FROM stu_apply_lct_log
+        ORDER BY try_at DESC
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStuApplyLctLog" parameterType="kr.or.jsu.vo.StuApplyLctLogVO">
+        INSERT INTO stu_apply_lct_log (
+          lct_apply_log_id
+        , student_no
+        , lecture_id
+        , try_at
+        , conflict_yn
+        , success_yn
+        ) VALUES (
+          #{lctApplyLogId}
+        , #{studentNo}
+        , #{lectureId}
+        , #{tryAt}
+        , #{conflictYn}
+        , #{successYn}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateStuApplyLctLog" parameterType="kr.or.jsu.vo.StuApplyLctLogVO">
+        UPDATE stu_apply_lct_log
+        SET 
+          student_no  = #{studentNo}
+        , lecture_id  = #{lectureId}
+        , try_at      = #{tryAt}
+        , conflict_yn = #{conflictYn}
+        , success_yn  = #{successYn}
+        WHERE lct_apply_log_id = #{lctApplyLogId}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStuApplyLctLog" parameterType="string">
+        DELETE FROM stu_apply_lct_log
+        WHERE lct_apply_log_id = #{lctApplyLogId}
+    </delete>
+
+</mapper>

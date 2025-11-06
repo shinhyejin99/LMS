@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.UnivDeptMapper">
+
+	<select id="selectAllUnivDepts">
+		SELECT
+			UNIV_DEPT_CD
+			, COLLEGE_CD
+			, UNIV_DEPT_NAME
+			, CREATE_AT
+			, DELETE_AT
+		FROM
+			UNIV_DEPT
+	</select>
+
+    <resultMap id="departmentDetailMap" type="kr.or.jsu.dto.DepartmentDetailDTO">
+        <id property="univDeptCd" column="UNIV_DEPT_CD"/>
+        <result property="univDeptName" column="UNIV_DEPT_NAME"/>
+        <result property="collegeCd" column="COLLEGE_CD"/>
+        <result property="collegeName" column="COLLEGE_NAME"/>
+        <result property="capacity" column="CAPACITY"/>
+        <result property="status" column="STATUS"/>
+        <result property="createAt" column="CREATE_AT"/>
+        <result property="deleteAt" column="DELETE_AT"/>
+
+        <result property="studentCount" column="STUDENT_COUNT"/>
+        <result property="subjectsCount" column="SUBJECTS_COUNT"/>
+
+        <result property="deptHeadId" column="DEPT_HEAD_ID"/>
+        <result property="deptHeadName" column="DEPT_HEAD_NAME"/>
+        <result property="officeCd" column="OFFICE_CD"/>
+        <result property="officeNo" column="OFFICE_NO"/> <result property="placeId" column="PLACE_ID"/>
+        <result property="placeNo" column="PLACE_NO"/>
+        <result property="homepage" column="HOMEPAGE"/>
+
+    </resultMap>
+
+    <insert id="insertDepartment" parameterType="kr.or.jsu.dto.DepartmentDetailDTO">
+        INSERT INTO UNIV_DEPT (
+            UNIV_DEPT_CD, UNIV_DEPT_NAME, COLLEGE_CD, DEPT_HEAD_ID,
+            MAX_CAP,
+            CREATE_AT, OFFICE_NO
+        ) VALUES (
+            #{univDeptCd},
+            #{univDeptName},
+            #{collegeCd},
+            #{deptHeadId},
+            #{capacity},
+            SYSDATE,
+            #{officeNo}
+        )
+    </insert>
+
+    <update id="updateDepartment" parameterType="kr.or.jsu.dto.DepartmentDetailDTO">
+        UPDATE UNIV_DEPT
+        SET
+            UNIV_DEPT_NAME = #{univDeptName},
+            DELETE_AT = #{deleteAt}
+            -- 학과장, 연락처 등 기타 수정 필드가 있다면 여기에 추가 필요
+        WHERE
+            UNIV_DEPT_CD = #{univDeptCd}
+    </update>
+
+
+    <select id="selectUserUnviDeptObsolete" parameterType="string" resultType="string">
+        -- 해당 학과 소속 교수 ID
+        SELECT
+            USER_ID
+        FROM
+            PROFESSOR
+        WHERE
+            UNIV_DEPT_CD = #{univDeptCd}
+
+        UNION ALL
+
+        -- 해당 학과 소속 학생 ID
+        SELECT
+            USER_ID
+        FROM
+            STUDENT
+        WHERE
+            UNIV_DEPT_CD = #{univDeptCd}
+    </select>
+
+    <select id="selectDepartmentDetail" resultMap="departmentDetailMap" parameterType="string">
+       SELECT
+                T1.UNIV_DEPT_CD,
+                T1.UNIV_DEPT_NAME,
+                T1.COLLEGE_CD,
+                T2.COLLEGE_NAME,
+
+                (
+                    SELECT L.MAX_CAP
+                    FROM LECTURE L
+                    JOIN SUBJECT J ON L.SUBJECT_CD = J.SUBJECT_CD
+                    WHERE J.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                    ORDER BY L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+                    FETCH FIRST 1 ROW ONLY
+                ) AS CAPACITY,
+
+                CASE
+                    WHEN T1.DELETE_AT IS NULL THEN 'ACTIVE'
+                    ELSE 'DELETED'
+                END AS STATUS,  T1.CREATE_AT,
+                T1.DELETE_AT,
+
+                (
+                    SELECT (U.LAST_NAME || ' ' || U.FIRST_NAME)
+                    FROM PROFESSOR P
+                    JOIN USERS U ON P.USER_ID = U.USER_ID
+                    WHERE P.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                    AND P.PRF_POSIT_CD = 'PRF_POSIT_HEAD'
+                    FETCH FIRST 1 ROW ONLY
+                ) AS DEPT_HEAD_NAME,
+                (
+                	SELECT COUNT(*) FROM PROFESSOR P WHERE P.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                ) AS PROFESSOR_COUNT,
+                (
+                    SELECT COUNT(*) FROM STUDENT S
+                    WHERE S.UNIV_DEPT_CD = T1.UNIV_DEPT_CD AND S.STU_STATUS_CD = 'ACTIVE'
+                ) AS STUDENT_COUNT,
+                (
+                    SELECT COUNT(*) FROM SUBJECT J
+                    WHERE J.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                ) AS SUBJECTS_COUNT
+            FROM
+                UNIV_DEPT T1
+            LEFT JOIN
+                COLLEGE T2 ON T1.COLLEGE_CD = T2.COLLEGE_CD
+            WHERE
+            T1.UNIV_DEPT_CD = #{univDeptCd}
+    </select>
+
+  <select id="selectDepartmentList" resultMap="departmentDetailMap" parameterType="map">
+    SELECT A.*
+    FROM (
+        SELECT ROWNUM rn, T1.* FROM (
+            SELECT
+                T1.UNIV_DEPT_CD,
+                T1.UNIV_DEPT_NAME,
+                T1.COLLEGE_CD,
+                T2.COLLEGE_NAME,
+
+                -- 💡 JOIN을 통해 가져온 CAPACITY 값 사용
+                T3.CAPACITY,
+
+                CASE
+                    WHEN T1.DELETE_AT IS NULL THEN 'ACTIVE'
+                    ELSE 'DELETED'
+                END AS STATUS,
+                T1.CREATE_AT,
+                T1.DELETE_AT,
+
+                -- 학과장 이름 조회 (기존 서브쿼리 유지)
+                (
+                    SELECT (U.LAST_NAME || ' ' || U.FIRST_NAME)
+                    FROM PROFESSOR P
+                    JOIN USERS U ON P.USER_ID = U.USER_ID
+                    WHERE P.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                    AND P.PRF_POSIT_CD = 'PRF_POSIT_HEAD'
+                    FETCH FIRST 1 ROW ONLY
+                ) AS DEPT_HEAD_NAME,
+                (
+                    SELECT COUNT(*) FROM PROFESSOR P WHERE P.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                ) AS PROFESSOR_COUNT,
+                (
+                    SELECT COUNT(*) FROM STUDENT S WHERE S.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                ) AS STUDENT_COUNT,
+                (
+                    SELECT COUNT(*) FROM SUBJECT J WHERE J.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+                ) AS SUBJECTS_COUNT
+
+            FROM
+                UNIV_DEPT T1
+            LEFT JOIN
+                COLLEGE T2 ON T1.COLLEGE_CD = T2.COLLEGE_CD
+            LEFT JOIN (
+                -- 학과별 가장 최근 강의의 MAX_CAP을 찾는 서브쿼리
+                SELECT
+                    J.UNIV_DEPT_CD AS LECT_DEPT_CD,
+                    L.MAX_CAP AS CAPACITY,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY J.UNIV_DEPT_CD
+                        ORDER BY L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+                    ) AS RN
+                FROM
+                    LECTURE L
+                JOIN
+                    SUBJECT J ON L.SUBJECT_CD = J.SUBJECT_CD
+            ) T3 ON T1.UNIV_DEPT_CD = T3.LECT_DEPT_CD AND T3.RN = 1 -- 가장 최근 레코드만 조인
+
+    WHERE 1=1
+                    <if test="searchKeyword != null and searchKeyword != ''">
+                        AND (T1.UNIV_DEPT_NAME LIKE '%' || #{searchKeyword} || '%' OR T1.UNIV_DEPT_CD LIKE '%' || #{searchKeyword} || '%')
+                    </if>
+                    <if test="filterType != null and filterType != '' and filterType != '전체'">
+                        <choose>
+                            <when test="filterType == 'ACTIVE'">
+                                AND T1.DELETE_AT IS NULL
+                            </when>
+                            <when test="filterType == 'DELETED'">
+                                AND T1.DELETE_AT IS NOT NULL
+                            </when>
+                        </choose>
+                    </if>
+                ORDER BY
+                    <!-- T2.COLLEGE_NAME ASC, --> T1.UNIV_DEPT_NAME ASC
+            ) T1
+        ) A
+        WHERE rn BETWEEN #{firstIndex} AND #{lastIndex}
+    </select>
+
+    <select id="selectTotalDepartments" parameterType="map" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            UNIV_DEPT T1
+        LEFT JOIN
+            COLLEGE T2 ON T1.COLLEGE_CD = T2.COLLEGE_CD
+        WHERE 1=1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (T1.UNIV_DEPT_NAME LIKE '%' || #{searchKeyword} || '%' OR T1.UNIV_DEPT_CD LIKE '%' || #{searchKeyword} || '%')
+        </if>
+        <if test="filterType != null and filterType != '' and filterType != '전체'">
+            <choose>
+                <when test="filterType == '활성' or filterType == 'ACTIVE'">
+			    AND T1.DELETE_AT IS NULL
+			</when>
+			<when test="filterType == '폐지' or filterType == 'DELETED'">
+			    AND T1.DELETE_AT IS NOT NULL
+			</when>
+            </choose>
+        </if>
+    </select>
+
+    <select id="selectDepartmentStatusCounts" parameterType="map" resultType="java.util.Map">
+    SELECT
+        COUNT(CASE WHEN DELETE_AT IS NULL THEN 1 END) AS ACTIVE_DEPT_COUNT,
+        COUNT(CASE WHEN DELETE_AT IS NOT NULL THEN 1 END) AS DELETED_DEPT_COUNT
+    FROM UNIV_DEPT
+    WHERE 1=1
+    <if test="searchKeyword != null and searchKeyword != ''">
+        AND (UNIV_DEPT_NAME LIKE '%' || #{searchKeyword} || '%'
+             OR UNIV_DEPT_CD LIKE '%' || #{searchKeyword} || '%')
+    </if>
+    </select>
+
+    <select id="selectActiveDepartmentCodes" resultType="java.lang.String">
+
+        SELECT
+            UNIV_DEPT_CD
+        FROM
+            UNIV_DEPT  WHERE
+            -- DELETE_AT이 NULL인 학과만 (활성 상태) 조회
+            DELETE_AT IS NULL
+        ORDER BY
+            UNIV_DEPT_NAME ASC </select>
+<select id="selectAllDepartmentDetails" resultType="kr.or.jsu.dto.DepartmentDetailDTO">
+		  SELECT
+        T1.UNIV_DEPT_CD,
+        T1.UNIV_DEPT_NAME,
+        T1.COLLEGE_CD,
+        T2.COLLEGE_NAME,
+        (
+            SELECT L.MAX_CAP
+            FROM LECTURE L
+            JOIN SUBJECT J ON L.SUBJECT_CD = J.SUBJECT_CD
+            WHERE J.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+            ORDER BY L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+            FETCH FIRST 1 ROW ONLY
+        ) AS CAPACITY,
+        CASE WHEN T1.DELETE_AT IS NULL THEN 'ACTIVE'
+             ELSE 'DELETED'
+        END AS STATUS,
+        T1.CREATE_AT,
+        T1.DELETE_AT,
+        (
+            SELECT (U.LAST_NAME || ' ' || U.FIRST_NAME)
+            FROM PROFESSOR P
+            JOIN USERS U ON P.USER_ID = U.USER_ID
+            WHERE P.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+            AND P.PRF_POSIT_CD = 'PRF_POSIT_HEAD'
+            FETCH FIRST 1 ROW ONLY
+        ) AS DEPT_HEAD_NAME,
+        (
+            SELECT COUNT(*)
+            FROM PROFESSOR P
+            WHERE P.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+        ) AS PROFESSOR_COUNT,
+        (
+            SELECT COUNT(*)
+            FROM STUDENT S
+            JOIN COMMON_CODE C ON S.STU_STATUS_CD = C.COMMON_CD
+            WHERE S.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+            AND (S.STU_STATUS_CD = 'STU_STATUS_ACTIVE' OR C.CD_NAME LIKE '%재학%' OR S.STU_STATUS_CD IS NULL)
+        ) AS STUDENT_COUNT,
+        (
+            SELECT COUNT(J.SUBJECT_CD)
+            FROM SUBJECT J
+            WHERE J.UNIV_DEPT_CD = T1.UNIV_DEPT_CD
+            AND J.DELETE_AT IS NULL
+        ) AS SUBJECTS_COUNT,
+        (
+            SELECT C.COLLEGE_NAME
+            FROM COLLEGE C
+            WHERE C.COLLEGE_CD = T1.COLLEGE_CD
+        ) AS PARENT_COLLEGE_NAME
+    FROM UNIV_DEPT T1
+    LEFT JOIN COLLEGE T2 ON T1.COLLEGE_CD = T2.COLLEGE_CD
+    WHERE 1=1
+    ORDER BY T1.UNIV_DEPT_NAME ASC
+    </select>
+
+</mapper>

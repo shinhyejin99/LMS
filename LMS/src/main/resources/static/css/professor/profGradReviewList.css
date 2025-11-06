@@ -1,0 +1,224 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 29.     	김수현            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* 외부 래퍼 */
+.graduation-review-page {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+/* 메인 컨테이너 */
+.graduation-review-page .graduation-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 100px);
+}
+
+/* 페이지 헤더 */
+.graduation-review-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #696cff; 
+}
+
+.graduation-review-page .page-header h1 {
+    font-size: 23px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+/* 검색 폼 */
+.graduation-review-page .search-form {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    align-items: flex-end;
+}
+
+.graduation-review-page .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.graduation-review-page .form-label {
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.graduation-review-page .form-select {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.graduation-review-page .btn-search {
+    padding: 8px 20px;
+    background-color: #696cff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.graduation-review-page .btn-search:hover {
+    background-color: #0056b3;
+}
+
+/* 섹션 타이틀 */
+.graduation-review-page .section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* 테이블 스타일 */
+.graduation-review-page .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.graduation-review-page .data-table thead {
+    background-color: #f8f9fa;
+}
+
+.graduation-review-page .data-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    color: #333;
+}
+
+.graduation-review-page .data-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.graduation-review-page .data-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.graduation-review-page .data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.graduation-review-page .text-center {
+    text-align: center;
+}
+
+.graduation-review-page .text-muted {
+    color: #6c757d;
+}
+
+/* 페이지네이션 */
+.graduation-review-page .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.graduation-review-page .page-item {
+    display: inline-block;
+}
+
+.graduation-review-page .page-link {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    color: #007bff;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.graduation-review-page .page-link:hover {
+    background-color: #e9ecef;
+}
+
+.graduation-review-page .page-item.active .page-link {
+    background-color: #696cff;
+    color: white;
+    border-color: #696cff;
+}
+
+/* Custom button styles */
+.graduation-review-page .approve-btn,
+.graduation-review-page .reject-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    width: 65px;
+    text-align: center;
+    margin-right: 5px;
+}
+
+.graduation-review-page .approve-btn {
+    background-color: #28a745;
+}
+
+.graduation-review-page .reject-btn {
+    background-color: #dc3545;
+}
+
+/* 페이지네이션 컨테이너 */
+.pagination-container {
+    margin-top: 50px;
+}
+
+.btn-custom-close {
+    background-color: #696CFF;
+    color: white;
+    border: none;
+}
+
+.btn-custom-close:hover,
+.btn-custom-close:focus {
+    background-color: #696CFF;
+    border-color: #696CFF;
+    color: white;
+    box-shadow: none;
+}
+
+.student-details-box {
+    border: 1px solid #e0e0e0;
+    /* border-radius: 8px; */
+    padding: 15px;
+    margin-bottom: 1rem;
+}
+
+.assignment-info-box {
+    border: 1px solid #e0e0e0;
+  /*   border-radius: 8px; */
+    padding: 15px;
+    margin-bottom: 1rem;
+}

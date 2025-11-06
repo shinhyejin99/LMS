@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.PlaceMapper">
+
+    <insert id="insertPlace" parameterType="kr.or.jsu.vo.PlaceVO">
+        INSERT INTO PLACE (
+          PLACE_CD,
+          PARENT_CD,
+          PLACE_NAME,
+          CREATE_AT,
+          MODIFY_AT,
+          USING_YN,
+          ADDR_ID,
+          PLACE_TYPE_CD,
+          CAPACITY
+        ) VALUES (
+          #{placeCd},
+          #{parentCd},
+          #{placeName},
+          SYSDATE, NULL,
+          #{usingYn},
+          #{addrId},
+          #{placeTypeCd},
+          #{capacity}
+        )
+    </insert>
+    
+    <update id="updatePlace" parameterType="kr.or.jsu.vo.PlaceVO">
+        UPDATE PLACE
+        SET
+          PARENT_CD = #{parentCd},
+          PLACE_NAME = #{placeName},
+          MODIFY_AT = SYSDATE,
+          USING_YN = #{usingYn},
+          ADDR_ID = #{addrId},
+          PLACE_TYPE_CD = #{placeTypeCd},
+          CAPACITY = #{capacity}
+        WHERE PLACE_CD = #{placeCd}
+    </update>
+
+    <delete id="deletePlace" parameterType="string">
+        DELETE FROM PLACE
+        WHERE PLACE_CD = #{placeCd}
+    </delete>
+
+    <select id="selectPlace" parameterType="string" resultType="kr.or.jsu.vo.PlaceVO">
+        SELECT
+            PLACE_CD,
+            PARENT_CD,
+            PLACE_NAME,
+            CREATE_AT,
+            MODIFY_AT,
+            USING_YN,
+            ADDR_ID,
+            PLACE_TYPE_CD,
+            CAPACITY
+        FROM PLACE
+        WHERE PLACE_CD = #{placeCd}
+    </select>
+
+
+	<select id="selectPlaceList">
+		SELECT
+			PLACE_CD AS placeCd,
+			PLACE_NAME AS placeName,
+			CAPACITY AS capacity,
+			PLACE_TYPE_CD AS placeTypeCd
+		FROM
+			PLACE
+		WHERE
+			PLACE_TYPE_CD = 'ROOM'
+			AND USING_YN = 'Y'
+		ORDER BY PLACE_CD
+	</select>
+	
+	
+	<!-- "공간"을 "사용 목적"으로 검색합니다. -->
+	<!-- placeType 이런거 없어도, CLASSROOM, STUDYROOM 이런걸로 검색하면 -->
+	<!-- 딱 사용목적에 맞는 방만 나와요. -->
+	<select id="selectPlaceListByUsage">
+		SELECT
+			PLACE_CD
+			, PARENT_CD
+			, PLACE_NAME
+			, CREATE_AT
+			, MODIFY_AT
+			, USING_YN
+			, ADDR_ID
+			, PLACE_TYPE_CD
+			, CAPACITY
+			, PLACE_USAGE_CD
+		FROM
+			PLACE
+		WHERE
+			PLACE_USAGE_CD = #{placeUsageCd}
+			AND USING_YN = 'Y'
+	</select>
+
+	<resultMap type="PlaceBuildingDTO" id="PlaceBuildingMap">
+		<id property="placeCd" column="PLACE_CD"/>
+		<association property="building" javaType="PlaceInfo"
+					columnPrefix="B_" autoMapping="true"/>
+		<collection property="rooms" ofType="PlaceInfo"
+					columnPrefix="R_" autoMapping="true"/>
+	</resultMap>
+
+	<!-- 건물 + 해당 용도 방 목록 조회 -->
+	<select id="selectBuildingAndChildPlace" resultMap="PlaceBuildingMap">
+		WITH room_usage AS (
+			SELECT
+				  lrs.PLACE_CD
+				, COUNT(DISTINCT lrs.TIMEBLOCK_CD) AS used_blocks
+			FROM LCT_ROOM_SCHEDULE lrs
+			JOIN LECTURE l
+				ON l.LECTURE_ID = lrs.LECTURE_ID
+				AND l.YEARTERM_CD = #{yeartermCd}
+			GROUP BY lrs.PLACE_CD
+		)
+		SELECT
+			  b.PLACE_CD AS PLACE_CD
+			, b.PLACE_CD AS B_PLACE_CD
+			, b.PARENT_CD AS B_PARENT_CD
+			, b.PLACE_NAME AS B_PLACE_NAME
+			, b.CREATE_AT AS B_CREATE_AT
+			, b.MODIFY_AT AS B_MODIFY_AT
+			, b.USING_YN AS B_USING_YN
+			, b.ADDR_ID AS B_ADDR_ID
+			, b.PLACE_TYPE_CD AS B_PLACE_TYPE_CD
+			, b.CAPACITY AS B_CAPACITY
+			, b.PLACE_USAGE_CD AS B_PLACE_USAGE_CD
+			, r.PLACE_CD AS R_PLACE_CD
+			, r.PARENT_CD AS R_PARENT_CD
+			, r.PLACE_NAME AS R_PLACE_NAME
+			, r.CREATE_AT AS R_CREATE_AT
+			, r.MODIFY_AT AS R_MODIFY_AT
+			, r.USING_YN AS R_USING_YN
+			, r.ADDR_ID AS R_ADDR_ID
+			, r.PLACE_TYPE_CD AS R_PLACE_TYPE_CD
+			, r.CAPACITY AS R_CAPACITY
+			, r.PLACE_USAGE_CD AS R_PLACE_USAGE_CD
+			, NVL(u.used_blocks, 0) AS R_USED_BLOCKS
+		FROM PLACE b
+		JOIN PLACE r
+			ON r.PARENT_CD = b.PLACE_CD
+		LEFT JOIN room_usage u
+			ON u.PLACE_CD = r.PLACE_CD
+		WHERE
+			r.PLACE_USAGE_CD = #{placeUsageCd}
+			AND r.USING_YN = 'Y'
+			AND b.PLACE_TYPE_CD = 'BUILDING'
+		ORDER BY
+			  b.PLACE_NAME
+			, r.PLACE_NAME
+	</select>
+
+   <select id="selectRoomByPlaceCd" parameterType="string" resultType="kr.or.jsu.dto.PlaceDetailDTO">
+    SELECT
+        PLACE_CD AS placeCd,          
+        PLACE_NAME AS placeName,      
+        CAPACITY AS capacity,         
+        PLACE_TYPE_CD AS placeTypeCd, 
+        PARENT_CD AS parentCd         
+    FROM PLACE
+    WHERE PLACE_CD = #{placeCd}
+</select>
+
+
+    <select id="isPlaceCdDuplicate" parameterType="string" resultType="boolean">
+        SELECT COUNT(*) FROM PLACE WHERE PLACE_CD = #{placeCd}
+    </select>
+    
+    <insert id="insertRoom" parameterType="kr.or.jsu.dto.PlaceDetailDTO">
+        INSERT INTO PLACE (
+          PLACE_CD,
+          PLACE_NAME,
+          CAPACITY,
+          PLACE_TYPE_CD,
+          CREATE_AT,
+          USING_YN
+        ) VALUES (
+          #{placeCd},
+          #{placeName},
+          #{placeCapacity},
+          'ROOM',
+          SYSDATE,
+          'Y'
+        )
+    </insert>
+
+    <update id="updateRoom" parameterType="kr.or.jsu.dto.PlaceDetailDTO">
+        UPDATE PLACE
+        SET
+          PLACE_NAME = #{placeName},
+          CAPACITY = #{placeCapacity},
+          MODIFY_AT = SYSDATE
+        WHERE PLACE_CD = #{placeCd}
+    </update>
+
+    <select id="selectRoomSchedule" resultType="kr.or.jsu.dto.RoomScheduleDetailDTO">
+        SELECT 
+            T1.LCT_ROOM_SCHEDULE_ID,
+            T1.PLACE_CD,
+            T1.TIMEBLOCK_CD,
+            T2.LECTURE_NAME
+        FROM 
+            LCT_ROOM_SCHEDULE T1
+        JOIN LECTURE T2 ON T1.LECTURE_ID = T2.LECTURE_ID
+        WHERE 
+            T1.PLACE_CD = #{placeCd}
+            AND T2.YEARTERM_CD = #{yearTermCd}
+    </select>
+    
+<select id="selectLectureAssignmentInfo" resultType="kr.or.jsu.dto.RoomScheduleDetailDTO">
+  SELECT 
+        TRIM(A.LCT_APPLY_ID) AS lctApplyId, 
+        S.SUBJECT_NAME AS lectureName,       
+        S.HOUR AS lectureHours,              
+        S.CREDIT AS credit,                  
+        A.EXPECT_CAP AS expectCap,            
+        A.YEARTERM_CD AS yeartermCd,         
+        U.LAST_NAME || U.FIRST_NAME AS professorName, 
+        P.PROFESSOR_NO AS professorNo,       
+        S.SUBJECT_NAME AS subjectName,       
+        S.SUBJECT_CD AS subjectCd            
+    FROM 
+        LCT_OPEN_APPLY A
+    JOIN PROFESSOR P ON A.PROFESSOR_NO = P.PROFESSOR_NO 
+    JOIN USERS U ON P.USER_ID = U.USER_ID 
+    JOIN SUBJECT S ON A.SUBJECT_CD = S.SUBJECT_CD 
+    WHERE 
+        A.LCT_APPLY_ID = #{lctApplyId}
+</select>
+
+    <update id="updateLectureAssignmentInfo" parameterType="map">
+        UPDATE LCT_OPEN_APPLY
+        SET
+            PLACE_CD = #{placeCd},
+            TIMEBLOCK_CDS_STRING = #{timeblockCdsString},
+            UPDATE_DT = SYSDATE 
+        WHERE
+            LCT_APPLY_ID = #{lctApplyId}
+    </update>
+
+    <insert id="insertLecture" parameterType="map" useGeneratedKeys="false">
+        <selectKey keyProperty="LECTURE_ID" resultType="int" order="BEFORE">
+            SELECT LECTURE_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        
+        INSERT INTO LECTURE (
+            LECTURE_ID,
+            YEARTERM_CD,
+            PROFESSOR_ID,
+            SUBJECT_CD,
+            LECTURE_NAME,
+            LECTURE_HOURS,
+            CREDIT,
+            MAX_STUDENT_COUNT,
+            LCT_APPLY_ID,
+            PLACE_CD
+        )
+        SELECT
+            #{LECTURE_ID},
+            YEARTERM_CD,
+            PROFESSOR_ID,
+            SUBJECT_CD,
+            LECTURE_NAME,
+            LECTURE_HOURS,
+            CREDIT,
+            MAX_STUDENT_COUNT,
+            LCT_APPLY_ID,
+            #{placeCd}
+        FROM
+            LCT_OPEN_APPLY
+        WHERE
+            LCT_APPLY_ID = #{lctApplyId}
+    </insert>
+
+    <update id="updateApprovalProcess" parameterType="map">
+        UPDATE APPROVAL
+        SET
+            APPROVE_YN = #{approveYn},     COMMENTS = #{comments},
+            APPROVE_AT = SYSDATE,
+            ATTACH_FILE_ID = #{attachFileId}
+        WHERE
+            APPROVE_ID = #{approveId}
+    </update>
+
+</mapper>

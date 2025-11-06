@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      		수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.09        정태일            포맷 정리 및 주석 보완
+-->
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.CertificateStaffMapper">
+
+    <!-- StaffDetailDTO 매핑을 위한 ResultMap 정의 -->
+    <resultMap id="staffDetailDTOResultMap" type="kr.or.jsu.dto.CertificateStaffDetailDTO">
+        <id     property="staffNo"      column="STAFF_NO" />
+        <result property="userId"       column="USER_ID" />
+        <result property="firstName"    column="FIRST_NAME" />
+        <result property="lastName"     column="LAST_NAME" />
+        <result property="regiNo"       column="REGI_NO" />
+        <result property="mobileNo"     column="MOBILE_NO" />
+        <result property="email"        column="EMAIL" />
+        <result property="stfDeptCd"    column="STF_DEPT_CD" />
+        <result property="stfDeptName"  column="STF_DEPT_NAME" />
+        <result property="teleNo"       column="TELE_NO" />
+        <result property="baseAddr"     column="BASE_ADDR" />
+        <result property="detailAddr"   column="DETAIL_ADDR" />
+        <result property="zipCode"      column="ZIP_CODE" />
+        <result property="createAt"     column="CREATE_AT" />
+    </resultMap>
+
+    <!-- userId로 교직원 상세 정보를 조회 -->
+    <select id="selectStaffDetailInfo"
+            parameterType="string"
+            resultMap="staffDetailDTOResultMap">
+        SELECT
+              S.STAFF_NO
+            , S.STF_DEPT_CD
+            , S.TELE_NO
+            , S.USER_ID
+            , U.FIRST_NAME
+            , U.LAST_NAME
+            , U.REGI_NO
+            , U.MOBILE_NO
+            , U.EMAIL
+            , U.CREATE_AT
+            , A.BASE_ADDR
+            , A.DETAIL_ADDR
+            , A.ZIP_CODE
+            , SD.STF_DEPT_NAME
+        FROM
+            STAFF S
+            LEFT JOIN USERS      U  ON S.USER_ID     = U.USER_ID
+            LEFT JOIN ADDRESS    A  ON U.ADDR_ID     = A.ADDR_ID
+            LEFT JOIN STAFF_DEPT SD ON S.STF_DEPT_CD = SD.STF_DEPT_CD
+        WHERE
+            S.USER_ID = #{userId}
+    </select>
+
+</mapper>

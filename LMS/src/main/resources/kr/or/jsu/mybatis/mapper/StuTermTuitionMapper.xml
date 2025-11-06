@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuTermTuitionMapper">
+
+    <insert id="insertStuTermTuition">
+        INSERT INTO stu_term_tuition (
+            yearterm_cd,
+            student_no,
+            tuition_sum,
+            scholarship_sum,
+            final_amount,
+            pay_done_yn,
+            pay_done_at
+        ) VALUES (
+            #{yeartermCd},
+            #{studentNo},
+            #{tuitionSum},
+            #{scholarshipSum},
+            #{finalAmount},
+            #{payDoneYn},
+            #{payDoneAt}
+        )
+    </insert>
+
+    <select id="selectStuTermTuitionByKey" resultType="kr.or.jsu.vo.StuTermTuitionVO">
+        SELECT
+            yearterm_cd,
+            student_no,
+            tuition_sum,
+            scholarship_sum,
+            final_amount,
+            pay_done_yn,
+            pay_done_at
+        FROM
+            stu_term_tuition
+        WHERE
+            yearterm_cd = #{yeartermCd}
+            AND student_no = #{studentNo}
+    </select>
+
+    <select id="selectAllStuTermTuitions" resultType="kr.or.jsu.vo.StuTermTuitionVO">
+        SELECT
+            yearterm_cd,
+            student_no,
+            tuition_sum,
+            scholarship_sum,
+            final_amount,
+            pay_done_yn,
+            pay_done_at
+        FROM
+            stu_term_tuition
+        ORDER BY
+            yearterm_cd, student_no
+    </select>
+
+    <update id="updateStuTermTuition">
+        UPDATE stu_term_tuition
+        SET
+            tuition_sum = #{tuitionSum},
+            scholarship_sum = #{scholarshipSum},
+            final_amount = #{finalAmount},
+            pay_done_yn = #{payDoneYn},
+            pay_done_at = #{payDoneAt}
+        WHERE
+            yearterm_cd = #{yeartermCd}
+            AND student_no = #{studentNo}
+    </update>
+
+    <delete id="deleteStuTermTuition">
+        DELETE FROM stu_term_tuition
+        WHERE
+            yearterm_cd = #{yeartermCd}
+            AND student_no = #{studentNo}
+    </delete>
+
+</mapper>

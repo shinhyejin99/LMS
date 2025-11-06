@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuObjectionMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectStuObjection" parameterType="string" resultType="kr.or.jsu.vo.StuObjectionVO">
+        SELECT 
+          enroll_id
+        , objection_detail
+        , attach_file_id
+        , objection_at
+        , reply_comment
+        FROM stu_objection
+        WHERE enroll_id = #{enrollId}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStuObjectionList" resultType="kr.or.jsu.vo.StuObjectionVO">
+        SELECT 
+          enroll_id
+        , objection_detail
+        , attach_file_id
+        , objection_at
+        , reply_comment
+        FROM stu_objection
+        ORDER BY objection_at DESC
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStuObjection" parameterType="kr.or.jsu.vo.StuObjectionVO">
+        INSERT INTO stu_objection (
+          enroll_id
+        , objection_detail
+        , attach_file_id
+        , objection_at
+        , reply_comment
+        ) VALUES (
+          #{enrollId}
+        , #{objectionDetail}
+        , #{attachFileId}
+        , #{objectionAt}
+        , #{replyComment}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateStuObjection" parameterType="kr.or.jsu.vo.StuObjectionVO">
+        UPDATE stu_objection
+        SET 
+          objection_detail = #{objectionDetail}
+        , attach_file_id   = #{attachFileId}
+        , objection_at     = #{objectionAt}
+        , reply_comment    = #{replyComment}
+        WHERE enroll_id = #{enrollId}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStuObjection" parameterType="string">
+        DELETE FROM stu_objection
+        WHERE enroll_id = #{enrollId}
+    </delete>
+
+</mapper>

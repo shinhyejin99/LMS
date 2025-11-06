@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.cache.CacheMapper">
+
+	<select id="selectAllCommonCode">
+		SELECT
+			COMMON_CD
+			, COMMON_SORT_CD
+			, CD_NAME
+			, CD_DESC
+			, USING_YN
+		FROM
+			COMMON_CODE
+		WHERE
+			USING_YN = 'Y'
+	</select>
+	
+	<select id="selectAllUsers">
+		SELECT
+			u.USER_ID
+			, s.STUDENT_NO AS USER_NO
+			, u.LAST_NAME || u.FIRST_NAME AS USER_NAME
+		FROM
+			USERS u
+		JOIN STUDENT s 
+			ON
+			u.USER_ID = s.USER_ID
+		UNION
+		SELECT
+			u.USER_ID
+			, p.PROFESSOR_NO
+			, u.LAST_NAME || u.FIRST_NAME
+		FROM
+			USERS u
+		JOIN PROFESSOR p
+			ON
+			u.USER_ID = p.USER_ID
+		UNION
+		SELECT
+			u.USER_ID
+			, st.STAFF_NO
+			, u.LAST_NAME || u.FIRST_NAME
+		FROM
+			USERS u
+		JOIN STAFF st
+			ON
+			u.USER_ID = st.USER_ID
+		ORDER BY 1
+	</select>
+	
+	<select id="selectAllUnivDept">
+		SELECT
+            UNIV_DEPT_CD
+            , UNIV_DEPT_NAME
+            , COLLEGE_CD
+        FROM
+            UNIV_DEPT
+	</select>
+	
+	<select id="selectAllCollege">
+		SELECT
+            COLLEGE_CD
+            , COLLEGE_NAME
+        FROM
+            COLLEGE
+	</select>
+	
+	<select id="selectAllSubject">
+		SELECT
+            SUBJECT_CD
+            , SUBJECT_NAME
+        FROM
+            SUBJECT
+	</select>
+	<select id="selectAllStaffDept">
+		SELECT
+            STF_DEPT_CD 
+            , STF_DEPT_NAME 
+        FROM
+            STAFF_DEPT
+	</select>
+	
+	<!-- 현재 학기 조회 추가 -->
+	<select id="selectCurrentYearterm" resultType="String">
+		SELECT
+		    YEARTERM_CD
+		FROM
+		    UNIV_YEARTERM
+		WHERE
+		    SYSDATE BETWEEN START_AT AND END_AT
+		    AND ROWNUM = 1
+	</select>
+</mapper>

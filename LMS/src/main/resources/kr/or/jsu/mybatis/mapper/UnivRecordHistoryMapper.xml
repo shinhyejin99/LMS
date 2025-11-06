@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.UnivRecordHistoryMapper">
+
+    <insert id="insertUnivRecordHistory">
+        INSERT INTO univ_record_history (
+            change_at,
+            record_change_cd,
+            student_no
+        ) VALUES (
+            #{changeAt},
+            #{recordChangeCd},
+            #{studentNo}
+        )
+    </insert>
+
+    <select id="selectUnivRecordHistoryByCd" resultType="kr.or.jsu.vo.UnivRecordHistoryVO">
+        SELECT
+            change_at,
+            record_change_cd,
+            student_no
+        FROM
+            univ_record_history
+        WHERE
+            record_change_cd = #{recordChangeCd}
+    </select>
+
+    <select id="selectAllUnivRecordHistories" resultType="kr.or.jsu.vo.UnivRecordHistoryVO">
+        SELECT
+            change_at,
+            record_change_cd,
+            student_no
+        FROM
+            univ_record_history
+        ORDER BY
+            record_change_cd
+    </select>
+
+    <update id="updateUnivRecordHistory">
+        UPDATE univ_record_history
+        SET
+            change_at = #{changeAt},
+            student_no = #{studentNo}
+        WHERE
+            record_change_cd = #{recordChangeCd}
+    </update>
+
+    <delete id="deleteUnivRecordHistory">
+        DELETE FROM univ_record_history
+        WHERE
+            record_change_cd = #{recordChangeCd}
+    </delete>
+
+</mapper>

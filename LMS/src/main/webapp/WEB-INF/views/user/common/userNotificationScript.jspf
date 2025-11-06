@@ -1,0 +1,31 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script src="<c:url value='/js/app/staff/userNotificationList.js' />"></script>
+<script>
+$(document).ready(function() {
+    // 알림 드롭다운이 열릴 때 알림 데이터를 로드하는 이벤트
+    $('#notificationDropdown').on('show.bs.dropdown', function () {
+        console.log("JSP: Bootstrap Dropdown Show Event Detected. Loading Notifications.");
+
+        // 함수 이름 수정 (loadDropdownNotificationList -> fetchNotificationsForDropdown)
+        if (typeof fetchNotificationsForDropdown === 'function') {
+            fetchNotificationsForDropdown();
+        } else {
+            console.error("JSP ERROR: fetchNotificationsForDropdown 함수를 찾을 수 없습니다. 함수 이름이나 파일 로드 경로를 확인하세요.");
+        }
+    });
+/*  // 비밀번호 변경 모달 열기 로직
+    $('#openPwModal').on('click', function() {
+        $('#pwChangeModal').show();
+    });
+    $('.close-button').on('click', function() {
+        $('#pwChangeModal').hide();
+    });*/
+}); 
+    </script>

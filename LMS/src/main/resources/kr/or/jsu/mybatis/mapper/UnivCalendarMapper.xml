@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.UnivCalendarMapper">
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 17.     	정태일            최초 생성
+ *  2025. 10. 17.       정태일            학사일정 필터링, CRUD 기능 추가
+-->
+    <!--
+     * 학사일정 목록 조회
+     * - DELETE_YN = 'N' 인 활성 일정만 조회
+     * - 조회 결과는 UnivCalendarVO 에 매핑
+     * - termFilter (학년도학기) 및 categoryFilter (일정코드) 로 필터링
+     -->
+    <select id="selectCalendarList" resultType="kr.or.jsu.vo.UnivCalendarVO">
+        SELECT
+              CALENDAR_ID     AS calendarId
+            , STAFF_NO        AS staffNo
+            , SCHEDULE_CD     AS scheduleCd
+            , YEARTERM_CD     AS yeartermCd
+            , SCHEDULE_NAME   AS scheduleName
+            , SHARE_SCOPE_CD  AS shareScopeCd
+            , START_AT        AS startAt
+            , END_AT          AS endAt
+            , CREATE_AT       AS createAt
+            , DELETE_YN       AS deleteYn
+        FROM
+            UNIV_CALENDAR
+        WHERE
+            DELETE_YN = 'N'
+            <if test="termFilter != null and termFilter != ''"> 
+            	AND YEARTERM_CD = #{termFilter} 
+            </if>
+            <if test="termFilter != null and categoryFilter != ''"> 
+            	AND SCHEDULE_CD = #{categoryFilter} 
+            </if>
+            
+    </select>
+
+	<!--
+     * 학사일정 상세 조회
+     -->
+    <select id="selectCalendarEvent" parameterType="string" resultType="kr.or.jsu.vo.UnivCalendarVO">
+        SELECT
+              CALENDAR_ID     AS calendarId
+            , STAFF_NO        AS staffNo
+            , SCHEDULE_CD     AS scheduleCd
+            , YEARTERM_CD     AS yeartermCd
+            , SCHEDULE_NAME   AS scheduleName
+            , SHARE_SCOPE_CD  AS shareScopeCd
+            , START_AT        AS startAt
+            , END_AT          AS endAt
+            , CREATE_AT       AS createAt
+            , DELETE_YN       AS deleteYn
+        FROM
+            UNIV_CALENDAR
+        WHERE
+            CALENDAR_ID = #{calendarId}
+    </select>
+
+
+	 <!--
+	     * 학사일정 등록
+	     * - CALENDAR_ID는 SEQ_UNIV_CALENDAR 시퀀스를 사용하여 자동 생성
+	     * - STAFF_NO는 현재 로그인한 사용자의 STAFF_NO를 사용 (Controller에서 주입)
+	     * - CREATE_AT은 SYSDATE로 자동 설정
+	     * - DELETE_YN은 'N'으로 자동 설정
+	     -->
+    <insert id="insertCalendarEvent" parameterType="kr.or.jsu.vo.UnivCalendarVO">
+        <selectKey keyProperty="calendarId" resultType="string" order="BEFORE">
+            SELECT 'CAL' || LPAD(TO_CHAR(SEQ_UNIV_CALENDAR.NEXTVAL), 12, '0') FROM DUAL
+        </selectKey>
+        INSERT INTO UNIV_CALENDAR (
+              CALENDAR_ID
+            , STAFF_NO
+            , SCHEDULE_CD
+            , YEARTERM_CD
+            , SCHEDULE_NAME
+            , SHARE_SCOPE_CD
+            , START_AT
+            , END_AT
+            , CREATE_AT
+            , DELETE_YN
+        ) VALUES (
+              #{calendarId}
+            , #{staffNo}
+            , #{scheduleCd}
+            , #{yeartermCd}
+            , #{scheduleName}
+            , #{shareScopeCd}
+            , #{startAt}
+            , #{endAt}
+            , SYSDATE
+            , 'N'
+        )
+    </insert>
+
+	<!--
+      * 학사일정 수정
+     -->
+    <update id="updateCalendarEvent" parameterType="kr.or.jsu.vo.UnivCalendarVO">
+        UPDATE UNIV_CALENDAR
+           SET SCHEDULE_NAME  = #{scheduleName}
+             , SCHEDULE_CD    = #{scheduleCd}
+             , YEARTERM_CD    = #{yeartermCd}
+             , SHARE_SCOPE_CD = #{shareScopeCd}
+             , START_AT       = #{startAt}
+             , END_AT         = #{endAt}
+         WHERE CALENDAR_ID = #{calendarId}
+    </update>
+
+    <!--
+     * 학사일정 삭제 (논리적 삭제)
+     -->
+    <update id="deleteCalendarEvent" parameterType="string">
+        UPDATE UNIV_CALENDAR
+           SET DELETE_YN = 'Y'
+         WHERE CALENDAR_ID = #{calendarId}
+    </update>
+
+
+
+
+
+
+
+
+
+
+
+
+</mapper>

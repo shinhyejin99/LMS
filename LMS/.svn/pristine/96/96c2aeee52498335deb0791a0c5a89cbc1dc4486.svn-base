@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.SubjectMapper">
+
+    <insert id="insertSubject">
+        INSERT INTO subject (
+            subject_cd,
+            univ_dept_cd,
+            subject_name,
+            completion_cd,
+            credit,
+            hour,
+            create_at,
+            delete_at
+        ) VALUES (
+            #{subjectCd},
+            #{univDeptCd},
+            #{subjectName},
+            #{completionCd},
+            #{credit},
+            #{hour},
+            #{createAt},
+            #{deleteAt}
+        )
+    </insert>
+
+    <select id="selectSubject" resultType="kr.or.jsu.dto.SubjectInfoDetailDTO">
+        SELECT
+            subject_cd,
+            univ_dept_cd,
+            subject_name,
+            completion_cd,
+            credit,
+            hour,
+            create_at,
+            delete_at
+        FROM
+            subject
+        WHERE
+            subject_cd = #{subjectCd}
+    </select>
+
+    <select id="selectSubjectList" resultType="kr.or.jsu.dto.SubjectInfoDetailDTO">
+	    SELECT A.*
+	    FROM (
+	        SELECT ROWNUM rn, T1.* FROM (
+	            SELECT
+	                S.subject_cd,
+	                S.univ_dept_cd,
+	                S.subject_name,
+	                S.completion_cd,
+	                S.credit,
+	                S.hour,
+	                S.create_at,
+	                S.delete_at,
+	                D.univ_dept_name AS UNIV_DEPT_NAME,
+	                C.COLLEGE_NAME AS COLLEGE_NAME,
+	                ST.TERM_CD AS TERM_CD,
+	                CC.CD_NAME AS COMPLETION_NAME,
+
+	                (
+	                    SELECT L.MAX_CAP
+	                    FROM LECTURE L
+	                    WHERE L.SUBJECT_CD = S.SUBJECT_CD
+	                    ORDER BY L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+	                    FETCH FIRST 1 ROW ONLY
+	                ) AS MAX_CAP
+	                FROM
+	                subject S
+	            LEFT OUTER JOIN UNIV_DEPT D ON S.univ_dept_cd = D.univ_dept_cd
+	            LEFT OUTER JOIN COLLEGE C ON D.college_cd = C.college_cd
+	            LEFT OUTER JOIN COMMON_CODE CC ON S.completion_cd = CC.COMMON_CD
+	            LEFT OUTER JOIN SBJ_TARGET ST ON S.subject_cd = ST.subject_cd
+	            WHERE 1=1
+	            ORDER BY
+	                C.COLLEGE_NAME ASC,
+					ST.TERM_CD DESC,
+					S.subject_cd DESC
+	        ) T1
+	    ) A
+	    WHERE rn BETWEEN #{firstIndex} AND #{lastIndex}
+	</select>
+
+   <update id="updateSubject">
+  		UPDATE subject
+		    SET
+		        univ_dept_cd = #{univDeptCd},
+		        subject_name = #{subjectName},
+		        completion_cd = #{completionCd},
+		        credit = #{credit},
+		        hour = #{hour},
+
+		        delete_at = #{deleteAt}  WHERE
+		        subject_cd = #{subjectCd}
+	</update>
+
+    <delete id="deleteSubject">
+        DELETE FROM subject
+        WHERE
+            subject_cd = #{subjectCd}
+    </delete>
+
+    <select id="selectAllSubjectCodes" resultType="map">
+        SELECT
+            subject_cd,
+            subject_name || ' (' || completion_cd || ')' AS subject_name,
+            credit,
+            hour,
+            completion_cd
+        FROM
+            subject
+        <where>
+            <if test="univDeptCd != null and univDeptCd != ''">
+                AND UNIV_DEPT_CD = #{univDeptCd}
+            </if>
+        </where>
+        ORDER BY
+            subject_name
+    </select>
+
+
+	<resultMap id="subjectListResult" type="kr.or.jsu.dto.SubjectInfoDetailDTO">
+		<id column="SUBJECT_CD" property="subjectCd" />
+		<result column="UNIV_DEPT_CD" property="univDeptCd" />
+		<result column="SUBJECT_NAME" property="subjectName" />
+		<result column="COMPLETION_CD" property="completionCd" />
+		<result column="CREDIT" property="credit" />
+		<result column="HOUR" property="hour" />
+		<result column="CREATE_AT" property="createAt" />
+		<result column="DELETE_AT" property="deleteAt" />
+		<result column="UNIV_DEPT_NAME" property="univDeptName" />
+		<result column="COMPLETION_NAME" property="completionName" />
+		<result column="TERM_CD" property="termCd" />
+		<result column="GRADE_CD" property="gradeCd" />
+		<result column="RN" property="rn" />
+	</resultMap>
+
+	<resultMap id="subjectDetailResult" type="kr.or.jsu.dto.SubjectInfoDetailDTO">
+		<id column="SUBJECT_CD" property="subjectCd" />
+		<result column="UNIV_DEPT_CD" property="univDeptCd" />
+		<result column="SUBJECT_NAME" property="subjectName" />
+		<result column="COMPLETION_CD" property="completionCd" />
+		<result column="CREDIT" property="credit" />
+		<result column="HOUR" property="hour" />
+		<result column="CREATE_AT" property="createAt" />
+		<result column="DELETE_AT" property="deleteAt" />
+
+		<result column="UNIV_DEPT_NAME" property="univDeptName" />
+		<result column="COMPLETION_NAME" property="completionName" />
+		<result column="PROFESSOR_NAME" property="professorName" />
+		<result column="OFFICE_NO" property="officeNo" />
+		<result column="TERM_CD" property="termCd" />
+		<result column="GRADE_CD" property="gradeCd" />
+
+		<result column="YEARTERM_NAME" property="yeartermName" />
+		<result column="YEARTERM_CD" property="yeartermCd" />
+		<result column="TERM_NAME" property="termName" />
+		<result column="GRADE_NAME" property="gradeName" />
+		<result column="COLLEGE_NAME" property="collegeName" />
+		<result column="MAX_CAP" property="maxCap" />
+	</resultMap>
+
+
+	<select id="selectstaffSubjectDetail" parameterType="string" resultMap="subjectDetailResult">
+	    SELECT
+		    T1.subject_cd,
+		    T1.univ_dept_cd,
+		    T1.subject_name,
+		    T1.completion_cd,
+		    T1.credit,
+		    T1.hour,
+		    T1.create_at AS CREATE_AT,
+		    T1.delete_at AS DELETE_AT,
+
+		    D.univ_dept_name AS UNIV_DEPT_NAME,
+		    C.COLLEGE_NAME AS COLLEGE_NAME,
+		    CC.CD_NAME AS COMPLETION_NAME,
+		    (
+		        SELECT L.MAX_CAP
+		        FROM LECTURE L
+		        WHERE L.SUBJECT_CD = T1.subject_cd
+		        ORDER BY L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+		        FETCH FIRST 1 ROWS ONLY
+		    ) AS MAX_CAP,
+
+		    (
+		    SELECT U.last_name || U.first_name
+		    FROM LECTURE L
+		    JOIN PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+		    JOIN USERS U ON P.user_id = U.user_id
+		    WHERE L.SUBJECT_CD = T1.subject_cd
+		    ORDER BY L.YEARTERM_CD DESC FETCH FIRST 1 ROWS ONLY
+		    ) AS PROFESSOR_NAME,
+		    (
+		    SELECT P.office_no
+		    FROM LECTURE L
+		    JOIN PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+		    WHERE L.SUBJECT_CD = T1.subject_cd
+		    ORDER BY L.YEARTERM_CD DESC FETCH FIRST 1 ROWS ONLY
+		    ) AS OFFICE_NO
+		FROM
+		    SUBJECT T1
+		LEFT OUTER JOIN UNIV_DEPT D ON T1.univ_dept_cd = D.univ_dept_cd
+		LEFT OUTER JOIN COLLEGE C ON D.college_cd = C.college_cd
+		LEFT OUTER JOIN COMMON_CODE CC ON T1.completion_cd = CC.COMMON_CD AND CC.COMMON_SORT_CD = 'COMPLETION_CD'
+		WHERE
+		    T1.subject_cd = #{subjectCd}
+	</select>
+
+	<!-- 🥇 [KPI 분모] 전체 등록 교과목 수 (필터/검색 미적용) -->
+	<select id="selectOverallTotalSubjectCount" resultType="int">
+       SELECT
+        	COUNT(S.subject_cd)
+        FROM subject S
+    </select>
+
+	<!-- 전체과목 카운팅 (목록 페이징을 위한 필터링 카운트)	 -->
+	<select id="selectTotalSubjectCount" parameterType="map" resultType="int">
+       SELECT
+        	COUNT(S.subject_cd)
+        FROM subject S
+	        LEFT OUTER JOIN UNIV_DEPT D ON S.univ_dept_cd = D.univ_dept_cd
+	        LEFT OUTER JOIN COMMON_CODE CC ON S.completion_cd = CC.COMMON_CD
+        WHERE 1=1
+
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (
+                S.subject_name LIKE '%' || #{searchKeyword} || '%'
+                OR S.subject_cd LIKE '%' || #{searchKeyword} || '%'
+
+                <if test="searchKeyword.contains('활성')">
+                    OR S.delete_at IS NULL
+                </if>
+                <if test="searchKeyword.contains('폐지')">
+                    OR S.delete_at IS NOT NULL
+                </if>
+            )
+        </if>
+
+        <if test="filterType != null and filterType != '' and filterType != '전체'">
+            AND S.completion_cd = #{filterType}
+        </if>
+    </select>
+
+   <select id="selectStaffSubjectList" parameterType="map" resultType="kr.or.jsu.dto.SubjectInfoDetailDTO">
+       SELECT A.*
+        FROM (
+            SELECT ROWNUM rn, T1.* FROM (
+                SELECT
+                    S.subject_cd,
+                    S.univ_dept_cd,
+                    S.subject_name,
+                    S.completion_cd,
+                    S.credit,
+                    S.hour,
+                    S.create_at,
+                    S.delete_at,
+                    D.univ_dept_name,
+                    CC.CD_NAME AS COMPLETION_NAME,
+                    (
+				        SELECT L.MAX_CAP
+				        FROM LECTURE L
+				        WHERE L.SUBJECT_CD = s.subject_cd
+				        ORDER BY L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+				        FETCH FIRST 1 ROWS ONLY
+				    ) AS MAX_CAP
+				 FROM
+                    subject S
+                LEFT OUTER JOIN UNIV_DEPT D ON S.univ_dept_cd = D.univ_dept_cd
+                LEFT OUTER JOIN COMMON_CODE CC ON S.completion_cd = CC.COMMON_CD
+                WHERE 1=1
+
+                <if test="searchKeyword != null and searchKeyword != ''">
+                    AND (
+                        S.subject_name LIKE '%' || #{searchKeyword} || '%'
+                        OR S.subject_cd LIKE '%' || #{searchKeyword} || '%'
+
+                        <if test="searchKeyword.contains('활성')">
+                            OR S.delete_at IS NULL
+                        </if>
+                        <if test="searchKeyword.contains('폐지')">
+                            OR S.delete_at IS NOT NULL
+                        </if>
+                    )
+                </if>
+
+                <if test="filterType != null and filterType != '' and filterType != '전체'">
+                    AND S.completion_cd = #{filterType}
+                </if>
+                ORDER BY S.subject_cd DESC
+            ) T1
+        ) A
+        WHERE rn BETWEEN #{firstIndex} AND #{lastIndex}
+    </select>
+
+
+    <!--이수항목 카운팅  -->
+	<select id="selectSubjectCountByType" resultType="map">
+	    SELECT
+		    S.completion_cd AS type_code
+		    , COUNT(S.subject_cd) AS count
+	    FROM
+	    	subject S GROUP BY S.completion_cd
+	</select>
+
+	<select id="selectSubjectCountByDept" resultType="map">
+	    SELECT
+	        D.UNIV_DEPT_NAME,
+	        COUNT(S.SUBJECT_CD) AS COUNT
+	    FROM
+	        SUBJECT S
+	    JOIN
+	        UNIV_DEPT D ON S.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+	    GROUP BY
+	        D.UNIV_DEPT_NAME
+	    ORDER BY
+	        COUNT DESC
+	</select>
+
+	<select id="selectAverageCreditByGrade">
+	SELECT
+   		T.GRADE_CD AS GRADE,
+	    AVG(S.CREDIT) AS AVG_CREDIT
+	FROM
+	    SUBJECT S
+	JOIN
+	    SBJ_TARGET T ON S.SUBJECT_CD = T.SUBJECT_CD
+	WHERE
+	    T.GRADE_CD IS NOT NULL
+	GROUP BY
+	    T.GRADE_CD
+	</select>
+
+	<!-- 🥈 [KPI 분자] 전체 활성 교과목 수 (DELETE_AT IS NULL) -->
+	<select id="selectTotalActiveSubjectCount" resultType="int">
+        SELECT COUNT(*)
+        FROM SUBJECT
+        WHERE DELETE_AT IS NULL
+    </select>
+
+    <select id="selectGlobalAverageCredit" resultType="double">
+        SELECT AVG(CREDIT)
+        FROM SUBJECT
+    </select>
+
+    <select id="selectUsersForSubjectObsolete" resultType="string">
+     SELECT DISTINCT T1.userId FROM (
+        -- 1. 해당 교과목의 모든 수업에 배정된 교수 ID 조회 (T_USER 사용)
+         SELECT
+            U.USER_ID AS userId
+        FROM
+            LECTURE L
+        JOIN
+            PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+         JOIN
+            USERS U ON P.USER_ID = U.USER_ID
+        WHERE
+            L.SUBJECT_CD = #{subjectCd}
+            AND U.USER_ID IS NOT NULL
+        UNION
+        -- 2. 해당 교과목을 수강 중이거나 수강했던 학생 ID 조회
+        SELECT
+            CR.STUDENT_NO AS userId
+        FROM
+            STU_ENROLL_LCT CR  <!-- ERROR LIKELY HERE (STU_ENROLL_LCT) -->
+        JOIN
+            LECTURE L ON CR.LECTURE_ID = L.LECTURE_ID
+        WHERE
+            L.SUBJECT_CD = #{subjectCd}
+            AND CR.STUDENT_NO IS NOT NULL
+	    ) T1
+	    WHERE
+	        T1.userId IS NOT NULL
+	</select>
+
+	<!-- 과목이 소속된 단과대학, 학과 포함해서 모든 과목 가져오기 -->
+
+	<resultMap type="SubjectWithCollegeAndDeptDTO" id="subjectMap">
+		<association property="college"
+					javaType="kr.or.jsu.core.dto.info.CollegeInfo"
+					columnPrefix="C_"
+					autoMapping="true"/>
+		<association property="univDept"
+					javaType="UnivDeptInfo"
+					columnPrefix="UD_"
+					autoMapping="true"/>
+		<association property="subject"
+					javaType="SubjectInfo"
+					columnPrefix="S_"
+					autoMapping="true"/>
+	</resultMap>
+
+	<select id="selectAllSubjectWithCollegeAndDept" resultMap="subjectMap">
+			SELECT
+			s.SUBJECT_CD
+			, c.COLLEGE_CD AS C_COLLEGE_CD
+			, c.COLLEGE_NAME AS C_COLLEGE_NAME
+			, c.CREATE_AT AS C_CREATE_AT
+			, c.DELETE_AT AS C_DELETE_AT
+			, ud.UNIV_DEPT_CD AS UD_UNIV_DEPT_CD
+			, ud.COLLEGE_CD AS UD_COLLEGE_CD
+			, ud.UNIV_DEPT_NAME AS UD_UNIV_DEPT_NAME
+			, ud.CREATE_AT AS UD_CREATE_AT
+			, ud.DELETE_AT AS UD_DELETE_AT
+			, s.SUBJECT_CD AS S_SUBJECT_CD
+			, s.UNIV_DEPT_CD AS S_UNIV_DEPT_CD
+			, s.SUBJECT_NAME AS S_SUBJECT_NAME
+			, s.COMPLETION_CD AS S_COMPLETION_CD
+			, s.CREDIT AS S_CREDIT
+			, s."HOUR" AS S_HOUR
+			, s.CREATE_AT AS S_CREATE_AT
+			, s.DELETE_AT AS S_DELETE_AT
+			, s.SUBJECT_TYPE_CD AS S_SUBJECT_TYPE_CD
+		FROM COLLEGE c
+		JOIN UNIV_DEPT ud ON
+			c.COLLEGE_CD = ud.COLLEGE_CD
+		JOIN SUBJECT s ON
+			ud.UNIV_DEPT_CD = s.UNIV_DEPT_CD
+	</select>
+	<select id="selectAverageHourByDept" resultType="map">
+    SELECT
+        T2.UNIV_DEPT_NAME,
+        TRUNC(AVG(T1.HOUR), 2) AS AVG_HOUR
+    FROM SUBJECT T1
+    JOIN UNIV_DEPT T2 ON T1.UNIV_DEPT_CD = T2.UNIV_DEPT_CD
+    WHERE T1.DELETE_AT IS NULL
+    GROUP BY T2.UNIV_DEPT_NAME
+    ORDER BY AVG_HOUR DESC
+</select>
+</mapper>

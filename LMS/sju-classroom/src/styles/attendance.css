@@ -1,0 +1,208 @@
+.mode-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+  border: 1px solid #dee2e6;
+  border-radius: 1rem;
+  cursor: pointer;
+  text-align: center;
+  padding: 1rem;
+}
+
+.mode-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.075);
+}
+
+.mode-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-pill {
+  min-width: 72px;
+}
+
+#studentsModal .modal-dialog {
+  max-width: 90vw;
+}
+
+/* Ensure modal doesn’t exceed viewport height and body scrolls */
+#studentsModal .modal-content {
+  max-height: 90vh;
+}
+
+#studentsModal .modal-body {
+  overflow-y: auto;
+}
+
+.avatar-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.avatar-96 {
+  width: 96px;
+  height: 144px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  /* If used elsewhere */
+  --avatar-size: 96px;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: #f1f3f5;
+  color: #6c757d;
+  border: 1px solid #e9ecef;
+}
+
+.status-pill.active {
+  outline: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+#attendance-root .card {
+  padding: 0;
+}
+
+#attendance-root .card .card-body {
+  padding: 0 !important;
+}
+
+.attendance-table-container {
+  border: 1px solid var(--bs-border-color, #dee2e6);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.attendance-table-scroll {
+  max-height: 440px; /* 높이 조정 */
+  overflow-y: auto;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+}
+
+.attendance-table-scroll table {
+  margin-bottom: 0;
+}
+
+.attendance-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--bs-table-bg, #fff);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 미정 상태 깜빡임 애니메이션 */
+@keyframes blink-tbd {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.blink-tbd {
+  animation: blink-tbd 1.5s ease-in-out infinite;
+}
+
+/* Base button styles for attendance actions */
+.attendance-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem; /* Bootstrap's default border-radius */
+  font-size: 0.875rem; /* Bootstrap's default button font-size */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  border: 1px solid transparent;
+  text-align: center;
+  vertical-align: middle;
+  user-select: none;
+  text-decoration: none;
+}
+
+.attendance-btn:hover {
+  opacity: 0.9;
+}
+
+.attendance-btn:active {
+  transform: translateY(1px);
+}
+
+/* Modifier classes for different attendance statuses */
+.attendance-btn-present {
+  background-color: #28a745; /* Green */
+  color: #fff;
+}
+
+.attendance-btn-late {
+  background-color: #ffc107; /* Yellow/Orange */
+  color: #212529; /* Dark text for contrast */
+}
+
+.attendance-btn-absent {
+  background-color: #dc3545; /* Red */
+  color: #fff;
+}
+
+.attendance-btn-official-absent {
+  background-color: #6c757d; /* Gray */
+  color: #fff;
+}
+
+.attendance-btn-save {
+  background-color: #007bff; /* Blue for primary action */
+  color: #fff;
+}
+
+.attendance-btn-default {
+  background-color: #e9ecef; /* Light gray for default/unselected */
+  color: #212529;
+  border-color: #ced4da;
+}
+
+.attendance-btn-default:hover {
+  background-color: #dee2e6;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.list-group-item-action:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* 비고 입력 필드 패딩 조정 */
+#studentsModal .form-control-sm {
+  padding: 4px;
+}
+
+/* 모달 푸터 버튼 스타일 */
+#studentsModal .modal-footer .attendance-btn {
+  min-width: 80px;
+}
+
+/* SweetAlert를 모달보다 앞에 표시 */
+.swal2-container {
+  z-index: 3000 !important;
+}

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctPostReplyMapper">
+
+	<insert id="insertReply">
+		<selectKey keyProperty="lctReplyId" order="BEFORE" resultType="string">
+			SELECT 'PSTRPL' || LPAD(SEQ_LCT_POST_REPLY.NEXTVAL, 9, '0') 
+			FROM DUAL
+		</selectKey>
+		INSERT INTO LCT_POST_REPLY (
+			  LCT_REPLY_ID
+			, LCT_POST_ID
+			, PARENT_REPLY
+			, USER_ID
+			, REPLY_CONTENT
+			, CREATE_AT
+			, DELETE_YN
+		) VALUES (
+			  #{lctReplyId}
+			, #{lctPostId}
+			, #{parentReply}
+			, #{userId}
+			, #{replyContent}
+			, SYSDATE
+			, 'N'
+		)
+	</insert>
+
+	<select id="selectReplyList">
+		SELECT
+			  lpr.LCT_REPLY_ID
+			, lpr.LCT_POST_ID
+			, lpr.PARENT_REPLY
+			, lpr.USER_ID
+			, lpr.REPLY_CONTENT
+			, lpr.CREATE_AT
+			, lpr.DELETE_YN
+		FROM
+			LCT_POST_REPLY lpr
+		WHERE
+			lpr.LCT_POST_ID = #{lctPostId}
+			AND lpr.DELETE_YN = 'N'
+		ORDER BY
+			NVL(lpr.PARENT_REPLY, lpr.LCT_REPLY_ID) ASC
+			, lpr.CREATE_AT ASC
+	</select>
+	
+	<select id="selectReply">
+		SELECT
+			  lpr.LCT_REPLY_ID
+			, lpr.LCT_POST_ID
+			, lpr.PARENT_REPLY
+			, lpr.USER_ID
+			, lpr.REPLY_CONTENT
+			, lpr.CREATE_AT
+			, lpr.DELETE_YN
+		FROM
+			LCT_POST_REPLY lpr
+		WHERE
+			lpr.LCT_REPLY_ID = #{lctReplyId}
+			AND lpr.DELETE_YN = 'N'
+	</select>
+	
+	<update id="deleteReplySoftly">
+		UPDATE
+			LCT_POST_REPLY
+		SET
+			DELETE_YN = 'Y'
+		WHERE
+			LCT_REPLY_ID = #{lctReplyId}
+			OR PARENT_REPLY = #{lctReplyId}
+	</update>
+	
+</mapper>

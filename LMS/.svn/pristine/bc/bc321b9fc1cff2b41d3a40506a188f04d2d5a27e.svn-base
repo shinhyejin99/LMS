@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.AddressMapper">
+
+	<insert id="insertAddress" parameterType="kr.or.jsu.vo.AddressVO">
+	    <selectKey keyProperty="addrId" resultType="string" order="BEFORE">
+	        SELECT 'ADDR' || LPAD(TO_CHAR(SEQ_ADDRESS.NEXTVAL), 11, '0') FROM DUAL
+	    </selectKey>
+	
+	    INSERT INTO address (
+			  addr_id
+	        , base_addr
+	        , detail_addr
+	        , zip_code
+	        , latitude
+	        , longitude
+	        , using_yn
+	    )
+	    VALUES (
+	          #{addrId}
+	        , #{baseAddr}
+	        , #{detailAddr}
+	        , #{zipCode}
+	        , #{latitude}
+	        , #{longitude}
+	        , #{usingYn}
+	    )
+	</insert>
+
+	<select id="selectAddressList">
+		SELECT
+            addr_id,
+            base_addr,
+            detail_addr,
+            zip_code,
+            latitude,
+            longitude,
+            using_yn
+        FROM
+            address
+        ORDER BY
+            addr_id
+	
+	</select>
+	
+	<update id="updateAddress">
+		UPDATE address
+        SET
+            base_addr = #{baseAddr},
+            detail_addr = #{detailAddr},
+            zip_code = #{zipCode},
+            latitude = #{latitude},
+            longitude = #{longitude},
+            using_yn = #{usingYn}
+        WHERE
+            addr_id = #{addrId}
+	
+	</update>
+	
+	<delete id="deleteAddress">
+	
+		DELETE FROM address
+        WHERE
+            addr_id = #{addrId}
+	
+	</delete>
+	
+
+
+<insert id="insertBatchAddress" parameterType="java.util.List">
+        INSERT ALL
+        <foreach collection="list" item="address" separator=" ">
+            INTO ADDRESS (
+                ADDR_ID, BASE_ADDR, DETAIL_ADDR, ZIP_CODE, USING_YN
+            )
+            VALUES (
+                #{address.addrId},
+                #{address.baseAddr},
+                #{address.detailAddr},
+                #{address.zipCode},
+                'Y'
+            )
+        </foreach>
+        SELECT * FROM DUAL
+    </insert>
+    
+    <select id="getNextAddressIdSequenceBatch" resultType="string">
+        SELECT 
+            'ADDR' || LPAD(TO_CHAR(SEQ_ADDRESS.NEXTVAL), 11, '0') 
+        FROM 
+            DUAL
+        CONNECT BY LEVEL <![CDATA[ <= ]]> #{count}
+    </select>
+    
+</mapper>

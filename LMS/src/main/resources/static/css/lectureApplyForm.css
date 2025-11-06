@@ -1,0 +1,552 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 10. 28.     	송태호            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* ==================== */
+/* 페이지 레이아웃 */
+/* ==================== */
+
+.professor-lecture-page {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.ssc-wrapper {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    min-height: calc(100vh - 100px);
+    box-sizing: border-box;
+}
+
+.ssc-wrapper * {
+    box-sizing: border-box;
+}
+
+/* 페이지 헤더 */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.page-header h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.semester-select-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.semester-select-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.form-control-inline {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 180px;
+}
+
+.btn-debug {
+    padding: 8px 16px;
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-debug:hover {
+    background-color: #ffb300;
+}
+
+/* ==================== */
+/* 좌우 2단 레이아웃 */
+/* ==================== */
+
+.apply-form-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.left-section,
+.right-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.left-section {
+    border-right: 2px solid #e0e0e0;
+    padding-right: 15px;
+}
+
+.right-section {
+    padding-left: 15px;
+}
+
+/* ==================== */
+/* 폼 섹션 */
+/* ==================== */
+
+.form-section {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 0px;
+}
+
+.form-weekby {
+	height : 660px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+}
+
+.section-hint {
+    font-size: 12px;
+    font-weight: normal;
+    color: #6c757d;
+}
+
+.section-header-with-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+}
+
+.section-header-with-actions .section-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+    flex: 1;
+}
+
+.section-header-with-actions .btn-debug {
+    margin-left: 15px;
+}
+
+/* 한 줄 폼 그룹 */
+.form-row-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* 2열 폼 그룹 */
+.form-row-group-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-group-inline {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group-inline .form-label {
+    margin-bottom: 5px;
+}
+
+/* ==================== */
+/* 폼 요소 */
+/* ==================== */
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-control:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.form-control-readonly {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+textarea.form-control {
+    resize: none;
+    font-family: inherit;
+}
+
+.form-hint {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* ==================== */
+/* 과목 상세 정보 */
+/* ==================== */
+
+.subject-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+/* ==================== */
+/* 주차별 계획 */
+/* ==================== */
+
+.btn-add-week {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-add-week:hover {
+    background-color: #0056b3;
+}
+
+.weekly-plan-list {
+    max-height: 550px;
+    overflow-y: auto;
+}
+
+.week-item {
+    background-color: white;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.week-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.week-label {
+    flex-shrink: 0;
+    min-width: 60px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #007bff;
+    padding-top: 8px;
+}
+
+.week-inputs-vertical {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.week-inputs-vertical input.week-objective {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.week-inputs-vertical textarea.week-content {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    resize: none;
+    min-height: 60px;
+}
+
+.btn-remove-week {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+    align-self: flex-start;
+}
+
+.btn-remove-week:hover {
+    background-color: #c82333;
+}
+
+/* ==================== */
+/* 성적 산출 비율 - 한 줄 압축 */
+/* ==================== */
+
+.grading-criteria-compact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 15px;
+}
+
+.grading-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.grading-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.grading-item label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.grading-percentage-group {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.grading-percentage-group input {
+    width: 45px;
+    padding: 4px 6px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 13px;
+    text-align: right;
+}
+
+.grading-percentage-group input:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.grading-percentage-group span {
+    font-weight: bold;
+    color: #495057;
+    font-size: 13px;
+}
+
+.grading-summary {
+    padding: 15px;
+    background-color: #e7f3ff;
+    border-radius: 6px;
+    border: 1px solid #b3d9ff;
+    text-align: center;
+}
+
+.grading-summary strong {
+    font-size: 16px;
+    color: #333;
+}
+
+.percentage-msg {
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+.percentage-msg.success {
+    color: #28a745;
+}
+
+.percentage-msg.error {
+    color: #dc3545;
+}
+
+/* ==================== */
+/* 버튼 영역 */
+/* ==================== */
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
+}
+
+.btn-submit,
+.btn-cancel {
+    padding: 12px 40px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-submit {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background-color: #545b62;
+}
+
+/* ==================== */
+/* 스크롤바 스타일 */
+/* ==================== */
+
+.weekly-plan-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.weekly-plan-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.weekly-plan-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.weekly-plan-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ==================== */
+/* 반응형 */
+/* ==================== */
+
+@media (max-width: 1200px) {
+    .apply-form-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .detail-row {
+        grid-template-columns: 1fr;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+}

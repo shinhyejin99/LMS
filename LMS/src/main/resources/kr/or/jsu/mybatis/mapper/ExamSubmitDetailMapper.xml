@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.ExamSubmitDetailMapper">
+
+
+	<insert id="insertExamSubmitDetail">
+        INSERT INTO exam_submit_detail (
+            lct_exam_id,
+            question_no,
+            enroll_id,
+            answer
+        ) VALUES (
+            #{lctExamId},
+            #{questionNo},
+            #{enrollId},
+            #{answer}
+        )
+    </insert>
+
+    <select id="selectExamSubmitDetailList" resultType="kr.or.jsu.vo.ExamSubmitDetailVO">
+        SELECT
+            lct_exam_id,
+            question_no,
+            enroll_id,
+            answer
+        FROM
+            exam_submit_detail
+        ORDER BY
+            lct_exam_id, question_no, enroll_id
+    </select>
+
+    <update id="updateExamSubmitDetail">
+        UPDATE exam_submit_detail
+        SET
+            answer = #{answer}
+        WHERE
+            lct_exam_id = #{lctExamId} AND question_no = #{questionNo} AND enroll_id = #{enrollId}
+    </update>
+
+    <delete id="deleteExamSubmitDetail">
+        DELETE FROM exam_submit_detail
+        WHERE
+            lct_exam_id = #{lctExamId} AND question_no = #{questionNo} AND enroll_id = #{enrollId}
+    </delete>
+</mapper>

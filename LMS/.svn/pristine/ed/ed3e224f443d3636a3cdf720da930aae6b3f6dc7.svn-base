@@ -1,0 +1,607 @@
+@charset "UTF-8";
+
+/* ==================== */
+/* 학생 대시보드 - 3열 × 2행 컴팩트 레이아웃 */
+/* ==================== */
+
+/* SiteMesh 컨테이너 강제 너비 100% */
+body.student-dashboard .container-xxl, body.professor-dashboard .container-xxl
+	{
+	max-width: 100% !important;
+	width: 100% !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	overflow-x: hidden !important; /* 가로 스크롤 방지 */
+}
+
+body.student-dashboard .flex-grow-1, body.professor-dashboard .flex-grow-1
+	{
+	width: 100% !important;
+}
+
+body.student-dashboard .container-p-y, body.professor-dashboard .container-p-y
+	{
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
+/* content-wrapper 너비 강제 조정 */
+.content-wrapper {
+	width: 100% !important;
+	max-width: 100% !important;
+	overflow-x: hidden !important; /* 가로 스크롤 방지 */
+}
+
+body.student-dashboard .student-profile-container, body.professor-dashboard .student-profile-container
+	{
+	max-width: calc(100% - 40px) !important; /* 좌우 20px씩 여백 */
+	width: calc(100% - 40px) !important;
+	margin: 0 20px !important; /* 중앙 정렬 */
+	padding-top: 20px !important;
+	padding-bottom: 20px !important;
+	padding-left: 20px !important;
+	padding-right: 50px !important;
+	box-sizing: border-box !important;
+}
+
+/* 3열 × 2행 그리드 (너비 계산 수정) */
+body.student-dashboard .dashboard-grid {
+	display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+body.professor-dashboard .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px;
+    background-color: red !important; /* 디버깅용 */
+}
+
+/* 1행: 3열 그리드 */
+.dashboard-row-1 {
+    display: grid !important;
+    grid-template-columns: 20% 50% 30% !important;
+    gap: 20px !important;
+    height: 380px !important;
+}
+
+/* 2행: 4열 그리드 */
+.dashboard-row-2 {
+    display: grid !important;
+    grid-template-columns: 20% 24.5% 24.2% 30% !important;  /* 가운데 2개만 균등 분할 */
+    gap: 20px !important;
+    height: 320px !important;
+}
+
+body.student-dashboard .profile-card, body.professor-dashboard .profile-card {
+	background: white;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 20px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box !important; /* ✅ 박스 크기 계산 수정 */
+	min-width: 0; /* 그리드 아이템이 넘치지 않도록 */
+}
+
+/* 카드 제목 */
+.card-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #333;
+	/*     margin: 0 0 12px 0; */
+}
+
+.card-subtitle {
+	font-size: 13px;
+	color: #6c757d;
+	margin: 0;
+}
+
+/* ==================== */
+/* 프로필 카드 */
+/* ==================== */
+.profile-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	height: 100%;
+	justify-content: center;
+	padding: 10px;
+}
+
+.dash-info-photo {
+	width: 150px;
+	height: 150px;
+	margin-bottom: 15px;
+	border-radius: 50%;
+	overflow: hidden;
+}
+
+.dash-info-photo .photo-img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center 20%;
+	border: 3px solid #e0e0e0;
+	border-radius: 50%;
+}
+
+.dash-info-photo .photo-placeholder {
+	width: 100%;
+	height: 100%;
+	border: 3px dashed #dee2e6;
+	border-radius: 50%;
+	background: #f8f9fa;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	color: #999;
+}
+
+.dash-info-photo .photo-placeholder i {
+	font-size: 3rem;
+	margin-bottom: 6px;
+}
+
+.dash-info-photo .photo-placeholder span {
+	font-size: 12px;
+}
+
+/* 이름 크기 증가 */
+.profile-name {
+	font-size: 22px;
+	font-weight: 700;
+	color: #333;
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+/* 상세 정보 크기 증가 */
+.profile-detail {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	font-size: 15px;
+}
+
+.detail-label {
+	font-weight: 600;
+	color: #555;
+}
+
+.detail-value {
+	color: #666;
+}
+
+/* ==================== */
+/* 지도교수 카드 */
+/* ==================== */
+.advisor-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	height: 100%;
+	justify-content: center;
+}
+
+.advisor-avatar {
+	margin-bottom: 12px;
+}
+
+.advisor-avatar i {
+	font-size: 3rem;
+	color: #696cff;
+}
+
+.advisor-name {
+	font-size: 16px;
+	font-weight: 600;
+	color: #333;
+	margin-bottom: 10px;
+}
+
+.advisor-detail {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	font-size: 12px;
+	color: #666;
+	margin-bottom: 5px;
+}
+
+.advisor-detail:last-child {
+	margin-bottom: 0;
+}
+
+.advisor-detail i {
+	color: #696cff;
+	font-size: 13px;
+}
+
+/* ==================== */
+/* 차트 카드 */
+/* ==================== */
+.card-chart {
+	display: flex;
+	flex-direction: column;
+	min-height: 320px;
+}
+
+.card-header-section {
+	margin-bottom: 8px;
+	flex-shrink: 0;
+}
+
+.chart-container {
+	flex: 1;
+	position: relative;
+	min-height: 260px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	overflow: visible;
+}
+
+/* SVG 스타일 추가 */
+.chart-container svg {
+	width: 100% !important;
+	height: auto !important;
+	max-width: 100%;
+	max-height: 250px;
+	overflow: visible;
+	flex-shrink: 0;
+}
+
+#gradeChart {
+	width: 100% !important;
+	height: 100% !important;
+}
+
+#graduationChart {
+	width: 100% !important;
+	height: auto !important;
+	max-height: 250px;
+}
+
+/* 졸업 차트 정보 영역 */
+.graduation-chart-info {
+	width: 100%;
+	flex-shrink: 0;
+
+}
+
+.credit-info {
+	padding: 12px;
+	background-color: #F8F9FA;
+	border-radius: 8px;
+}
+
+/* ==================== */
+/* 수강중인 강의 */
+/* ==================== */
+.course-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	flex: 1;
+	overflow-y: auto;
+}
+
+.course-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.course-item:last-child {
+	border-bottom: none;
+}
+
+.course-icon {
+	font-size: 1.3rem;
+	color: #696cff;
+	flex-shrink: 0;
+}
+
+.course-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.course-name {
+	font-weight: 600;
+	color: #333;
+	font-size: 14px;
+	margin-bottom: 3px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.course-time {
+	font-size: 12px;
+	color: #999;
+}
+
+/* ==================== */
+/* 제출할 과제 */
+/* ==================== */
+.assignment-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	flex: 1;
+	overflow-y: auto;
+}
+
+.assignment-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	padding: 10px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.assignment-item:last-child {
+	border-bottom: none;
+}
+
+.assignment-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.assignment-course {
+	display: inline-block;
+	background: #e8e8ff;
+	color: #696cff;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: 500;
+	margin-bottom: 4px;
+}
+
+.assignment-name {
+	font-weight: 600;
+	color: #333;
+	font-size: 13px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.assignment-badge {
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	flex-shrink: 0;
+	margin-left: 8px;
+}
+
+.badge-danger {
+	background: #ffe5e5;
+	color: #d32f2f;
+}
+
+.badge-warning {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.badge-success {
+	background: #d4edda;
+	color: #155724;
+}
+
+/* ==================== */
+/* 스크롤바 스타일 */
+/* ==================== */
+.course-list::-webkit-scrollbar, .assignment-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.course-list::-webkit-scrollbar-track, .assignment-list::-webkit-scrollbar-track
+	{
+	background: #f1f1f1;
+	border-radius: 3px;
+}
+
+.course-list::-webkit-scrollbar-thumb, .assignment-list::-webkit-scrollbar-thumb
+	{
+	background: #888;
+	border-radius: 3px;
+}
+
+.course-list::-webkit-scrollbar-thumb:hover, .assignment-list::-webkit-scrollbar-thumb:hover
+	{
+	background: #555;
+}
+
+/* 학사공지/채용정보 카드 헤더 */
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.card-link {
+    text-decoration: none;
+    color: #999;
+    font-size: 12px;
+    transition: color 0.2s;
+    margin-left: auto;  /* 오른쪽으로 밀기 */
+}
+
+
+/* ==================== */
+/* 채용정보 카드 */
+/* ==================== */
+.job-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.job-item {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.job-item:last-child {
+    border-bottom: none;
+}
+
+.job-link {
+    display: block;
+    padding: 12px 0;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.job-link:hover {
+    background-color: #f8f9fa;
+}
+
+.job-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.job-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.job-link:hover .job-title {
+    color: #696cff;
+}
+
+.job-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.job-empty {
+    padding: 40px 0;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+}
+
+/* 스크롤바 스타일 (기존 스타일과 동일) */
+.job-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.job-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.job-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.job-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+
+/* ==================== */
+/* 반응형 */
+/* ==================== */
+
+
+@media ( max-width : 1200px) {
+	body.student-dashboard .dashboard-grid, body.professor-dashboard .dashboard-grid
+		{
+		grid-template-columns: 1fr 1fr !important;
+		grid-template-rows: auto !important;
+		height: auto !important;
+	}
+	body.student-dashboard .profile-card, body.professor-dashboard .profile-card
+		{
+		min-height: 280px;
+	}
+}
+
+@media ( max-width : 768px) {
+	body.student-dashboard .student-profile-container, body.professor-dashboard .student-profile-container
+		{
+		max-width: calc(100% - 20px) !important;
+		width: calc(100% - 20px) !important;
+		padding: 15px !important; body .student-dashboard .dashboard-grid,
+		body.professor-dashboard .dashboard-grid { grid-template-columns : 1fr
+		!important;
+		gap: 15px !important;
+	}
+	body.student-dashboard .profile-card, body.professor-dashboard .profile-card
+		{
+		padding: 15px;
+		min-height: 250px;
+	}
+	.dash-info-photo {
+		width: 80px;
+		height: 96px;
+	}
+	#gradeChart, #graduationChart {
+		max-height: 200px;
+	}
+}
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+    .dashboard-row-1 {
+        grid-template-columns: 1fr 1fr !important;
+        height: auto !important;
+    }
+
+    .dashboard-row-2 {
+        grid-template-columns: 1fr 1fr !important;
+        height: auto !important;
+    }
+
+    body.student-dashboard .profile-card, body.professor-dashboard .profile-card {
+        min-height: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-row-1, .dashboard-row-2 {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+    }
+
+    body.student-dashboard .profile-card, body.professor-dashboard .profile-card {
+        padding: 15px;
+        min-height: 250px;
+    }
+}
+
+/* 학년별 지도학생 분포 차트 크기 조정 */
+.advisee-grade-by-year-chart-card .chart-container {
+    height: 200px !important; /* 원하는 높이로 조정, !important로 강제 적용 */
+}

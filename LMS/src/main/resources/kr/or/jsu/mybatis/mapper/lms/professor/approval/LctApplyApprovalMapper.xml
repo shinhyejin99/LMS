@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.lms.professor.approval.LctApplyApprovalMapper">
+
+	<!-- 새로운 승인 한 건을 생성합니다. -->
+	<insert id="insertNewApproval">
+		<selectKey keyProperty="approveId" resultType="string" order="BEFORE">
+            SELECT 'APPR' || LPAD(SEQ_APPROVAL.NEXTVAL, 11, '0') FROM DUAL
+        </selectKey>
+		INSERT INTO APPROVAL (
+			  APPROVE_ID
+			, PREV_APPROVE_ID
+			, USER_ID
+			, APPROVE_YNNULL
+			, APPROVE_AT
+			, COMMENTS
+			, ATTACH_FILE_ID
+			, APPLY_TYPE_CD
+			, APPLICANT_USER_ID
+		) VALUES (
+			  #{approveId}
+			, #{prevApproveId}
+			, #{userId}
+			, null
+			, null
+			, #{comments}
+			, #{attachFileId}
+			, #{applyTypeCd}
+			, #{applicantUserId}
+		)
+	</insert>
+	
+	<!-- 승인ID 리스트로 해당 승인ID들의 정보를 한꺼번에 가져옵니다. -->
+	<select id="selectApprovalList" parameterType="list" resultType="ApprovalInfo">
+		SELECT
+			a.APPROVE_ID         
+			, a.PREV_APPROVE_ID  
+			, a.USER_ID          
+			, a.APPROVE_YNNULL   
+			, a.APPROVE_AT       
+			, a.COMMENTS         
+			, a.ATTACH_FILE_ID   
+			, a.APPLY_TYPE_CD    
+			, a.APPLICANT_USER_ID
+		FROM
+			APPROVAL a
+		WHERE
+			a.APPROVE_ID IN
+			<foreach collection="list" item="id" open="(" separator="," close=")">
+				#{id}
+			</foreach>
+	</select>
+	
+	<!-- 승인ID로 해당 승인의 상태를 변경합니다. -->
+	<update id="updateApprovalStatus">
+		UPDATE APPROVAL a
+		SET 
+			a.APPROVE_YNNULL = #{approveYnnull}
+			, a.APPROVE_AT = SYSDATE
+		WHERE
+			a.APPROVE_ID = #{approveId}
+	</update>
+
+</mapper>

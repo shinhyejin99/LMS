@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.TuitionMapper">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 10.     	김수현            교직원) 등록금 납부내역 관련 추가
+ *  2025. 10. 21.		김수현			학생) 등록금, 장학금 메서드 추가
+ *
+-->
+    <insert id="insertTuition">
+        INSERT INTO tuition (
+            tuition_id,
+            univ_dept_cd,
+            grade_cd,
+            term_cd,
+            tuition_sort_cd,
+            create_at,
+            using_yn,
+            amount,
+            tuition_desc
+        ) VALUES (
+            #{tuitionId},
+            #{univDeptCd},
+            #{gradeCd},
+            #{termCd},
+            #{tuitionSortCd},
+            #{createAt},
+            #{usingYn},
+            #{amount},
+            #{tuitionDesc}
+        )
+    </insert>
+
+    <select id="selectTuitionById" resultType="kr.or.jsu.vo.TuitionVO">
+        SELECT
+            tuition_id,
+            univ_dept_cd,
+            grade_cd,
+            term_cd,
+            tuition_sort_cd,
+            create_at,
+            using_yn,
+            amount,
+            tuition_desc
+        FROM
+            tuition
+        WHERE
+            tuition_id = #{tuitionId}
+    </select>
+
+    <select id="selectAllTuitions" resultType="kr.or.jsu.vo.TuitionVO">
+        SELECT
+            tuition_id,
+            univ_dept_cd,
+            grade_cd,
+            term_cd,
+            tuition_sort_cd,
+            create_at,
+            using_yn,
+            amount,
+            tuition_desc
+        FROM
+            tuition
+        ORDER BY
+            tuition_id
+    </select>
+
+    <update id="updateTuition">
+        UPDATE tuition
+        SET
+            univ_dept_cd = #{univDeptCd},
+            grade_cd = #{gradeCd},
+            term_cd = #{termCd},
+            tuition_sort_cd = #{tuitionSortCd},
+            create_at = #{createAt},
+            using_yn = #{usingYn},
+            amount = #{amount},
+            tuition_desc = #{tuitionDesc}
+        WHERE
+            tuition_id = #{tuitionId}
+    </update>
+
+    <delete id="deleteTuition">
+        DELETE FROM tuition
+        WHERE
+            tuition_id = #{tuitionId}
+    </delete>
+
+	<!-- 수현 추가 =================================================-->
+
+    <!-- 교직원 납부요청하는 프로시저 호출 -->
+    <select id="callTuitionRequestProcedure" statementType="CALLABLE">
+        {CALL PR_CREATE_TUITION_REQUEST()}
+    </select>
+
+	<!-- 등록금 납부내역 조회 -->
+
+	<!-- 납부내역 처리(or 일괄처리) -->
+
+
+
+	<!-- 학생) 등록금 고지서 조회 및 생성 -->
+    <!-- 메인 정보 조회 -->
+    <select id="selectTuitionNoticeMain" resultType="TuitionDetailDTO">
+        SELECT
+		    SUBSTR(STR.YEARTERM_CD, 1, 4) || '학년도 ' ||
+		    CASE
+		        WHEN SUBSTR(STR.YEARTERM_CD, INSTR(STR.YEARTERM_CD, '_') + 1) = 'REG1' THEN '1학기'
+		        WHEN SUBSTR(STR.YEARTERM_CD, INSTR(STR.YEARTERM_CD, '_') + 1) = 'REG2' THEN '2학기'
+		    END AS yearterm
+		    ,'JSU 대학교' AS universityName
+		    , C.COLLEGE_NAME AS collegeName
+		    , UD.UNIV_DEPT_NAME AS deptName
+		    , S.STUDENT_NO AS studentNo
+		    , U.LAST_NAME || U.FIRST_NAME AS studentName
+		    , STR.TUITION_SUM AS tuitionSum
+		    , STR.SCHOLARSHIP_SUM AS scholarshipSum
+		    , STR.FINAL_AMOUNT AS finalAmount
+		    , TO_CHAR(STR.PAY_START_DAY, 'YYYY"년" MM"월" DD"일"') || ' ~ ' ||
+		      TO_CHAR(STR.PAY_END_DAY, 'YYYY"년" MM"월" DD"일"') AS payPeriod
+		    , STR.VIRTUAL_ACCOUNT AS virtualAccount
+		FROM STU_TUITION_REQ STR
+		INNER JOIN STUDENT S ON STR.STUDENT_NO = S.STUDENT_NO
+		INNER JOIN USERS U ON S.USER_ID = U.USER_ID
+		INNER JOIN UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+		INNER JOIN COLLEGE C ON UD.COLLEGE_CD = C.COLLEGE_CD
+		WHERE STR.STUDENT_NO = #{studentNo}
+		  AND STR.YEARTERM_CD = #{yeartermCd}
+    </select>
+
+    <!-- 등록금 상세 내역 조회 -->
+    <select id="selectTuitionDetails" resultType="TuitionSimpleDTO">
+        SELECT
+            TSC.CD_NAME AS itemName
+            , T.AMOUNT AS amount
+        FROM STU_TUITION_DETAIL STD
+        INNER JOIN TUITION T ON STD.TUITION_ID = T.TUITION_ID
+        LEFT JOIN COMMON_CODE TSC ON T.TUITION_SORT_CD = TSC.COMMON_CD
+        WHERE STD.STUDENT_NO = #{studentNo}
+          AND STD.YEARTERM_CD = #{yeartermCd}
+        ORDER BY T.TUITION_SORT_CD
+    </select>
+
+    <!-- 장학금 상세 내역 조회 -->
+    <select id="selectScholarshipDetails" resultType="ScholarshipSimpleDTO">
+        SELECT
+            SC.SCHOLARSHIP_NAME AS itemName
+            , SC.AMOUNT AS amount
+        FROM STU_SCHOLAR_DETAIL SSD
+        INNER JOIN SCHOLARSHIP SC ON SSD.SCHOLARSHIP_ID = SC.SCHOLARSHIP_ID
+        WHERE SSD.STUDENT_NO = #{studentNo}
+          AND SSD.YEARTERM_CD = #{yeartermCd}
+        ORDER BY SC.SCHOLARSHIP_NAME
+    </select>
+
+    <!-- 납부 내역 조회 (여러 학기) -->
+    <select id="selectPaymentHistory" resultType="StudentPaymentHistoryDTO">
+        SELECT
+            STR.YEARTERM_CD AS yeartermCd
+            , SUBSTR(STR.YEARTERM_CD, 1, 4) || '-' ||
+            CASE
+                WHEN SUBSTR(STR.YEARTERM_CD, INSTR(STR.YEARTERM_CD, '_') + 1) = 'REG1' THEN '1학기'
+                WHEN SUBSTR(STR.YEARTERM_CD, INSTR(STR.YEARTERM_CD, '_') + 1) = 'REG2' THEN '2학기'
+            END AS semesterName
+            , STR.TUITION_SUM AS tuitionSum
+            , STR.SCHOLARSHIP_SUM AS scholarshipSum
+            , STR.FINAL_AMOUNT AS finalAmount
+            , TO_CHAR(STR.PAY_DATE, 'YYYY-MM-DD') AS payDate
+            , STR.PAY_DONE_YN AS payDoneYn
+            , STR.VIRTUAL_ACCOUNT AS virtualAccount
+        FROM STU_TUITION_REQ STR
+        WHERE STR.STUDENT_NO = #{studentNo}
+        ORDER BY STR.YEARTERM_CD DESC
+    </select>
+
+    <!-- 장학금 분포 (도넛 차트) -->
+    <select id="selectScholarshipDistribution" resultType="ScholarshipDistributionDTO">
+        SELECT
+            SC.SCHOLARSHIP_NAME AS scholarshipName
+            , COUNT(*) AS count
+            , SUM(SC.AMOUNT) AS totalAmount
+        FROM STU_SCHOLAR_DETAIL SSD
+        INNER JOIN SCHOLARSHIP SC ON SSD.SCHOLARSHIP_ID = SC.SCHOLARSHIP_ID
+        WHERE SSD.STUDENT_NO = #{studentNo}
+          AND SSD.YEARTERM_CD = #{yeartermCd}
+        GROUP BY SC.SCHOLARSHIP_NAME
+        ORDER BY totalAmount DESC
+    </select>
+
+    <!-- 장학금 총액 -->
+    <select id="selectTotalScholarship" resultType="Integer">
+        SELECT NVL(SUM(SC.AMOUNT), 0)
+        FROM STU_SCHOLAR_DETAIL SSD
+        INNER JOIN SCHOLARSHIP SC ON SSD.SCHOLARSHIP_ID = SC.SCHOLARSHIP_ID
+        WHERE SSD.STUDENT_NO = #{studentNo}
+          AND SSD.YEARTERM_CD = #{yeartermCd}
+    </select>
+
+	<!-- 납부확인서 조회 -->
+	<select id="selectPaymentReceipt" resultType="PaymentReceiptDTO">
+	    SELECT
+	        UD.UNIV_DEPT_NAME AS deptName
+	        , S.STUDENT_NO AS studentNo
+	        , SUBSTR(U.REGI_NO, 1, 6) AS birthDate
+	        , U.LAST_NAME || U.FIRST_NAME AS studentName
+	        , TO_CHAR(STR.PAY_DATE, 'YYYY"년" MM"월" DD"일"') AS payDate
+	        , SUBSTR(STR.YEARTERM_CD, 1, 4) || '학년도 ' ||
+	        CASE
+	            WHEN SUBSTR(STR.YEARTERM_CD, INSTR(STR.YEARTERM_CD, '_') + 1) = 'REG1' THEN '1학기'
+	            WHEN SUBSTR(STR.YEARTERM_CD, INSTR(STR.YEARTERM_CD, '_') + 1) = 'REG2' THEN '2학기'
+	        END AS yearTerm
+	        , 'JSU 대학교' AS universityName
+	        , STR.TUITION_SUM AS tuitionSum
+	        , STR.SCHOLARSHIP_SUM AS scholarshipSum
+	        , STR.FINAL_AMOUNT AS finalAmount
+	    FROM
+	    	STU_TUITION_REQ STR
+	    INNER JOIN STUDENT S ON STR.STUDENT_NO = S.STUDENT_NO
+	    INNER JOIN USERS U ON S.USER_ID = U.USER_ID
+	    INNER JOIN UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+	    WHERE STR.STUDENT_NO = #{studentNo}
+	      AND STR.YEARTERM_CD = #{yeartermCd}
+	      AND STR.PAY_DONE_YN = 'Y' -- 납부 완료된 것만
+	</select>
+
+
+
+</mapper>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuReviewLctMapper">
+
+    <select id="selectStuReviewLct" parameterType="string" resultType="kr.or.jsu.vo.StuReviewLctVO">
+        SELECT 
+          enroll_id
+        , create_at
+        , result_json
+        FROM stu_review_lct
+        WHERE enroll_id = #{enrollId}
+    </select>
+
+    <select id="selectStuReviewLctList" resultType="kr.or.jsu.vo.StuReviewLctVO">
+        SELECT 
+          enroll_id
+        , create_at
+        , result_json
+        FROM stu_review_lct
+        ORDER BY create_at DESC
+    </select>
+
+    <insert id="insertStuReviewLct" parameterType="kr.or.jsu.vo.StuReviewLctVO">
+        INSERT INTO stu_review_lct (
+          enroll_id
+        , create_at
+        , result_json
+        ) VALUES (
+          #{enrollId}
+        , #{createAt}
+        , #{resultJson}
+        )
+    </insert>
+
+    <update id="updateStuReviewLct" parameterType="kr.or.jsu.vo.StuReviewLctVO">
+        UPDATE stu_review_lct
+        SET 
+          create_at   = #{createAt}
+        , result_json = #{resultJson}
+        WHERE enroll_id = #{enrollId}
+    </update>
+
+    <delete id="deleteStuReviewLct" parameterType="string">
+        DELETE FROM stu_review_lct
+        WHERE enroll_id = #{enrollId}
+    </delete>
+
+</mapper>

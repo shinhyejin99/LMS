@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      		수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.09        정태일            포맷 정리 및 주석 보완
+-->
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.CertificateProfessorMapper">
+
+    <!-- 교수 상세 정보 매핑을 위한 ResultMap -->
+    <resultMap id="professorInfoDTOResultMap" type="kr.or.jsu.dto.CertificateProfessorDetailDTO">
+        <id     property="professorNo"     column="PROFESSOR_NO" />
+        <result property="userId"          column="USER_ID" />
+        <result property="firstName"       column="FIRST_NAME" />
+        <result property="lastName"        column="LAST_NAME" />
+        <result property="regiNo"          column="REGI_NO" />
+        <result property="mobileNo"        column="MOBILE_NO" />
+        <result property="email"           column="EMAIL" />
+        <result property="univDeptCd"      column="UNIV_DEPT_CD" />
+        <result property="univDeptName"    column="UNIV_DEPT_NAME" />
+        <result property="prfStatusCd"     column="PRF_STATUS_CD" />
+        <result property="prfStatusName"   column="PRF_STATUS_NAME" />
+        <result property="prfAppntCd"      column="PRF_APPNT_CD" />
+        <result property="prfAppntName"    column="PRF_APPNT_NAME" />
+        <result property="prfPositCd"      column="PRF_POSIT_CD" />
+        <result property="prfPositName"    column="PRF_POSIT_NAME" />
+        <result property="officeNo"        column="OFFICE_NO" />
+        <result property="baseAddr"        column="BASE_ADDR" />
+        <result property="detailAddr"      column="DETAIL_ADDR" />
+        <result property="zipCode"         column="ZIP_CODE" />
+        <result property="collegeName"     column="COLLEGE_NAME" />
+        <result property="createAt"        column="CREATE_AT" />
+        <!-- 필요 시 추가 컬럼 정의 -->
+    </resultMap>
+
+    <!-- userId로 교수 상세 정보를 조회 -->
+    <select id="selectProfessorDetailInfo"
+            parameterType="string"
+            resultMap="professorInfoDTOResultMap">
+        SELECT
+              U.USER_ID
+            , U.PW_HASH
+            , U.FIRST_NAME
+            , U.LAST_NAME
+            , U.REGI_NO
+            , U.PHOTO_ID
+            , U.ADDR_ID
+            , U.MOBILE_NO
+            , U.EMAIL
+            , U.BANK_CODE
+            , U.BANK_ACCOUNT
+            , U.CREATE_AT
+            , A.ZIP_CODE
+            , A.BASE_ADDR
+            , A.DETAIL_ADDR
+            , P.PROFESSOR_NO
+            , P.UNIV_DEPT_CD
+            , P.ENG_LNAME
+            , P.ENG_FNAME
+            , P.PRF_STATUS_CD
+            , P.PRF_APPNT_CD
+            , P.PRF_POSIT_CD
+            , C.COLLEGE_NAME
+            , D.UNIV_DEPT_NAME
+            , POS.CD_NAME     AS PRF_POSIT_NAME
+            , STAT.CD_NAME    AS PRF_STATUS_NAME
+            , APPNT.CD_NAME   AS PRF_APPNT_NAME
+            , PD.DEGREE_NAME  AS FINAL_DEGREE_NAME
+            , PR.PURPOSE      AS RESEARCH_ROOM_PURPOSE
+            , BK.CD_NAME      AS BANK_NAME
+        FROM
+            PROFESSOR P
+            LEFT JOIN USERS        U     ON P.USER_ID        = U.USER_ID
+            LEFT JOIN ADDRESS      A     ON U.ADDR_ID        = A.ADDR_ID
+            LEFT JOIN UNIV_DEPT    D     ON P.UNIV_DEPT_CD   = D.UNIV_DEPT_CD
+            LEFT JOIN COLLEGE      C     ON D.COLLEGE_CD     = C.COLLEGE_CD
+            LEFT JOIN COMMON_CODE  POS   ON P.PRF_POSIT_CD   = POS.COMMON_CD
+            LEFT JOIN COMMON_CODE  STAT  ON P.PRF_STATUS_CD  = STAT.COMMON_CD
+            LEFT JOIN COMMON_CODE  APPNT ON P.PRF_APPNT_CD   = APPNT.COMMON_CD
+            LEFT JOIN PRF_DEGREE   PD    ON P.PROFESSOR_NO   = PD.PROFESSOR_NO
+                                        AND PD.FINAL_YN      = 'Y'
+            LEFT JOIN PRF_ROOM     PR    ON P.PROFESSOR_NO   = PR.PROFESSOR_NO
+            LEFT JOIN COMMON_CODE  BK    ON U.BANK_CODE      = BK.COMMON_CD
+        WHERE
+            U.USER_ID = #{userId}
+    </select>
+
+</mapper>

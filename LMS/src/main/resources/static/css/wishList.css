@@ -1,0 +1,1017 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ * 수정일      			수정자           수정내용
+ * -----------   	-------------    ---------------------------
+ * 2025. 10. 16.     	김수현            최초 생성
+ * 2025. 10. 20.        김수현			css 수정
+ * 2025. 10. 31.		김수현			버튼 스타일 추가
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* 페이지 전체 레이아웃 고정 */
+.wishlist-page {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important; /* 가로 스크롤 방지 */
+}
+
+/* main-container도 가로 스크롤 방지 */
+.wishlist-page .main-container {
+    position: relative;
+    overflow-x: hidden !important;
+    max-width: 100%;
+}
+
+/* 알림 드롭다운이 화면 안에 표시되도록 강제 */
+#notification-dropdown-menu,
+.dropdown-menu {
+    position: fixed !important;
+    right: 20px !important;
+    top: 60px !important;
+    left: auto !important;
+    z-index: 9999 !important;
+    max-width: 400px !important;
+}
+
+/* 알림 드롭다운이 항상 최상위에 표시되도록 */
+#notification-dropdown-menu {
+	z-index: 9999 !important;
+}
+
+.dropdown-menu {
+	z-index: 9999 !important;
+}
+
+.wishlist-page * {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.wishlist-page body {
+	font-family: 'Noto Sans KR', sans-serif;
+	background-color: #f5f5f5;
+	padding: 20px;
+}
+
+.wishlist-page .container {
+	max-width: 1200px;
+	margin: 0 auto;
+	background-color: white;
+	padding: 30px;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wishlist-page h1 {
+	font-size: 28px;
+	margin-bottom: 30px;
+	color: #333;
+	border-bottom: 3px solid #4CAF50;
+	padding-bottom: 10px;
+}
+
+/* 컨텐츠 헤더 (제목 + 신청 현황) */
+.wishlist-page .content-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+	padding-bottom: 15px;
+	border-bottom: 2px solid #e0e0e0;
+}
+
+.wishlist-page .content-header h1 {
+	margin: 0;
+	font-size: 26px;
+	color: #333;
+	font-weight: 800;
+}
+
+/* 탭/상태바를 위한 새 컨테이너 스타일 */
+.wishlist-page .tab-status-container {
+	display: flex; /* Flexbox 활성화 */
+	justify-content: space-between; /* 탭과 상태바를 양 끝으로 배치 */
+	align-items: flex-end; /* 수직 정렬 (탭 하단과 상태바 하단 맞추기) */
+	margin-bottom: 20px;
+	border-bottom: 2px solid #e0e0e0;
+	padding-bottom: 0;
+}
+
+/* 상태바 (신청 현황 컨테이너) - 오른쪽으로 고정 */
+.wishlist-page .status-bar {
+	display: flex;
+	margin-bottom: 0px;
+	margin-left: auto; /* 오른쪽 끝으로 고정 */
+}
+
+/* 신청 현황 (apply-status-header) 스타일 개선 */
+.wishlist-page .apply-status-header {
+	display: flex;
+	align-items: center;
+	gap: 25px;
+	padding: 12px 30px;
+	background-color: #f8f9fa;
+	border-radius: 20px 20px 0 0;
+	border: 1px solid #d0d0d0;
+	font-size: 14px;
+	min-width: 320px;
+	margin: 10px;
+	height : 48px;
+}
+
+/* ⭐️⭐️ 신청 현황 개별 항목 컨테이너 (status-badge) - 가로 배치 ⭐️⭐️ */
+.wishlist-page .apply-status-header .status-badge {
+	display: flex;
+	flex-direction: row; /* 가로 배치 */
+	align-items: center; /* 수직 중앙 정렬 */
+	gap: 4px; /* 내부 요소 간격 좁게 조정 */
+}
+
+/* 라벨 (신청과목, 신청학점) */
+.wishlist-page .apply-status-header .badge-label {
+	color: #666;
+	font-size: 13px;
+	font-weight: 500;
+	margin-bottom: 0; /* 세로 배치용 마진 제거 */
+}
+
+/* 현재 값 (숫자) 스타일 강조 */
+.wishlist-page .apply-status-header strong {
+	color: #4CAF50;
+	font-size: 26px;
+	font-weight: 800;
+	line-height: 1;
+	display: inline-block;
+}
+
+/* 최대값 (과목, /24) 스타일 */
+.wishlist-page .apply-status-header .unit {
+	color: #999;
+	font-size: 14px; /* 가로 정렬을 위해 플렉스 설정을 제거하고 인라인-블록으로 변경 */
+	display: inline-block;
+	margin-top: 0;
+}
+
+.wishlist-page .apply-status-header .status-badge:nth-child(2) .max {
+	/* 신청 학점의 max 부분만 특별 처리 */
+	font-size: 13px; /* "/24"를 조금 더 작게 */
+	margin-top: 5px; /* 숫자와 분리 */
+}
+
+/* 구분선 | 스타일 */
+.wishlist-page .apply-status-header .divider {
+	color: #ccc;
+	font-weight: 300;
+	font-size: 28px;
+	margin: 0 5px;
+	align-self: center; /* 수직 중앙 정렬 */
+}
+
+/* 학년 탭 (전체 강의 조회용) */
+.wishlist-page .grade-tabs {
+	display: flex;
+	gap: 8px;
+	margin: 20px 0 15px 0;
+	padding: 0;
+}
+
+.wishlist-page .grade-tab {
+	padding: 8px 12px;
+	border: 1px solid #e0e0e0;
+	background-color: white;
+	color: #666;
+	font-size: 14px;
+	font-weight: 500;
+	border-radius: 25px;
+	cursor: pointer;
+	transition: all 0.2s;
+/* 	height: 48px;  🆕 높이 추가 (헤더랑 동일) */
+    display: flex;  /* 🆕 추가 */
+    align-items: center;  /* 🆕 세로 중앙 정렬 */
+    justify-content: center;  /* 🆕 가로 중앙 정렬 */
+}
+
+.wishlist-page .grade-tab:hover {
+	border-color: #4CAF50;
+	color: #4CAF50;
+}
+
+.wishlist-page .grade-tab.active {
+	border-color: #4CAF50;
+	background-color: #4CAF50;
+	color: white;
+	font-weight: 600;
+}
+
+/* 검색 결과 필터 (작게) */
+.wishlist-page .search-result-filter {
+	display: inline-block;
+	margin-left: 15px;
+}
+
+.wishlist-page .search-result-filter select {
+	padding: 5px 10px;
+	font-size: 13px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	color: #666;
+	background-color: #f8f9fa;
+	cursor: pointer;
+}
+
+.wishlist-page .search-result-filter select:hover {
+	border-color: #4CAF50;
+}
+
+/* 목록 헤더 정렬 */
+.wishlist-page .list-header h2 {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+/* 검색 섹션 */
+.wishlist-page .search-section {
+	background-color: #f9f9f9;
+	padding: 20px;
+	border-radius: 8px;
+	margin-bottom: 30px;
+}
+
+.wishlist-page .search-section form {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.wishlist-page .search-section select {
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.wishlist-page .search-section input[type="text"] {
+	flex: 1;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	font-size: 14px;
+}
+
+.wishlist-page .btn-search, .wishlist-page .btn-reset {
+	padding: 10px 20px;
+	border: none;
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.wishlist-page .btn-search {
+	background-color: #4CAF50;
+	color: white;
+}
+
+.wishlist-page .btn-search:hover {
+	background-color: #45a049;
+}
+
+.wishlist-page .btn-reset {
+	background-color: #757575;
+	color: white;
+}
+
+.wishlist-page .btn-reset:hover {
+	background-color: #616161;
+}
+
+.wishlist-page .list-header h2 strong {
+	color: #4CAF50;
+	font-weight: 600;
+}
+
+/* 학년 필터 */
+.wishlist-page .grade-filter {
+	display: flex;
+	gap: 10px;
+	margin: 20px 0;
+	padding: 15px;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+}
+
+.wishlist-page .filter-btn {
+	padding: 10px 20px;
+	border: 2px solid #e0e0e0;
+	background-color: white;
+	color: #666;
+	font-size: 14px;
+	font-weight: 500;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.3s;
+}
+
+.wishlist-page .filter-btn:hover {
+	border-color: #4CAF50;
+	color: #4CAF50;
+	background-color: #f1f8f4;
+}
+
+.wishlist-page .filter-btn.active {
+	border-color: #4CAF50;
+	background-color: #4CAF50;
+	color: white;
+	font-weight: 600;
+	box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.wishlist-page .filter-btn.active:hover {
+	background-color: #45a049;
+}
+
+/* 목록 헤더 */
+.wishlist-page .list-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+}
+
+.wishlist-page .list-header h2 {
+	font-size: 20px;
+	color: #333;
+}
+
+.wishlist-page .total-count {
+	font-size: 14px;
+	color: #666;
+}
+
+.wishlist-page .total-count strong {
+	color: #4CAF50;
+	font-size: 16px;
+}
+
+/* 테이블 */
+.wishlist-page .lecture-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 30px;
+}
+
+.wishlist-page .lecture-table thead {
+	background-color: #f5f5f5;
+}
+
+/* th, td 기본 스타일 확장 */
+.wishlist-page .lecture-table th, .wishlist-page .lecture-table td {
+	padding: 12px 10px;
+	text-align: center;
+	border-bottom: 1px solid #eee;
+	vertical-align: middle;
+}
+
+.wishlist-page .lecture-table th {
+	padding: 15px 10px;
+	text-align: center;
+	font-weight: 600;
+	color: #333;
+	border-bottom: 2px solid #ddd;
+}
+
+.wishlist-page .lecture-table td {
+	padding: 12px 10px;
+	text-align: center;
+	border-bottom: 1px solid #eee;
+}
+
+.wishlist-page .lecture-row {
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.wishlist-page .lecture-row:hover {
+	background-color: #f9f9f9;
+}
+
+/* 1. 과목명 */
+.wishlist-page .lecture-table th:nth-child(1) {
+	text-align: center;
+}
+
+.wishlist-page .lecture-table td:nth-child(1) {
+	text-align: left;
+	white-space: normal;
+	max-width: 200px;
+	word-break: break-word;
+}
+
+/* 2. 교수명 - 중앙 정렬 문제 해결 */
+.wishlist-page .lecture-table th:nth-child(2), .wishlist-page .lecture-table td:nth-child(2)
+	{
+	text-align: center !important;
+	min-width: 50px;
+	padding: 12px 10px !important;
+}
+
+.wishlist-page .lecture-table td:nth-child(7) {
+	text-align: center;
+}
+
+.wishlist-page .empty-message {
+	padding: 50px 0 !important;
+	text-align: center;
+	color: #999;
+	font-size: 16px;
+}
+
+.wishlist-page .badge-full {
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: #f44336;
+	color: white;
+	border-radius: 12px;
+	font-size: 12px;
+	margin-left: 5px;
+}
+
+/* 버튼 */
+.wishlist-page .btn-wishlist, .wishlist-page .btn-cancel {
+	padding: 6px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	background-color: white;
+	cursor: pointer;
+	font-size: 16px;
+	transition: all 0.3s;
+}
+
+.wishlist-page .btn-wishlist {
+	padding: 6px 10px; /* 기존 padding 조정 */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+    color: #999;
+    display: inline-flex; /* flex 추가 */
+    align-items: center;
+    justify-content: center;
+    height: 32px; /* 신청 버튼과 높이 통일 */
+    min-width: 32px; /* 최소 너비 설정 */
+}
+
+.wishlist-page .btn-wishlist.active {
+	color: #f44336;
+	border-color: #f44336;
+}
+
+.wishlist-page .btn-wishlist:hover {
+	transform: scale(1.1);
+	border-color: #f44336;
+}
+
+.wishlist-page .btn-cancel {
+	color: #f44336;
+	border-color: #f44336;
+}
+
+.wishlist-page .btn-cancel:hover {
+	background-color: #f44336;
+	color: white;
+}
+
+/* 페이지네이션 */
+.wishlist-page .pagination {
+	display: flex;
+	justify-content: center;
+	gap: 5px;
+	margin-top: 30px;
+}
+
+.wishlist-page .pagination a, .wishlist-page .pagination span {
+	padding: 8px 12px;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	text-decoration: none;
+	color: #333;
+	transition: all 0.3s;
+}
+
+.wishlist-page .pagination a:hover {
+	background-color: #4CAF50;
+	color: white;
+	border-color: #4CAF50;
+}
+
+.wishlist-page .pagination .current {
+	background-color: #4CAF50;
+	color: white;
+	border-color: #4CAF50;
+}
+
+/* ------------------------------------------- */
+/* ⭐️⭐️ 모달 스타일 복구 (ID 기반, !important 적용) ⭐️⭐️ */
+/* ------------------------------------------- */
+
+/* 모달 컨테이너 (.modal) - 기본 스타일은 유지하고 z-index만 강화 */
+.wishlist-page .modal {
+	display: none;
+	position: fixed;
+	z-index: 9999 !important; /* z-index를 최대로 높임 */
+	left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: auto;
+	background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 모달이 열렸을 때 강제 표시 */
+.wishlist-page .modal[style*="display: block"],
+.wishlist-page .modal[style*="display:block"] {
+    display: block !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* 1. 모달 컨텐츠 (modal-content) - 충돌 스타일 강제 덮어쓰기 */
+/* ID 선택자로 우선순위 극대화 */
+#detailModal .modal-content {
+	/* 외부 라이브러리 스타일 무효화 */
+	display: block !important; /* flex를 block으로 강제 변경 */
+	flex-direction: initial !important;
+	height: auto !important;
+	border: none !important; /* 외부 border:0px 설정 방지 */
+	/* 원하는 스타일 강제 적용 */
+	position: relative !important;
+	background-color: white !important;
+	margin: 5% auto !important; /* 상하 5% 여백, 좌우 중앙 정렬 */
+	padding: 30px !important;
+	width: 90% !important;
+	max-width: 900px !important;
+	border-radius: 8px !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+	max-height: 80vh !important;
+	overflow-y: auto !important;
+	z-index: 10000 !important;  /* 추가 (배경보다 위) */
+
+	/* 애니메이션 */
+	animation-name: modalSlideDown;
+	animation-duration: 0.4s;
+	animation-timing-function: ease-out;
+}
+
+/* 모달 애니메이션 정의 */
+@keyframes modalSlideDown {
+    from {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 모달 제목 스타일 (h2) - ID로 강화 */
+#detailModal .modal-content h2 {
+	font-size: 24px !important;
+	margin-bottom: 20px !important;
+	color: #333 !important;
+	padding-bottom: 10px !important;
+	border-bottom: 3px solid #4CAF50 !important; /* 제목 하단 초록색 강조선 */
+}
+
+/* 버튼 업데이트 애니메이션 */
+.btn-apply.updated,
+.btn-applied.updated,
+.btn-full.updated {
+    animation: buttonUpdate 0.5s ease-in-out;
+}
+
+@keyframes buttonUpdate {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+}
+
+/* 닫기 버튼 */
+#detailModal .close {
+	position: absolute;
+	right: 20px;
+	top: 15px;
+	font-size: 28px;
+	font-weight: bold;
+	color: #999;
+	cursor: pointer;
+	transition: color 0.3s;
+}
+
+#detailModal .close:hover {
+	color: #333;
+}
+
+/* 모달 닫기 애니메이션 */
+@keyframes modalFadeOut {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+}
+
+/* 상세 컨텐츠 영역 */
+#detailModal #detailContent {
+	margin-top: 20px;
+}
+
+/* 2. 모달 상세 테이블 스타일 - ID로 강화하여 테두리 강제 적용 */
+#detailModal #detailContent .detail-table {
+	width: 100% !important;
+	border-collapse: collapse !important;
+	margin-bottom: 20px !important;
+	border-top: 2px solid #4CAF50 !important; /* 상단 강조선 강제 적용 */
+}
+
+#detailModal #detailContent .detail-table th, #detailModal #detailContent .detail-table td
+	{
+	display: table-cell !important; /* Added to force table cell display */
+	padding: 15px 12px !important;
+	border: 1px solid #ddd !important; /* 모든 셀 테두리 강제 적용 */
+	text-align: left !important;
+	font-size: 15px !important;
+	vertical-align: top !important;
+}
+
+#detailModal #detailContent .detail-table th {
+	background-color: #f8f8f8 !important;
+	font-weight: 600 !important;
+	width: 140px !important;
+	color: #444 !important;
+}
+/* 모달창 제목 스타일 (반복 코드 제거 - 이미 위에서 강화됨) */
+
+/* 전체 레이아웃 */
+.wishlist-page .main-container {
+	display: flex;
+	gap: 30px;
+	max-width: 1800px;
+	margin: 20px auto;
+	padding: 0 20px;
+}
+
+/* 사이드바 */
+.wishlist-page .sidebar {
+	width: 280px;
+	flex-shrink: 0;
+}
+
+.wishlist-page .student-info, .wishlist-page .apply-status {
+	background-color: white;
+	padding: 25px;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	margin-bottom: 20px;
+}
+
+.wishlist-page .student-info h3, .wishlist-page .apply-status h3 {
+	font-size: 18px;
+	margin-bottom: 20px;
+	color: #333;
+	border-bottom: 2px solid #4CAF50;
+	padding-bottom: 10px;
+}
+
+.wishlist-page .info-item, .wishlist-page .status-item {
+	display: flex;
+	justify-content: space-between;
+	padding: 12px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.wishlist-page .info-item:last-child, .wishlist-page .status-item:last-child
+	{
+	border-bottom: none;
+}
+
+.wishlist-page .info-item .label, .wishlist-page .status-item .label {
+	color: #666;
+	font-size: 14px;
+}
+
+.wishlist-page .info-item .value, .wishlist-page .status-item .value {
+	color: #333;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.wishlist-page .credit-info {
+	color: #4CAF50 !important;
+	font-size: 16px !important;
+}
+
+/* 메인 컨텐츠 */
+.wishlist-page .content {
+	flex: 1;
+	background-color: white;
+	padding: 30px;
+	border-radius: 8px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 탭 메뉴 */
+.wishlist-page .tab-menu {
+	display: flex;
+	gap: 10px;
+	margin-top: 0;
+	margin-bottom: 0;
+	flex-shrink: 0;
+}
+
+.wishlist-page .tab-btn {
+	padding: 12px 24px;
+	border: none;
+	background-color: transparent;
+	color: #666;
+	font-size: 15px;
+	cursor: pointer;
+	border-bottom: 3px solid transparent;
+	transition: all 0.3s;
+}
+
+.wishlist-page .tab-btn:hover {
+	color: #4CAF50;
+}
+
+.wishlist-page .tab-btn.active {
+	color: #4CAF50;
+	border-bottom-color: #4CAF50;
+	font-weight: 600;
+}
+
+/* 액션 버튼 그룹 */
+.wishlist-page .action-buttons {
+	display: flex;
+	gap: 5px;
+	justify-content: center;
+	align-items: center; /* 세로 중앙 정렬 */
+}
+
+
+.wishlist-page .btn-apply:hover {
+	background-color: #45a049;
+}
+
+/* 수강취소 버튼 */
+.wishlist-page .btn-cancel-apply {
+	padding: 6px 12px;
+	background-color: #f44336;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	transition: background-color 0.2s;
+}
+
+.wishlist-page .btn-cancel-apply:hover {
+	background-color: #da190b;
+}
+
+
+/* ===================================
+   액션 버튼 공통 스타일 (통일)
+   =================================== */
+
+
+
+/* 모든 버튼 공통 기본 스타일 */
+.wishlist-page .btn-apply,
+.wishlist-page .btn-applied,
+.wishlist-page .btn-full {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; /* flex로 통일 */
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 70px; /* 최소 너비 설정 */
+    height: 32px; /* 높이 고정 */
+    border: 1px solid transparent; /* 테두리 기본값 */
+    white-space: nowrap;
+}
+
+/* 아이콘 크기 통일 */
+.wishlist-page .btn-apply i,
+.wishlist-page .btn-applied i,
+.wishlist-page .btn-full i {
+    font-size: 14px;
+}
+
+/* 신청 가능 버튼 (초록색) */
+.wishlist-page .btn-apply {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.wishlist-page .btn-apply:hover:not(:disabled) {
+    background-color: #45a049;
+    border-color: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+/* 신청 완료 버튼 (연두색) */
+.wishlist-page .btn-applied {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+    cursor: not-allowed;
+    padding: 6px 8px; /* 상하 좌우 */
+    font-size: 13px;
+    gap: 3px;
+    min-width: 70px;
+}
+
+/* 신청완료 버튼 아이콘만 살짝 작게 */
+.wishlist-page .btn-applied i {
+    font-size: 13px;
+}
+
+/* 마감 버튼 (회색) */
+.wishlist-page .btn-apply:disabled,
+.wishlist-page .btn-full {
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-color: #dee2e6;
+    cursor: not-allowed;
+}
+
+/* disabled 상태 공통 스타일 */
+.wishlist-page .btn-apply:disabled,
+.wishlist-page .btn-applied,
+.wishlist-page .btn-full {
+    opacity: 0.85;
+}
+
+/* 시간 표시 컬럼 */
+.wishlist-page table td:nth-last-child(2) {
+	font-size: 13px;
+	color: #666;
+}
+
+/* 정원 업데이트 애니메이션 */
+.wishlist-page .updated {
+	background-color: #fff3cd !important;
+	transition: background-color 0.3s ease;
+}
+
+.wishlist-page .badge-full {
+	display: inline-block;
+	padding: 2px 8px;
+	background-color: #f44336;
+	color: white;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	margin-left: 5px;
+}
+
+/* 정원 정보 스타일 */
+.enroll-info {
+	font-weight: 500;
+	padding: 8px 12px;
+	border-radius: 6px;
+	transition: all 0.3s ease;
+}
+
+.enroll-info strong {
+	font-size: 1.1em;
+	display: inline-block;
+	padding: 4px 8px;
+	border-radius: 6px;
+}
+
+/* 정원 상태별 색상 - 숫자에만 적용 */
+.enroll-info.status-low strong {
+	background-color: #e8f5e9;
+	color: #2e7d32;
+}
+
+.enroll-info.status-medium strong {
+	background-color: #fff3e0;
+	color: #e65100;
+}
+
+.enroll-info.status-high strong {
+	background-color: #ffe0b2;
+	color: #e65100;
+}
+
+.enroll-info.status-full strong {
+	background-color: #ffebee;
+	color: #c62828;
+}
+
+/* 나머지 텍스트 (/ 정원)는 스타일 없음 */
+.enroll-info {
+	color: #495057;
+}
+
+/* 실시간 업데이트 애니메이션 */
+.enroll-info.updated strong {
+	animation: enrollPulse 1s ease;
+	box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+}
+@keyframes enrollPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(76, 175, 80, 0);
+    }
+
+    50% { /* ⚠️ 불필요한 공백과 줄 바꿈 제거 */
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.6);
+    }
+}
+
+.badge-full {
+	margin-left: 8px;
+	padding: 2px 8px;
+	background-color: #f44336;
+	color: white;
+	border-radius: 12px;
+	font-size: 0.85em;
+	font-weight: 600;
+}
+
+/* ========================================= */
+/* 모달 내부 상세 스타일 */
+/* ========================================= */
+
+/* 로딩 메시지 */
+#detailContent .loading-message {
+    text-align: center;
+    padding: 50px;
+    color: #666;
+}
+
+/* 에러 메시지 */
+#detailContent .error-message {
+    text-align: center;
+    padding: 30px;
+    color: #f44336;
+    font-weight: 500;
+}
+
+/* 상세 정보 컨테이너 */
+#detailContent .detail-info {
+    margin-top: 20px;
+}
+
+/* 상세 섹션 (강의 개요, 강의 목표, 선수과목) */
+#detailContent .detail-section {
+    margin-top: 25px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border-left: 4px solid #4CAF50;
+}
+
+#detailContent .detail-section h3 {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
+    margin-bottom: 12px !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+#detailContent .detail-section p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #555;
+    margin: 0;
+    white-space: pre-wrap; /* 줄바꿈 유지 */
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuMilitaryMapper">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 11.     	김수현            최초 생성
+ *
+-->
+	<!-- 병역 정보 등록 -->
+    <insert id="insertMilitary" parameterType="kr.or.jsu.vo.StuMilitaryVO">
+        INSERT INTO STU_MILITARY (
+            STUDENT_NO
+            , MILITARY_TYPE_CD
+            , JOIN_AT
+            , EXIT_AT
+        ) VALUES (
+            #{studentNo}
+            , #{militaryTypeCd}
+            , #{joinAt}
+            , #{exitAt}
+        )
+    </insert>
+
+    <!-- 병역 정보 조회 -->
+    <select id="selectMilitary" resultType="kr.or.jsu.vo.StuMilitaryVO">
+        SELECT
+            STUDENT_NO AS studentNo
+            , MILITARY_TYPE_CD AS militaryTypeCd
+            , JOIN_AT AS joinAt
+            , EXIT_AT AS exitAt
+        FROM
+            STU_MILITARY
+        WHERE
+            STUDENT_NO = #{studentNo}
+    </select>
+
+    <!-- 병역 정보 수정 -->
+    <update id="updateMilitary" parameterType="kr.or.jsu.vo.StuMilitaryVO">
+        UPDATE STU_MILITARY
+        SET
+            MILITARY_TYPE_CD = #{militaryTypeCd}
+            , JOIN_AT = #{joinAt}
+            , EXIT_AT = #{exitAt}
+        WHERE
+            STUDENT_NO = #{studentNo}
+    </update>
+
+</mapper>
+

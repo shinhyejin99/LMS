@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctTaskMapper">
+
+	<update id="upsertWeightValues">
+		<if test="values != null and values.size > 0">
+			MERGE INTO LCT_TASK_WEIGHT tgt
+			USING (
+			SELECT TASK_TYPE, TASK_ID, MAX(WEIGHT_VALUE) AS WEIGHT_VALUE
+			FROM (
+			<foreach collection="values" item="v" separator=" UNION ALL ">
+				SELECT
+				#{v.taskType} AS TASK_TYPE,
+				#{v.taskId} AS TASK_ID,
+				#{v.weightValue} AS WEIGHT_VALUE
+				FROM DUAL
+			</foreach>
+			)
+			GROUP BY TASK_TYPE, TASK_ID
+			) src
+			ON (tgt.TASK_TYPE = src.TASK_TYPE AND tgt.TASK_ID = src.TASK_ID)
+			WHEN MATCHED THEN
+			UPDATE SET
+			tgt.WEIGHT_VALUE = src.WEIGHT_VALUE
+			WHEN NOT MATCHED THEN
+			INSERT (TASK_TYPE, TASK_ID, WEIGHT_VALUE, CREATED_AT, UPDATED_AT)
+			VALUES (src.TASK_TYPE, src.TASK_ID, src.WEIGHT_VALUE, SYSDATE, SYSDATE)
+		</if>
+	</update>
+	
+	<select id="selectWeightValues">
+		SELECT
+		    T.TASK_TYPE
+		    , T.TASK_ID
+		    , T.TASK_NAME
+		    , W.WEIGHT_VALUE
+		    , (
+		    	SELECT CREATED_AT
+		    	FROM LCT_TASK_WEIGHT ltw
+		    	WHERE ltw.TASK_TYPE = T.TASK_TYPE 
+		    	AND ltw.TASK_ID = T.TASK_ID
+		    ) AS CREATED_AT
+		    , (
+		    	SELECT UPDATED_AT
+		    	FROM LCT_TASK_WEIGHT ltw
+		    	WHERE ltw.TASK_TYPE = T.TASK_TYPE 
+		    	AND ltw.TASK_ID = T.TASK_ID
+		    ) AS UPDATED_AT
+		FROM (
+		    SELECT
+		        'INDIV'                  AS TASK_TYPE,
+		        I.INDIVTASK_ID           AS TASK_ID,
+		        I.INDIVTASK_NAME		 AS TASK_NAME
+		    FROM LCT_INDIVTASK I
+		    WHERE I.LECTURE_ID = #{lectureId}
+		    AND I.DELETE_YN = 'N'
+		    UNION ALL
+		    SELECT
+		        'GROUP'                  AS TASK_TYPE,
+		        G.GROUPTASK_ID           AS TASK_ID,
+		        G.GROUPTASK_NAME		 AS TASK_NAME
+		    FROM LCT_GROUPTASK G
+		    WHERE G.LECTURE_ID = #{lectureId}
+		    AND G.DELETE_YN = 'N'
+		) T
+		LEFT JOIN LCT_TASK_WEIGHT W
+		  ON W.TASK_TYPE = T.TASK_TYPE
+		 AND W.TASK_ID   = T.TASK_ID
+		ORDER BY T.TASK_TYPE, T.TASK_ID
+	</select>
+	
+	<select id="selectIndivtaskAndEachStudentScore">
+		WITH active_enroll AS (
+		SELECT
+			e.ENROLL_ID
+		FROM
+			STU_ENROLL_LCT e
+		WHERE
+			e.LECTURE_ID = #{lectureId}
+			AND (e.ENROLL_STATUS_CD IS NULL
+				OR e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW'))
+		)
+		SELECT
+			e.ENROLL_ID
+			, t.INDIVTASK_ID
+			, CASE
+				WHEN s.INDIVTASK_ID IS NOT NULL THEN 'Y'
+				ELSE 'N'
+			END AS IS_TARGET
+			, s.SUBMIT_AT
+			, CASE
+				WHEN s.SUBMIT_AT IS NULL THEN 0
+				ELSE s.EVALU_SCORE
+			END AS SCORE
+		FROM
+			LCT_INDIVTASK t
+		CROSS JOIN active_enroll e
+		LEFT JOIN INDIVTASK_SUBMIT s
+		  ON
+			s.INDIVTASK_ID = t.INDIVTASK_ID
+			AND s.ENROLL_ID = e.ENROLL_ID
+		WHERE
+			t.LECTURE_ID = #{lectureId}
+			AND t.DELETE_YN = 'N'
+		ORDER BY
+			e.ENROLL_ID
+			, t.INDIVTASK_ID
+	</select>
+	
+	<select id="selectGrouptaskAndEachStudentScore">
+		WITH active_enroll AS (
+		SELECT
+			e.ENROLL_ID
+		FROM
+			STU_ENROLL_LCT e
+		WHERE
+			e.LECTURE_ID = #{lectureId}
+			AND (e.ENROLL_STATUS_CD IS NULL
+				OR e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW'))
+		)
+		,
+		crew_one AS (
+		SELECT
+			gg.GROUPTASK_ID
+			, gc.ENROLL_ID
+			, MIN(gc.GROUP_ID) AS GROUP_ID
+		FROM
+			GROUPTASK_GROUP gg
+		JOIN GROUPTASK_CREW gc
+		    ON
+			gc.GROUP_ID = gg.GROUP_ID
+		GROUP BY
+			gg.GROUPTASK_ID
+			, gc.ENROLL_ID
+		)
+		SELECT
+			e.ENROLL_ID
+			, gt.GROUPTASK_ID
+			, co.GROUP_ID
+			, gs.SUBMIT_AT
+			, CASE
+				WHEN gs.SUBMIT_AT IS NULL THEN 0
+				ELSE gc.EVALU_SCORE
+			END AS SCORE
+		FROM
+			LCT_GROUPTASK gt
+		CROSS JOIN active_enroll e
+		LEFT JOIN crew_one co
+		  ON
+			co.GROUPTASK_ID = gt.GROUPTASK_ID
+			AND co.ENROLL_ID = e.ENROLL_ID
+		LEFT JOIN GROUPTASK_CREW gc
+		  ON
+			gc.GROUP_ID = co.GROUP_ID
+			AND gc.ENROLL_ID = e.ENROLL_ID
+		LEFT JOIN GROUPTASK_SUBMIT gs
+		  ON
+			gs.GROUPTASK_ID = gt.GROUPTASK_ID
+			AND gs.GROUP_ID = co.GROUP_ID
+		WHERE
+			gt.LECTURE_ID = #{lectureId}
+			AND gt.DELETE_YN = 'N'
+		ORDER BY
+			gt.GROUPTASK_ID
+			, e.ENROLL_ID
+	</select>
+	
+	
+</mapper>

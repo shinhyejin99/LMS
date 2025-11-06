@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.lms.professor.lecture.mapper.ProfLectureMapper">
+
+    <select id="selectProfLectures" parameterType="map" resultType="map">
+        SELECT
+            LOA.LCT_APPLY_ID AS LECTUREID,
+            S.SUBJECT_NAME AS 강의명,
+            U.LAST_NAME || U.FIRST_NAME AS 담당교수,
+            CC.CD_NAME AS 이수구분,
+            S.CREDIT AS 학점,
+            0 AS 학생수,
+            CASE WHEN LOA.CANCEL_YN = 'N' THEN '개설 신청' ELSE '신청 취소' END AS 강의상태
+        FROM
+            LCT_OPEN_APPLY LOA
+        JOIN
+            SUBJECT S ON LOA.SUBJECT_CD = S.SUBJECT_CD
+        JOIN
+            PROFESSOR P ON LOA.PROFESSOR_NO = P.PROFESSOR_NO
+        JOIN
+            USERS U ON P.USER_ID = U.USER_ID
+        LEFT JOIN
+            COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD AND CC.COMMON_SORT_CD = 'COMPLETION_CD'
+        WHERE
+            LOA.PROFESSOR_NO = #{professorNo}
+            AND LOA.APPROVE_ID IS NOT NULL
+            AND LOA.CANCEL_YN = 'N'
+            <if test="academicYear != null and !academicYear.isEmpty()">
+                AND SUBSTR(LOA.YEARTERM_CD, 1, 4) = #{academicYear}
+            </if>
+
+        UNION ALL
+
+        SELECT
+            L.LECTURE_ID AS LECTUREID,
+            S.SUBJECT_NAME AS 강의명,
+            U.LAST_NAME || U.FIRST_NAME AS 담당교수,
+            CC.CD_NAME AS 이수구분,
+            S.CREDIT AS 학점,
+            (SELECT COUNT(*) FROM STU_ENROLL_LCT SEL WHERE SEL.LECTURE_ID = L.LECTURE_ID) AS 학생수,
+            CASE WHEN L.CANCEL_YN = 'N' THEN '개설 확정' ELSE '폐강' END AS 강의상태
+        FROM
+            LECTURE L
+        JOIN
+            SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+        JOIN
+            PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+        JOIN
+            USERS U ON P.USER_ID = U.USER_ID
+        LEFT JOIN
+            COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD AND CC.COMMON_SORT_CD = 'COMPLETION_CD'
+        WHERE
+            L.PROFESSOR_NO = #{professorNo}
+            AND L.CANCEL_YN = 'N'
+            <if test="academicYear != null and !academicYear.isEmpty()">
+                AND SUBSTR(L.YEARTERM_CD, 1, 4) = #{academicYear}
+            </if>
+    </select>
+
+    <select id="selectLectureDetails" parameterType="string" resultType="map">
+        SELECT
+            L.LECTURE_ID AS LECTUREID,
+            S.SUBJECT_NAME AS COURSETITLE,
+            CC.CD_NAME AS COURSETYPE,
+            U.LAST_NAME || U.FIRST_NAME AS PROFESSORNAME,
+            L.MAX_CAP AS STUDENTCOUNT,
+            L.LECTURE_INDEX AS COURSEDESCRIPTION,
+            L.LECTURE_GOAL AS LECTUREGOAL,
+            L.PREREQ_SUBJECT AS PREREQSUBJECT,
+            SUBSTR(L.YEARTERM_CD, 1, 4) || '년 ' ||
+                CASE SUBSTR(L.YEARTERM_CD, 6)
+                    WHEN 'REG1' THEN '1학기'
+                    WHEN 'REG2' THEN '2학기'
+                    WHEN 'SUB1' THEN '여름학기'
+                    WHEN 'SUB2' THEN '겨울학기'
+                    ELSE ''
+                END AS YEARTERMCD,
+            L.CANCEL_YN AS CANCELYN,
+            L.END_AT AS ENDAT,
+            (SELECT LISTAGG(CRS.PLACE_CD, ', ') WITHIN GROUP (ORDER BY CRS.PLACE_CD) FROM LCT_ROOM_SCHEDULE CRS WHERE CRS.LECTURE_ID = L.LECTURE_ID) AS CLASSROOM,
+            (SELECT LISTAGG(CRS.TIMEBLOCK_CD, ', ') WITHIN GROUP (ORDER BY CRS.TIMEBLOCK_CD) FROM LCT_ROOM_SCHEDULE CRS WHERE CRS.LECTURE_ID = L.LECTURE_ID) AS COURSETIME
+        FROM
+            LECTURE L
+        JOIN
+            SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+        JOIN
+            PROFESSOR P ON L.PROFESSOR_NO = P.PROFESSOR_NO
+        JOIN
+            USERS U ON P.USER_ID = U.USER_ID
+        LEFT JOIN
+            COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD
+        WHERE
+            L.LECTURE_ID = #{lectureId}
+    </select>
+
+</mapper>

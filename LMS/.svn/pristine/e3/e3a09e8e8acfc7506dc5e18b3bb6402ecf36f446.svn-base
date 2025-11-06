@@ -1,0 +1,123 @@
+
+.task-group-form-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.form-section-card {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section-header {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #343a40;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.group-management-area {
+  display: grid;
+  grid-template-columns: 1fr 0.2fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.student-list-container,
+.group-list-container {
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  min-height: 300px;
+  max-height: 450px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  padding: 1rem;
+}
+
+.student-item,
+.group-member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.student-item:last-child,
+.group-member-item:last-child {
+  border-bottom: none;
+}
+
+.group-card-item {
+  border: 1px solid #ced4da;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background-color: #ffffff;
+}
+
+.group-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.group-card-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.member-tag {
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.member-tag.leader {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.member-tag .remove-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.member-tag.leader .remove-btn {
+  color: #fff;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.form-hint {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.required::after {
+  content: " *";
+  color: #dc3545;
+  margin-left: 0.25rem;
+}

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.GrouptaskCrewMapper">
+
+	<insert id="insertGrouptaskCrew">
+        INSERT INTO grouptask_crew (
+            group_id,
+            enroll_id,
+            evalu_score,
+            evalu_at,
+            evalu_desc
+        ) VALUES (
+            #{groupId},
+            #{enrollId},
+            #{evaluScore},
+            #{evaluAt},
+            #{evaluDesc}
+        )
+    </insert>
+
+    <select id="selectGrouptaskCrewList" resultType="kr.or.jsu.vo.GrouptaskCrewVO">
+        SELECT
+            group_id,
+            enroll_id,
+            evalu_score,
+            evalu_at,
+            evalu_desc
+        FROM
+            grouptask_crew
+        ORDER BY
+            group_id, enroll_id
+    </select>
+
+    <update id="updateGrouptaskCrew">
+        UPDATE grouptask_crew
+        SET
+            evalu_score = #{evaluScore},
+            evalu_at = #{evaluAt},
+            evalu_desc = #{evaluDesc}
+        WHERE
+            group_id = #{groupId} AND enroll_id = #{enrollId}
+    </update>
+
+    <delete id="deleteGrouptaskCrew">
+        DELETE FROM grouptask_crew
+        WHERE
+            group_id = #{groupId} AND enroll_id = #{enrollId}
+    </delete>
+
+
+</mapper>

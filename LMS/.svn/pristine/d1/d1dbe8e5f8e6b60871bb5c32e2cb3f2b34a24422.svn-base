@@ -1,0 +1,258 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 13.     	정태일            최초 생성
+ *  2025. 10. 31.     	정태일            CSS 수정
+ *
+/* ===== 증명서 신청 섹션: 파란 배경 카드 ===== */
+.certificate-page .section:first-of-type {
+	background: #146CC2;
+	padding: 30px 20px;
+	border-radius: 16px;
+	color: #fff;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+}
+
+/* ===== 좌/우 레이아웃 (정확히 반반) ===== */
+.certificate-page .application-container {
+	display: grid;
+	grid-template-columns: 1fr 1fr; /* 1:1 */
+	gap: 24px;
+	align-items: stretch; /* 카드 동일 높이 */
+}
+
+/* ===== 공통 카드 ===== */
+.certificate-page .form-column, .certificate-page .procedure-column {
+	background: #fff;
+	border-radius: 12px;
+	padding: 24px 20px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
+	color: #111827;
+	display: flex;
+	flex-direction: column;
+	min-height: 340px;
+}
+
+/* ===== 폼 ===== */
+.certificate-page .form-column {
+	position: relative;
+	padding-bottom: 70px;
+}
+
+.certificate-page .form-column .form-group {
+	margin-bottom: 16px;
+}
+
+.certificate-page .form-column .form-label {
+	font-size: 14px;
+	font-weight: 700;
+	margin-bottom: 6px;
+	color: #1e1e1e;
+}
+/* 입력 필드: 너무 길지 않게, 반응형 */
+.certificate-page .form-column .form-control {
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	padding: 8px 10px;
+	height: 40px;
+	transition: border-color .15s, box-shadow .15s;
+	width: min(100%, 360px); /* 데스크톱에서 적당한 폭, 모바일은 100% */
+	max-width: 100%;
+}
+
+.certificate-page .form-column .form-control:focus {
+	border-color: #146CC2;
+	box-shadow: 0 0 0 3px rgba(20, 108, 194, .2);
+	outline: none;
+}
+
+.certificate-page select.form-control {
+	width: min(100%, 360px);
+	max-width: 100%;
+}
+
+/* 신청 버튼: 카드 우하단 고정 */
+.certificate-page .form-actions {
+	position: absolute;
+	right: 20px;
+	bottom: 20px;
+	margin: 0;
+}
+
+/* ===== 버튼 통일 (Starworks Blue) ===== */
+.certificate-page .btn-primary {
+	background-color: #146CC2;
+	border-color: #146CC2;
+	color: #fff;
+	font-weight: 600;
+	padding: 10px 24px;
+	border-radius: 8px;
+	transition: background-color .2s, transform .05s;
+}
+
+.certificate-page .btn-primary:hover {
+	background-color: #0f58a3;
+}
+
+.certificate-page .btn-primary:active {
+	transform: translateY(1px);
+}
+
+/* 테이블 내 버튼 크기/톤 통일 (행 높이 증가 방지) */
+.certificate-page .table td .btn, .certificate-page .table td button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 34px;
+	padding: 0 12px;
+	font-size: .875rem;
+	line-height: 1;
+	border-radius: 8px;
+	white-space: nowrap;
+	vertical-align: middle;
+	margin: 0 4px;
+}
+/* 다운로드 */
+.certificate-page .table td .btn-primary.btn-sm {
+	background: #146CC2;
+	border-color: #146CC2;
+	color: #fff;
+	font-weight: 600;
+}
+
+.certificate-page .table td .btn-primary.btn-sm:hover {
+	background: #0f58a3;
+	border-color: #0f58a3;
+}
+/* 미리보기(아웃라인) */
+.certificate-page .table td .btn-outline-primary.btn-sm {
+	background: #fff;
+	color: #146CC2;
+	border: 1px solid #146CC2;
+	font-weight: 600;
+}
+
+.certificate-page .table td .btn-outline-primary.btn-sm:hover {
+	background: #146CC2;
+	color: #fff;
+}
+
+/* ===== 절차 안내 카드 디테일 ===== */
+.certificate-page .procedure-column h4 {
+	font-size: 16px;
+	font-weight: 800;
+	color: #111827;
+	margin-bottom: 10px;
+}
+
+.certificate-page .procedure-column ol {
+	margin: 0;
+	padding-left: 20px;
+	color: #374151;
+}
+
+.certificate-page .procedure-column li {
+	margin-bottom: 8px;
+	line-height: 1.5;
+	font-size: 14px;
+}
+/* 좌측 옅은 구분선 */
+.certificate-page .procedure-column {
+	position: relative;
+}
+
+.certificate-page .procedure-column::before {
+	content: "";
+	position: absolute;
+	left: -12px;
+	top: 14px;
+	bottom: 14px;
+	width: 2px;
+	background: rgba(20, 108, 194, .2);
+	border-radius: 2px;
+}
+
+/* ===== 발급 내역 테이블 ===== */
+.certificate-page .section+.section {
+	margin-top: 20px;
+}
+
+.certificate-page .table {
+	border-radius: 10px;
+	overflow: hidden;
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.certificate-page .table thead th {
+	background: #e7f1fb;
+	color: #1f2937;
+	font-weight: 700;
+}
+
+.certificate-page .table tbody tr:hover {
+	background: #f5f8ff;
+}
+
+.certificate-page .table td, .certificate-page .table th {
+	padding: 10px 12px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+/* 남은일수(D-Day): 이전 녹색 톤 유지 */
+.certificate-page .dday-normal {
+	display: inline-block;
+	min-width: 64px;
+	padding: 4px 10px;
+	line-height: 1;
+	border-radius: 999px;
+	background: #E9F8EF;
+	color: #1A7F37;
+	border: 1px solid #BDE5C8;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	text-align: center;
+}
+
+/* 상태 뱃지 */
+.certificate-page .badge-warning {
+	background: #fde68a;
+	color: #1f2937;
+}
+
+.certificate-page .badge-info {
+	background: #60a5fa;
+}
+
+.certificate-page .badge-danger {
+	background: #ef4444;
+}
+
+.certificate-page .badge-success {
+	background: #22c55e;
+}
+
+/* ===== 반응형 ===== */
+@media ( max-width : 992px) {
+	.certificate-page .application-container {
+		grid-template-columns: 1fr;
+	}
+	.certificate-page .procedure-column::before {
+		display: none;
+	}
+	.certificate-page .form-actions {
+		position: static;
+		display: flex;
+		justify-content: center;
+		margin-top: 12px;
+	}
+	.certificate-page .form-column .form-control, .certificate-page select.form-control
+		{
+		width: 100%;
+	}
+}

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.files.LMSFilesMapper">
+	<insert id="insertFiles">
+		<selectKey keyProperty="fileId" resultType="string" order="BEFORE">
+			SELECT 'FILE' || LPAD(TO_CHAR(SEQ_FILE.NEXTVAL), 11, '0') AS FILE_ID
+			FROM DUAL
+		</selectKey>
+		INSERT INTO FILES (
+			FILE_ID
+			, USER_ID
+			, CREATE_AT
+			, PUBLIC_YN
+			, USING_YN
+		) VALUES (
+			#{fileId}
+			, #{userId}
+			, SYSDATE
+			, #{publicYn}
+			, 'N'
+		)
+	</insert>
+
+	<insert id="insertFileDetails">
+		<if test="details != null and details.size() > 0">
+			INSERT ALL
+			<foreach collection="details" item="d">
+				INTO FILE_DETAIL (
+					FILE_ORDER
+					, FILE_ID
+					, ORIGIN_NAME
+					, EXTENSION
+					, SAVE_DIR
+					, FILE_SIZE
+					, SAVE_NAME
+				) VALUES (
+					#{d.fileOrder}
+					, #{fileId}
+					, #{d.originName}
+					, #{d.extension}
+					, #{d.saveDir}
+					, #{d.fileSize}
+					, #{d.saveName}
+				)
+			</foreach>
+			SELECT 1 FROM DUAL
+		</if>
+	</insert>
+	
+	<select id="selectFileDetail">
+		SELECT
+			FILE_ORDER
+			, FILE_ID
+			, ORIGIN_NAME
+			, EXTENSION
+			, RTRIM(SAVE_DIR) AS SAVE_DIR
+			, FILE_SIZE
+			, RTRIM(SAVE_NAME) AS SAVE_NAME
+		FROM
+			FILE_DETAIL
+		WHERE
+			FILE_ORDER = #{fileOrder}
+			AND FILE_ID = #{fileId}
+	</select>
+
+	<resultMap id="bundleMap" type="FilesBundleDTO">
+		<id property="fileId" column="FILE_ID"/>
+		<association property="filesInfo" javaType="kr.or.jsu.core.dto.info.FilesInfo" autoMapping="true"/>
+		<collection property="fileDetailInfo" ofType="kr.or.jsu.core.dto.info.FileDetailInfo" autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectFileBundle" resultMap="bundleMap">
+		SELECT
+			f.FILE_ID
+			, f.USER_ID
+			, f.CREATE_AT
+			, f.PUBLIC_YN
+			, f.USING_YN
+			, fd.FILE_ORDER
+			, fd.FILE_ID
+			, fd.ORIGIN_NAME
+			, fd.EXTENSION
+			, RTRIM(fd.SAVE_DIR) AS SAVE_DIR
+			, fd.FILE_SIZE
+			, RTRIM(fd.SAVE_NAME) AS SAVE_NAME
+		FROM files f
+		JOIN FILE_DETAIL fd
+			ON f.FILE_ID = fd.FILE_ID
+		WHERE
+			f.FILE_ID = #{fileId}
+	</select>
+	
+	<update id="updateFileStatus">
+		UPDATE
+			FILES
+		SET
+			USING_YN = #{usingYn}
+		WHERE
+			FILE_ID = #{fileId}
+	</update>
+	
+</mapper>

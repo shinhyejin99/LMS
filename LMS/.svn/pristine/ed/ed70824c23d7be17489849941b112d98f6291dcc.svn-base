@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.PortalRecruitMapper">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 26.     	김수현            학내 채용정보 조회, 등록 쿼리문 추가
+ *	2025. 9. 26.		김수현		    채용정보 수정, 삭제 쿼리문 추가
+ * 	2025. 9. 28.		김수현		    조회수 증가 추가, 조회 메소드 수정(페이징, 검색)
+ *  2025. 10.21.		김수현			학내 채용정보 조회에 마감일 기준 정렬 조건 추가
+ *
+-->
+
+	<!-- 학내 채용 단순검색 -->
+	<sql id="simpleSearchFrag">
+		<if test="simpleSearch != null">
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(simpleSearch.searchWord)">
+				AND (
+	                TITLE LIKE '%' || #{simpleSearch.searchWord} || '%'
+	                OR STF_DEPT_NAME LIKE '%' || #{simpleSearch.searchWord} || '%'
+	            )
+			</if>
+		</if>
+	</sql>
+
+	<!-- 학내 채용정보 등록 -->
+	<insert id="insertSchRecruit">
+		<selectKey keyProperty="recruitId" resultType="String" order="BEFORE">
+			SELECT 'SCRECR' || LPAD(TO_CHAR(SEQ_PORTAL_RECRUIT.NEXTVAL), 9, '0') FROM DUAL
+		</selectKey>
+	    INSERT INTO PORTAL_RECRUIT (
+	        RECRUIT_ID
+	        , TITLE
+	        , CONTENT
+	        , STF_DEPT_NAME
+	        , ATTACH_FILE_ID
+	        , VIEW_CNT
+	        , REC_START_DAY
+	        , REC_END_DAY
+	        , AGENCY_NAME
+	        , REC_TARGET
+	        , CREATE_AT
+	        , DELETE_AT
+	    ) VALUES (
+	        #{recruitId}
+	        , #{title}
+	        , #{content}
+	        , #{stfDeptName}
+	        , #{attachFileId}
+	        , 0
+	        , #{recStartDay}
+	        , #{recEndDay}
+	        , #{agencyName}
+	        , #{recTarget}
+	        , SYSDATE
+	        , #{deleteAt}
+	    )
+	</insert>
+
+	<select id="selectTotalRecord" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			PORTAL_RECRUIT
+		WHERE
+			DELETE_AT IS NULL
+		<include refid="simpleSearchFrag"/>
+	</select>
+
+	<!-- 학내 채용정보 조회 (페이징+검색)-->
+	<select id="selectSchRecruitList" resultType="kr.or.jsu.vo.PortalRecruitVO">
+
+	    WITH MV AS (
+	        SELECT
+	            ROWNUM RNUM
+	            , RECRUIT_ID
+	            , TITLE
+	            , CONTENT
+	            , STF_DEPT_NAME
+	            , ATTACH_FILE_ID
+	            , VIEW_CNT
+	            , TRUNC(REC_START_DAY) AS REC_START_DAY
+	            , TRUNC(REC_END_DAY) AS REC_END_DAY
+	            , AGENCY_NAME
+	            , REC_TARGET
+	            , TRUNC(CREATE_AT) AS CREATE_AT
+	            , DELETE_AT
+	        FROM (
+	            SELECT
+	                *
+	            FROM
+	                PORTAL_RECRUIT
+	            WHERE
+	                DELETE_AT IS NULL <include refid="simpleSearchFrag"/>
+	            ORDER BY -- 마감일 기준 정렬
+	                     -- 1. 마감 여부: 유효(0), 마감(1), 마감일 없음(2) 순으로 정렬
+	                CASE
+	                    WHEN REC_END_DAY IS NULL THEN 2
+	                    WHEN TRUNC(REC_END_DAY) &lt; TRUNC(SYSDATE) THEN 1
+	                    ELSE 0
+	                END ASC
+	                	-- 2. D-Day (오늘 마감) 우선 순위 부여 (0: D-Day, 1: D+N)
+	                , CASE
+	                    WHEN TRUNC(REC_END_DAY) = TRUNC(SYSDATE) THEN 0
+	                    ELSE 1
+	                END ASC
+	                	-- 3. 마감일이 가까운 순 (오름차순)
+	                , REC_END_DAY ASC
+
+	                	-- 4. 최종 등록일 최신 순
+	                , CREATE_AT DESC
+	         )
+	    )
+	    SELECT *
+	    FROM MV
+	    WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+    <!-- 채용공고 상세조회 -->
+    <select id="selectSchRecruitDetail" >
+        SELECT
+	        ROWNUM as RNUM
+			, RECRUIT_ID
+	       , TITLE
+	       , CONTENT
+	       , STF_DEPT_NAME
+	       , ATTACH_FILE_ID
+	       , VIEW_CNT
+	       , TRUNC(REC_START_DAY) AS REC_START_DAY
+           , TRUNC(REC_END_DAY) AS REC_END_DAY
+	       , AGENCY_NAME
+	       , REC_TARGET
+	       , TRUNC(CREATE_AT) AS CREATE_AT
+	       , DELETE_AT
+	    FROM
+	    	PORTAL_RECRUIT
+	    WHERE
+	    	DELETE_AT IS NULL and RECRUIT_ID = #{recruitId}
+    </select>
+
+	<!-- 채용공고 수정 -->
+	<update id="updateSchRecruit">
+	    UPDATE
+	        PORTAL_RECRUIT
+	    SET
+	        STF_DEPT_NAME = #{stfDeptName}
+	        , TITLE = #{title}
+	        , CONTENT = #{content}
+	        , ATTACH_FILE_ID = #{attachFileId, jdbcType=VARCHAR}
+	        , REC_START_DAY = #{recStartDay}
+	        , REC_END_DAY = #{recEndDay}
+	        , AGENCY_NAME = #{agencyName}
+	        , REC_TARGET = #{recTarget}
+	    WHERE
+	        RECRUIT_ID = #{recruitId}
+	</update>
+
+	<!-- 채용공고 삭제 -->
+	<update id="deleteSchRecruit">
+		UPDATE
+	        PORTAL_RECRUIT
+	    SET
+	        DELETE_AT = SYSDATE
+	    WHERE
+	        RECRUIT_ID = #{recruitId}
+
+	</update>
+
+	<!-- 조회수 증가 -->
+	<update id="incrementViewCount">
+		UPDATE
+	        PORTAL_RECRUIT
+	    SET
+	        VIEW_CNT = VIEW_CNT + 1
+	    WHERE
+	        RECRUIT_ID = #{recruitId}
+
+	</update>
+</mapper>

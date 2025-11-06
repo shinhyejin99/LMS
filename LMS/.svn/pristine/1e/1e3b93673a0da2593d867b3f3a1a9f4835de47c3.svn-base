@@ -1,0 +1,281 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 29.     	김수현            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* 외부 래퍼 */
+.reserve-list-page {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* 메인 컨테이너 */
+.reserve-list-page .reserve-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 100px);
+}
+
+/* 페이지 헤더 */
+.reserve-list-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e9ecef; /* 회색으로 */
+}
+
+.reserve-list-page .page-header h1 {
+    font-size: 23px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+/* 검색 섹션 */
+.reserve-list-page .search-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.reserve-list-page .search-section h5 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.reserve-list-page .search-form {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.reserve-list-page .form-group {
+    flex: 1;
+}
+
+.reserve-list-page .form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.reserve-list-page .form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.reserve-list-page .form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.reserve-list-page .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.reserve-list-page .btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.reserve-list-page .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.reserve-list-page .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.reserve-list-page .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* 콘텐츠 영역 */
+.reserve-list-page .content-row {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.reserve-list-page .content-left {
+    flex: 1;
+}
+
+.reserve-list-page .content-right {
+    width: 400px;
+    flex-shrink: 0;
+}
+
+.reserve-list-page .section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+/* 테이블 스타일 */
+.reserve-list-page .table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.reserve-list-page .data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.reserve-list-page .data-table thead {
+    background-color: #f8f9fa;
+}
+
+.reserve-list-page .data-table th {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.reserve-list-page .data-table td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 14px;
+}
+
+.reserve-list-page .data-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.reserve-list-page .text-center {
+    text-align: center;
+}
+
+/* 페이지네이션 */
+.reserve-list-page .pagination-area {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 20px 0;
+}
+
+.reserve-list-page .pagination-area a {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    color: #007bff;
+    text-decoration: none;
+    transition: all 0.2s;
+    min-width: 30px;
+    text-align: center;
+}
+
+.reserve-list-page .pagination-area a:hover {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+.reserve-list-page .pagination-area a.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+.reserve-list-page .pagination-area a.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* 총 인원 정보 */
+.reserve-list-page .total-info {
+    text-align: right;
+    font-size: 14px;
+    color: #495057;
+    margin-bottom: 20px;  /* 기존: 없음 */
+    padding: 15px;        /* 추가 */
+    background: #f8f9fa;  /* 추가 */
+    border-radius: 8px;   /* 추가 */
+}
+
+.reserve-list-page .total-info strong {
+    font-size: 16px;
+}
+
+.reserve-list-page .total-info span {
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* 차트 컨테이너 - 고정 높이 */
+.reserve-list-page .chart-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    height: 500px;  /* 고정 높이 */
+    position: relative;
+}
+
+.reserve-list-page .chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* 반응형 */
+@media (max-width: 1200px) {
+    .reserve-list-page .content-row {
+        flex-direction: column;
+    }
+
+    .reserve-list-page .content-right {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .reserve-list-page .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .reserve-list-page .form-actions {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.classroom.ClassroomEnderMapper">
+
+	<select id="getProgress">
+		WITH week_cte AS (
+			SELECT
+				COUNT(*) AS week_cnt
+			FROM
+				LCT_WEEKBY lw
+			WHERE
+				lw.LECTURE_ID = #{lectureId}
+		),
+		parsed AS (
+			SELECT
+				SUBSTR(lrs.TIMEBLOCK_CD, 1, 2) AS DAY_CD
+				, ( TO_NUMBER(SUBSTR(lrs.TIMEBLOCK_CD, 3, 2)) * 60 + TO_NUMBER(SUBSTR(lrs.TIMEBLOCK_CD, 5, 2)) )
+				AS START_MIN
+			FROM
+				LCT_ROOM_SCHEDULE lrs
+			WHERE
+				lrs.LECTURE_ID = #{lectureId}
+		),
+		flagged AS (
+			SELECT
+				DAY_CD
+				, START_MIN
+				, CASE WHEN START_MIN - LAG(START_MIN) OVER (PARTITION BY DAY_CD ORDER BY START_MIN) = 30
+					THEN 0
+					ELSE 1
+				END AS NEW_BLOCK_FLAG
+			FROM
+				parsed
+		),
+		weekly_block_cte AS (
+			SELECT
+				COUNT(*) AS weekly_block_cnt
+			FROM
+				flagged
+			WHERE
+				NEW_BLOCK_FLAG = 1
+		),
+		att_cte AS (
+			SELECT
+				COUNT(*) AS recorded_round_cnt
+			FROM
+				LCT_ATTROUND la
+			WHERE
+				la.LECTURE_ID = #{lectureId}
+		)
+		SELECT
+			w.week_cnt AS WEEK_CNT
+			, wb.weekly_block_cnt AS WEEKLY_BLOCK_CNT
+			, a.recorded_round_cnt AS RECORDED_ROUND_CNT
+		FROM
+			week_cte w
+		CROSS JOIN weekly_block_cte wb
+		CROSS JOIN att_cte a
+	</select>
+	
+	<select id="getTaskStatus">
+		WITH indiv AS (
+			SELECT
+				'INDIV' AS task_type
+				, it.INDIVTASK_ID AS task_id
+				, it.LECTURE_ID AS lecture_id
+				, it.INDIVTASK_NAME AS task_name
+				, it.START_AT AS start_at
+				, it.END_AT AS end_at
+				, NVL(w.WEIGHT_VALUE, 0) AS weight_value
+				, CASE
+					WHEN it.END_AT IS NOT NULL
+					AND it.END_AT &lt;= SYSDATE THEN 'Y'
+					ELSE 'N'
+				END AS closed_yn
+			FROM
+				LCT_INDIVTASK it
+			LEFT JOIN LCT_TASK_WEIGHT w ON
+				w.TASK_TYPE = 'INDIV'
+				AND w.TASK_ID = it.INDIVTASK_ID
+			WHERE
+				it.LECTURE_ID = #{lectureId}
+				AND it.DELETE_YN = 'N'
+		), grpt AS (
+			SELECT
+				'GROUP' AS task_type
+				, gt.GROUPTASK_ID AS task_id
+				, gt.LECTURE_ID AS lecture_id
+				, gt.GROUPTASK_NAME AS task_name
+				, gt.START_AT AS start_at
+				, gt.END_AT AS end_at
+				, NVL(w.WEIGHT_VALUE, 0) AS weight_value
+				, CASE WHEN gt.END_AT IS NOT NULL
+						AND gt.END_AT &lt;= SYSDATE THEN 'Y'
+						ELSE 'N'
+				END AS closed_yn
+			FROM
+				LCT_GROUPTASK gt
+			LEFT JOIN LCT_TASK_WEIGHT w ON
+				w.TASK_TYPE = 'GROUP'
+				AND w.TASK_ID = gt.GROUPTASK_ID
+			WHERE
+				gt.LECTURE_ID = #{lectureId}
+				AND gt.DELETE_YN = 'N'
+		)
+		SELECT *
+		FROM (
+			SELECT
+				task_type
+				, task_id
+				, lecture_id
+				, task_name
+				, start_at
+				, end_at
+				, weight_value
+				, closed_yn
+			FROM
+				indiv
+			UNION ALL
+			SELECT
+				task_type
+				, task_id
+				, lecture_id
+				, task_name
+				, start_at
+				, end_at
+				, weight_value
+				, closed_yn
+			FROM
+				grpt
+		) ORDER BY
+			task_type, task_id
+	</select>
+	
+	<select id="getExamStatus">
+		SELECT
+			e.LCT_EXAM_ID AS examId
+			, e.EXAM_NAME AS examName
+			, e.EXAM_TYPE AS examType
+			, e.START_AT AS startAt
+			, e.END_AT AS endAt
+			, NVL(e.WEIGHT_VALUE, 0) AS weightValue
+			, CASE WHEN e.END_AT &lt;= SYSDATE THEN 'Y'
+				ELSE 'N'
+			END AS closedYn
+		FROM
+			LCT_EXAM e
+		WHERE
+			e.LECTURE_ID = #{lectureId}
+			AND e.DELETE_YN = 'N'
+		ORDER BY e.START_AT, e.LCT_EXAM_ID
+	</select>
+	
+	<select id="getAttendanceStatus">
+		SELECT
+		    rr.SORT_ROUND AS LCT_ROUND
+		    , rr.ATT_DAY    AS ATT_DAY
+		FROM (
+		    SELECT
+		        r.LECTURE_ID,
+		        r.LCT_ROUND,
+		        r.ATT_DAY,
+		        ROW_NUMBER() OVER (
+		            PARTITION BY r.LECTURE_ID
+		            ORDER BY r.ATT_DAY, r.LCT_ROUND
+		        ) AS SORT_ROUND
+		    FROM LCT_ATTROUND r
+		    WHERE r.LECTURE_ID = #{lectureId}
+		) rr
+		WHERE EXISTS (
+		    SELECT 1
+		    FROM LCT_STU_ATT s
+		    WHERE s.LECTURE_ID = rr.LECTURE_ID
+		      AND s.LCT_ROUND  = rr.LCT_ROUND
+		      AND s.ATT_STATUS_CD IN 'ATTD_TBD'
+		)
+		ORDER BY rr.SORT_ROUND
+	</select>
+	
+	<insert id="insertAllStudentGPA" parameterType="list">
+		INSERT ALL
+		<foreach collection="gpas" item="g">
+			INTO ENROLL_GPA (ENROLL_ID, GPA_CD, CREATE_AT, UPDATE_AT)
+			VALUES (#{g.enrollId}, #{g.gpaCd}, SYSDATE, SYSDATE)
+		</foreach>
+		SELECT 1 FROM DUAL
+	</insert>
+	
+	<select id="selectStudentGPA">
+		SELECT
+			GPA_CD
+		FROM
+			ENROLL_GPA
+		WHERE
+			ENROLL_ID = #{enrollId}
+	</select>
+	
+	<update id="updateAllStudentScore" parameterType="list">
+		UPDATE STU_ENROLL_LCT t
+			SET t.AUTO_GRADE = (
+				SELECT s.AUTO_GRADE
+				FROM (
+				<foreach collection="scores" item="s" separator=" UNION ALL ">
+					SELECT #{s.enrollId} AS ENROLL_ID,
+					#{s.autoGrade} AS AUTO_GRADE
+					FROM DUAL
+				</foreach>
+				) s
+				WHERE
+					s.ENROLL_ID = t.ENROLL_ID
+				)
+				WHERE
+					t.ENROLL_ID IN (
+						<foreach collection="scores" item="s" separator=",">
+							#{s.enrollId}
+						</foreach>
+					)
+	</update>
+	
+	<update id="updateLectureStatusToDone">
+		UPDATE LECTURE
+		SET END_AT = SYSDATE
+		WHERE LECTURE_ID = #{lectureId}
+	</update>
+	
+	<select id="selectReviewNeededLectureList">
+		SELECT
+			  l.LECTURE_ID
+			, l.SUBJECT_CD
+			, l.PROFESSOR_NO
+			, l.YEARTERM_CD
+			, l.MAX_CAP
+			, l.LECTURE_INDEX
+			, l.LECTURE_GOAL
+			, l.PREREQ_SUBJECT
+			, l.CANCEL_YN
+			, l.END_AT                                                                                                                                                                                                
+		FROM
+			STU_ENROLL_LCT t 
+		JOIN LECTURE l ON
+			t.LECTURE_ID = l.LECTURE_ID
+		JOIN SUBJECT s ON
+			l.SUBJECT_CD = s.SUBJECT_CD
+		WHERE
+			t.STUDENT_NO = #{studentNo}
+			AND t.ENROLL_STATUS_CD = 'ENR_DONE'
+			AND NOT EXISTS (
+				SELECT ENROLL_ID
+				FROM STU_REVIEW_LCT srl
+				WHERE srl.ENROLL_ID = t.ENROLL_ID
+			)
+	</select>
+	
+	<select id="selectReviewQuestionList">
+		SELECT
+			  srq.SUBJECT_CD
+			, srq.QUESTION_NO
+			, srq.QUESTION
+			, srq.ANSWER_TYPE_CD
+		FROM
+			SBJ_RVW_QUESTION srq
+		JOIN LECTURE l ON
+			l.SUBJECT_CD = srq.SUBJECT_CD 
+		WHERE
+			l.LECTURE_ID = #{lectureId}
+		ORDER BY QUESTION_NO
+	</select>
+	
+	<insert id="insertReviewJson">
+		INSERT INTO STU_REVIEW_LCT (
+			ENROLL_ID
+			, CREATE_AT
+			, RESULT_JSON
+		) VALUES(
+			#{enrollId}
+			, SYSDATE
+			, #{resultJson}
+		)
+	</insert>
+	
+	<select id="selectReviews">
+		SELECT
+			  srl.ENROLL_ID
+			, srl.CREATE_AT
+			, srl.RESULT_JSON
+		FROM
+			STU_REVIEW_LCT srl
+		JOIN STU_ENROLL_LCT t ON
+			srl.ENROLL_ID = t.ENROLL_ID
+		WHERE
+			t.LECTURE_ID = #{lectureId}
+	</select>
+	
+	<resultMap type="EnrollingStudentsAndScoreResp" id="stuAndScoresMap" autoMapping="true">
+		<id column="ENROLL_ID" property="enrollId"/>
+		<collection property="sectionScores"
+					ofType="LctSectionScoreResp"
+					columnPrefix="LSS_"
+					autoMapping="true"
+		/>
+	</resultMap>
+	
+	<select id="selectStudentAndScoreList" resultMap="stuAndScoresMap">
+		SELECT 
+			t.ENROLL_ID 
+			, t.AUTO_GRADE 
+			, t.FINAL_GRADE 
+			, t.CHANGE_REASON
+			, eg.GPA_CD 
+			, lss.ENROLL_ID AS LSS_ENROLL_ID  
+			, lss.GRADE_CRITERIA_CD AS LSS_GRADE_CRITERIA_CD 
+			, lss.RAW_SCORE AS LSS_RAW_SCORE
+		FROM
+			STU_ENROLL_LCT t
+		JOIN ENROLL_GPA eg ON
+			t.ENROLL_ID = eg.ENROLL_ID
+		JOIN LCT_SECTION_SCORE lss ON
+			t.ENROLL_ID = lss.ENROLL_ID
+		WHERE t.LECTURE_ID = #{lectureId}
+		ORDER BY t.ENROLL_ID
+	</select>
+	
+	<update id="updateEnrollmentFinalScore">
+		UPDATE STU_ENROLL_LCT
+		SET
+			FINAL_GRADE = #{finalGrade}
+			, CHANGE_REASON = #{changeReason}
+		WHERE
+			ENROLL_ID = #{enrollId}	
+	</update>
+	
+	<update id="updateEnrollmentFinalGPA">
+		UPDATE ENROLL_GPA
+		SET
+			GPA_CD = #{gpaCd}
+		WHERE
+			ENROLL_ID = #{enrollId}
+	</update>
+	
+	<update id="updateToFinalizeAllScore">
+		UPDATE STU_ENROLL_LCT t
+			SET t.FINAL_GRADE =
+				CASE
+				WHEN t.FINAL_GRADE IS NULL THEN t.AUTO_GRADE
+				ELSE t.FINAL_GRADE
+				END
+			, t.CHANGE_REASON =
+				CASE
+				WHEN t.FINAL_GRADE IS NULL THEN '수정 없음, 자동산출평점 사용'
+				ELSE t.CHANGE_REASON
+				END
+			, t.ENROLL_STATUS_CD = (
+				SELECT
+					CASE
+					WHEN eg.GPA_CD IN ('NP', 'F') THEN 'ENR_FAILURE'
+					ELSE 'ENR_DONE'
+					END
+				FROM
+					ENROLL_GPA eg
+				WHERE
+					eg.ENROLL_ID = t.ENROLL_ID
+			)
+			, t.STATUS_CHANGE_AT = SYSDATE
+			WHERE
+				t.LECTURE_ID = #{lectureId}
+				AND (t.ENROLL_STATUS_CD IS NULL OR t.ENROLL_STATUS_CD NOT IN
+				('ENR_CANCEL', 'ENR_WITHDRAW'))
+		-- ENROLL_GPA가 존재하는 대상만 안전하게 업데이트 (옵션)
+		AND EXISTS (
+			SELECT 1
+			FROM ENROLL_GPA eg
+			WHERE eg.ENROLL_ID = t.ENROLL_ID
+		)
+	</update>
+	
+	<update id="updateToFinalizeLecture">
+		UPDATE LECTURE
+			SET SCORE_FINALIZE_YN = 'Y'
+		WHERE LECTURE_ID = #{lectureId}
+	</update>
+	
+</mapper>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>404 Not Found</title>
+  <style type="text/css">
+  
+ body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #333;
+    background-image: url('/sneat-1.0.0/assets/img/backgrounds/404.png');
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-color: rgba(206, 235, 244); 
+    background-attachment: fixed;
+}
+
+
+.error-content {
+    background-color: rgba(255, 255, 255, 0.85); 
+    padding: 30px 50px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 90%;
+}
+
+.error-title {
+    font-size: 3.5em;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.error-message {
+    font-size: 1.3em; 
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.home-button {
+    display: inline-block;
+    background-color: #5AA9E6; 
+    color: white;
+    padding: 15px 40px;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 1.1em; 
+    transition: background-color 0.3s;
+}
+
+.home-button:hover {
+    background-color: #4A8BCD;
+}
+  </style>
+</head>
+<body>
+  	<div class="error-content"> <h1 class="error-title">404</h1>
+        <p class="error-message">찾으시려는 페이지가 길을 잃었어요!</p>
+        <a href="/" class="home-button">메인 페이지로 돌아가기</a>
+        <button class="home-button" onclick="history.back()">이전 페이지로 돌아가기</button>
+    </div>
+</body>
+</html>
+
+

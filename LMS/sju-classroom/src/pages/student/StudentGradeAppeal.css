@@ -1,0 +1,28 @@
+
+.grade-appeal-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 5px solid red;
+}
+
+.grade-display {
+  text-align: center;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.professor-info {
+  padding: 2rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+}
+
+.professor-photo {
+  max-width: 150px;
+  height: auto;
+  border-radius: 8px;
+}

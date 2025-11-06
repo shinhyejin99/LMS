@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.CommonCodeSortMapper">
+
+	<insert id="insertCommonCodeSort">
+        INSERT INTO common_code_sort (
+            common_sort_cd,
+            sort_name,
+            sort_desc,
+            using_yn
+        ) VALUES (
+            #{commonSortCd},
+            #{sortName},
+            #{sortDesc},
+            #{usingYn}
+        )
+    </insert>
+
+    <select id="selectCommonCodeSortList" resultType="kr.or.jsu.vo.CommonCodeSortVO">
+        SELECT
+            common_sort_cd,
+            sort_name,
+            sort_desc,
+            using_yn
+        FROM
+            common_code_sort
+        ORDER BY
+            common_sort_cd
+    </select>
+
+    <update id="updateCommonCodeSort">
+        UPDATE common_code_sort
+        SET
+            sort_name = #{sortName},
+            sort_desc = #{sortDesc},
+            using_yn = #{usingYn}
+        WHERE
+            common_sort_cd = #{commonSortCd}
+    </update>
+
+    <delete id="deleteCommonCodeSort">
+        DELETE FROM common_code_sort
+        WHERE
+            common_sort_cd = #{commonSortCd}
+    </delete>
+
+
+
+</mapper>

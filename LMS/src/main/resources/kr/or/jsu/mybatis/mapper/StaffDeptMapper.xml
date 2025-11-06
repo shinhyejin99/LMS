@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StaffDeptMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectStaffDept" parameterType="string" resultType="kr.or.jsu.vo.StaffDeptVO">
+        SELECT 
+          stf_dept_cd
+        , stf_dept_name
+        , dept_tele_no
+        , create_at
+        , delete_at
+        FROM staff_dept
+        WHERE stf_dept_cd = #{stfDeptCd}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStaffDeptList" resultType="kr.or.jsu.vo.StaffDeptVO">
+        SELECT 
+          stf_dept_cd
+        , stf_dept_name
+        , dept_tele_no
+        , create_at
+        , delete_at
+        FROM staff_dept
+        ORDER BY create_at DESC
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStaffDept" parameterType="kr.or.jsu.vo.StaffDeptVO">
+        INSERT INTO staff_dept (
+          stf_dept_cd
+        , stf_dept_name
+        , dept_tele_no
+        , create_at
+        , delete_at
+        ) VALUES (
+          #{stfDeptCd}
+        , #{stfDeptName}
+        , #{deptTeleNo}
+        , #{createAt}
+        , #{deleteAt}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateStaffDept" parameterType="kr.or.jsu.vo.StaffDeptVO">
+        UPDATE staff_dept
+        SET 
+          stf_dept_name = #{stfDeptName}
+        , dept_tele_no  = #{deptTeleNo}
+        , create_at     = #{createAt}
+        , delete_at     = #{deleteAt}
+        WHERE stf_dept_cd = #{stfDeptCd}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStaffDept" parameterType="string">
+        DELETE FROM staff_dept
+        WHERE stf_dept_cd = #{stfDeptCd}
+    </delete>
+
+</mapper>

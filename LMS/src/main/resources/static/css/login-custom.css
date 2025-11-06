@@ -1,0 +1,338 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ * 2025. 10. 31.     	정태일            최초생성
+ * 2025. 10. 31.     	정태일            CSS 수정
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* =====================================================
+   JSU LMS Login – Renewal Styles (70/30, Soft Boundary)
+   ===================================================== */
+:root {
+	--swx-blue: rgb(99, 102, 241); /* 브랜드 메인 */
+	--swx-ink: #0f172a;
+	--swx-muted: #6b7280;
+	--card-bg: rgba(255, 255, 255, .95); /* 카드 배경 불투명도 유지 */
+	--card-border: rgba(99, 102, 241, .15);
+
+    /* 배경색 변수: 따뜻하고 부드러운 화이트톤 (Warm Grayish White) */
+	--page-bg-light: #fbfbfb; /* 전체 배경 기본 색상 */
+	--page-bg-mid: #f0f3f8;   /* 은은한 그라데이션 끝 색상 */
+}
+
+/* 배경: 따뜻하고 은은한 그라데이션으로 변경 */
+.lms-login-body {
+	min-height: 100vh;
+	/* 따뜻한 톤의 배경으로 변경 */
+/* 	background: linear-gradient(135deg, var(--page-bg-light) 0%, var(--page-bg-mid) 100%); */
+	background: none;
+}
+
+/* ===== 레이아웃 ===== */
+.login-layout-container {
+
+/*   position: relative; */
+position: absolute; /* ⬅️ 전체 화면을 덮기 위해 추가 */
+  top: 0;
+  left: 0;
+  width: 100%; /* ⬅️ 전체 너비 */
+  height: 100%; /* ⬅️ 전체 높이 */
+  display: flex;
+  justify-content: flex-end; /* 로그인 폼 오른쪽으로 정렬 */
+  min-height: 100vh;
+/*   background: url("../images/slider1.jpg") center/cover no-repeat; 전체 배경 이미지 */
+
+}
+
+@media ( min-width : 1400px) {
+	.login-layout-container {
+		grid-template-columns: 7fr 3fr;
+	}
+}
+
+@media ( max-width : 992px) {
+	.login-layout-container {
+		grid-template-columns: 1fr;
+	}
+	.login-left-column {
+		display: none;
+	}
+}
+
+/* ===== 왼쪽 슬라이더 ===== */
+.login-left-column {
+/* 	position: relative; */
+/* 	overflow: hidden; */
+  display: block;
+  position: absolute; /* ⬅️ 핵심: 부모(.login-layout-container) 기준 절대 위치 */
+  inset: 0; /* ⬅️ top:0, right:0, bottom:0, left:0 와 동일 (전체 채우기) */
+  z-index: 0; /* 배경 쪽으로 보내기 */
+  overflow: hidden; /* 이미지 넘침 방지 */
+}
+
+.slider-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.login-right-column {
+  position: relative;
+  z-index: 10; /* 폼 영역을 위로 올리기 */
+}
+
+/* ===== 슬라이더 공통 ===== */
+.hero-slider,
+.slider-container {
+	height: 100%;
+	width: 100%;
+}
+/* ✅ 부모 컨테이너는 반드시 relative */
+.slider-container {
+	position: relative;
+	overflow: hidden; /* 넘침 방지 */
+}
+
+/* ===== 각 슬라이드 ===== */
+.slide {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	z-index: 0;
+	transition: opacity 1.2s ease-in-out; /* 부드러운 전환 */
+}
+
+/* ✅ 현재 활성 슬라이드 */
+.slide.active {
+	opacity: 1;
+	z-index: 1; /* 위로 올림 */
+}
+
+/* ===== 이미지 ===== */
+.slide img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+/* ===== 오버레이 ===== */
+.slide-overlay {
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to bottom right, rgba(9, 9, 11, 0.45), rgba(15, 23, 42, 0.25));
+}
+
+/* ===== 텍스트 ===== */
+.slide-content {
+	position: absolute;
+	left: 8%;
+	bottom: 10%;
+	color: #fff;
+	text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+	z-index: 2; /* 이미지보다 위에 위치 */
+}
+
+.slide-title {
+	font-size: clamp(1.4rem, 1.6vw + 0.8rem, 2.2rem);
+	font-weight: 800;
+	line-height: 1.25;
+	margin: 0 0 0.5rem;
+	color: #fff;
+}
+
+.slide-caption {
+	font-size: 1rem;
+	opacity: 0.9;
+}
+
+
+/* ===== 경계 페이드 다시 적용 (핵심 수정) =====
+   왼쪽 이미지 오른쪽 가장자리에 배경색(var(--page-bg-light))으로 흐려지는 그라데이션을 깔아
+   날카롭게 잘린 경계선 대신 부드러운 연결감을 복원 */
+.login-left-column::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: -1px;
+	height: 100%;
+	width: min(8vw, 110px); /* 페이드 폭 */
+	pointer-events: none;
+	/* 투명 → 페이지 배경색으로 흐려지는 그라데이션 */
+/* 	background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, */
+/* 		rgba(255, 255, 255, .38) 55%, var(--page-bg-light) 100%);  */
+}
+
+
+/* .login-right-column { */
+/*   display: flex; */
+/*   flex-direction: column; */
+/*   justify-content: flex-start; 상단 정렬 */
+/*   align-items: center; */
+/*   padding-top: 40px; 페이지 상단에서 약간의 여백 */
+/*   background-color: var(--page-bg-light); */
+/* } */
+
+/* ===== 오른쪽 폼 ===== */
+.login-right-column {
+  max-height: 95vh; /* 화면 높이의 90%까지만 */
+  width: 420px; /* 또는 30% 정도 */
+  margin-top: 30px; /* 아래쪽과 동일하게 16px 설정 */
+  margin-right: 5vw;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 20px 32px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  margin-bottom: 16px; /* 기존 32px → 16px */
+}
+
+/* 내부 컨테이너의 불필요한 중앙 정렬 제거 */
+.authentication-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* 상단 배치 */
+  padding-top: 0; /* 기본 여백 제거 */
+  margin-top: 0;
+}
+
+/* 카드의 오버랩 효과 제거 및 중앙 정렬 유지 */
+.lms-login-card {
+	border: 1px solid var(--card-border);
+	background: var(--card-bg); /* 배경은 반투명 흰색 유지 */
+	backdrop-filter: saturate(140%) blur(10px);
+	box-shadow: 0 10px 40px rgba(2, 6, 23, .08), 0 2px 10px
+		rgba(2, 6, 23, .06);
+	border-radius: 20px;
+	/* 오버랩 효과 제거 */
+	transform: none; 
+}
+/* (이하 폼 관련 CSS는 변경 없음) */
+/* ... */
+@media ( min-width : 1400px) {
+	.lms-login-card {
+		transform: none; 
+	} 
+}
+@media ( max-width : 992px) {
+	.lms-login-card {
+		transform: none;
+	}
+}
+
+.lms-brand {
+	margin-bottom: .25rem;
+}
+.lms-heading {
+	margin: .25rem 0 0;
+	font-size: 1.75rem;
+	font-weight: 900;
+	letter-spacing: -.02em;
+	color: var(--swx-ink);
+}
+.lms-subheading {
+	margin: .35rem 0 1.5rem;
+	color: var(--swx-muted);
+}
+.lms-form .form-control {
+	height: 48px;
+	border-radius: 12px;
+}
+.lms-form .input-group-text {
+	border-radius: 0 12px 12px 0;
+}
+.lms-login-btn {
+	height: 52px;
+	border-radius: 14px;
+	font-weight: 700;
+	letter-spacing: .02em;
+}
+.btn-primary {
+	background-color: var(--swx-blue) !important;
+	border-color: var(--swx-blue) !important;
+}
+.btn-primary:hover {
+	filter: brightness(.95);
+}
+.btn-primary:active {
+	filter: brightness(.92);
+}
+.btn-primary:focus {
+	box-shadow: 0 0 0 .25rem rgba(99, 102, 241, .25) !important;
+}
+.link-underline {
+	text-decoration: none;
+	position: relative;
+	color: var(--swx-muted);
+}
+.link-underline:hover {
+	color: var(--swx-blue);
+}
+.link-underline::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	bottom: -2px;
+	width: 100%;
+	height: 2px;
+	background: currentColor;
+	transform: scaleX(0);
+	transform-origin: left;
+	transition: transform .25s;
+}
+.link-underline:hover::after {
+	transform: scaleX(1);
+}
+.public-hint {
+	font-size: .85rem;
+	color: var(--swx-muted);
+}
+.alert-success {
+	border-color: rgba(34, 197, 94, .25);
+}
+.alert-danger {
+	border-color: rgba(239, 68, 68, .25);
+}
+[data-theme='dark'] .lms-login-card {
+	background: rgba(17, 24, 39, .75);
+	border-color: rgba(99, 102, 241, .25);
+}
+[data-theme='dark'] .lms-heading {
+	color: #e5e7eb;
+}
+[data-theme='dark'] .lms-subheading {
+	color: #cbd5e1;
+}
+
+/* 로고  */
+
+.lms-logo-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+/*   padding: 35px 0 5px 0; 위쪽 여백 줄이기 */
+}
+
+.lms-main-logo {
+  height: 210px;  /* ⬅️ 120px → 80px로 줄임 */
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.lms-main-logo:hover {
+  transform: scale(1.03);
+}

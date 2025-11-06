@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>400 Bad Request</title>
+  <style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #333;
+    background-image: url('/sneat-1.0.0/assets/img/backgrounds/400.png');
+    background-position: center; 
+    background-repeat: no-repeat; 
+    background-color: rgba(250, 235, 235); 
+    background-attachment: fixed;
+  }
+  .error-content {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 30px 50px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    width: 90%;
+  }
+  .error-title { font-size: 3.5em; color: #d9534f; margin-bottom: 10px; }
+  .error-message { font-size: 1.3em; color: #555; margin-bottom: 30px; }
+  .home-button {
+    display: inline-block;
+    background-color: #d9534f;
+    color: white;
+    padding: 15px 40px;
+    text-decoration: none;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: background-color 0.3s;
+  }
+  .home-button:hover { background-color: #c9302c; }
+  </style>
+</head>
+<body>
+  <div class="error-content">
+    <h1 class="error-title">400</h1>
+    <p class="error-message">
+      잘못된 요청입니다.<br>
+      요청 형식이 올바르지 않거나, 입력값이 누락되었습니다.
+    </p>
+    <a href="/" class="home-button">메인 페이지로</a>
+    <button class="home-button" onclick="history.back()">이전 페이지로 돌아가기</button>
+  </div>
+</body>
+</html>
+    
+    

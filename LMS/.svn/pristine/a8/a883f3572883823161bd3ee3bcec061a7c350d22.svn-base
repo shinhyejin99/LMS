@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.IndivtaskSubmitMapper">
+
+	<insert id="insertIndivtaskSubmit">
+        INSERT INTO indivtask_submit (
+            enroll_id,
+            indivtask_id,
+            submit_desc,
+            submit_file_id,
+            submit_at,
+            evalu_score,
+            evalu_at,
+            evalu_desc
+        ) VALUES (
+            #{enrollId},
+            #{indivtaskId},
+            #{submitDesc},
+            #{submitFileId},
+            #{submitAt},
+            #{evaluScore},
+            #{evaluAt},
+            #{evaluDesc}
+        )
+    </insert>
+
+    <select id="selectSubmitList" resultType="kr.or.jsu.vo.IndivtaskSubmitVO">
+        SELECT
+            enroll_id,
+            indivtask_id,
+            submit_desc,
+            submit_file_id,
+            submit_at,
+            evalu_score,
+            evalu_at,
+            evalu_desc
+        FROM
+            indivtask_submit
+        ORDER BY
+            enroll_id, indivtask_id
+    </select>
+
+    <select id="selectGraduationAssignmentSubmissions" resultType="kr.or.jsu.vo.IndivtaskSubmitVO">
+        SELECT
+            its.enroll_id,
+            its.indivtask_id,
+            its.submit_desc,
+            its.submit_file_id,
+            its.submit_at,
+            its.evalu_score,
+            its.evalu_at,
+            its.evalu_desc,
+            s.std_name, 
+            s.student_no, 
+            it.indivtask_name 
+        FROM
+            indivtask_submit its
+        JOIN
+            student s ON its.student_no = s.student_no 
+        JOIN
+            indivtask it ON its.indivtask_id = it.indivtask_id
+        WHERE
+            s.professor_no = #{professorNo} 
+            AND it.indivtask_id = #{graduationTaskId} 
+            <if test="academicYear != null and academicYear != ''">
+                AND its.academic_year = #{academicYear} 
+            </if>
+            <if test="semester != null and semester != ''">
+                AND its.semester = #{semester} 
+            </if>
+        ORDER BY
+            its.submit_at DESC
+    </select>
+
+    <update id="updateIndivtaskSubmit">
+        UPDATE indivtask_submit
+        SET
+            submit_desc = #{submitDesc},
+            submit_file_id = #{submitFileId},
+            submit_at = #{submitAt},
+            evalu_score = #{evaluScore},
+            evalu_at = #{evaluAt},
+            evalu_desc = #{evaluDesc}
+        WHERE
+            enroll_id = #{enrollId} AND indivtask_id = #{indivtaskId}
+    </update>
+
+    <delete id="deleteIndivtaskSubmit">
+        DELETE FROM indivtask_submit
+        WHERE
+            enroll_id = #{enrollId} AND indivtask_id = #{indivtaskId}
+    </delete>
+
+</mapper>

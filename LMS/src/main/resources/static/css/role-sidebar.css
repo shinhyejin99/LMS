@@ -1,0 +1,340 @@
+/**
+* <pre>
+* << 개정이력(Modification Information) >>
+*
+* 수정일 수정자 수정내용
+* ----------- ------------- ---------------------------
+* 2025. 10. 25. 김수현 최초 생성
+*
+* </pre>
+*/
+@charset "UTF-8";
+
+/* ==========================================
+역할별 활성 메뉴 인디케이터(점) 색상 - 2겹 구조
+========================================== */
+
+/* 🎓 학생 - Material Green (#4caf50) */
+
+/* 일반 항목 */
+html body.role-student .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item .menu-link::before {
+    background-color: rgba(76, 175, 80, 0.15) !important;
+    border: 3px solid rgba(76, 175, 80, 0.08) !important;
+}
+
+/* 활성 항목 - 가장 중요! */
+html body.role-student .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item.active > .menu-link:not(.menu-toggle)::before {
+    background-color: #4caf50 !important;
+    border: 3px solid rgba(76, 175, 80, 0.3) !important;
+    width: 8px !important;
+    height: 8px !important;
+}
+
+/* 열린 메뉴 내부의 활성 항목 */
+html body.role-student .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner > .menu-item.open .menu-item.active > .menu-link::before {
+    background-color: #4caf50 !important;
+    border: 3px solid rgba(76, 175, 80, 0.3) !important;
+}
+
+/* hover */
+html body.role-student .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item > .menu-link:hover::before {
+    background-color: rgba(76, 175, 80, 0.5) !important;
+    border: 3px solid rgba(76, 175, 80, 0.1) !important;
+}
+
+
+/* 👨‍🏫 교수 - 파란색 */
+
+html body.role-professor .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item .menu-link::before {
+    background-color: rgba(78, 115, 223, 0.15) !important;
+    border: 3px solid rgba(78, 115, 223, 0.08) !important;
+}
+
+html body.role-professor .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item.active > .menu-link:not(.menu-toggle)::before {
+    background-color: #4e73df !important;
+    border: 3px solid rgba(78, 115, 223, 0.3) !important;
+    width: 8px !important;
+    height: 8px !important;
+}
+
+html body.role-professor .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner > .menu-item.open .menu-item.active > .menu-link::before {
+    background-color: #4e73df !important;
+    border: 3px solid rgba(78, 115, 223, 0.3) !important;
+}
+
+html body.role-professor .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item > .menu-link:hover::before {
+    background-color: rgba(78, 115, 223, 0.5) !important;
+    border: 3px solid rgba(78, 115, 223, 0.1) !important;
+}
+
+
+/* 👔 교직원 - 보라색 */
+
+html body.role-staff .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item .menu-link::before {
+    background-color: rgba(105, 108, 255, 0.15) !important;
+    border: 3px solid rgba(105, 108, 255, 0.08) !important;
+}
+
+html body.role-staff .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item.active > .menu-link:not(.menu-toggle)::before {
+    background-color: #696cff !important;
+    border: 3px solid rgba(105, 108, 255, 0.3) !important;
+    width: 8px !important;
+    height: 8px !important;
+}
+
+html body.role-staff .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner > .menu-item.open .menu-item.active > .menu-link::before {
+    background-color: #696cff !important;
+    border: 3px solid rgba(105, 108, 255, 0.3) !important;
+}
+
+html body.role-staff .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-inner .menu-sub > .menu-item > .menu-link:hover::before {
+    background-color: rgba(105, 108, 255, 0.5) !important;
+    border: 3px solid rgba(105, 108, 255, 0.1) !important;
+}
+
+
+/* ==========================================
+활성 메뉴 텍스트 색상 + 볼드
+========================================== */
+
+html body.role-student .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-sub > .menu-item.active > .menu-link {
+    color: #388e3c !important;
+    font-weight: 600 !important;
+}
+
+html body.role-professor .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-sub > .menu-item.active > .menu-link {
+    color: #4e73df !important;
+    font-weight: 600 !important;
+}
+
+html body.role-staff .layout-wrapper .layout-container .layout-menu.menu.bg-menu-theme .menu-sub > .menu-item.active > .menu-link {
+    color: #696cff !important;
+    font-weight: 600 !important;
+}
+
+/* ==========================================
+동그라미 크기 줄이기
+========================================== */
+
+/* 모든 역할 공통 - 점 크기 축소 */
+html body .layout-menu.bg-menu-theme .menu-sub > .menu-item .menu-link::before,
+html body .layout-menu.bg-menu-theme .menu-sub > .menu-item.active > .menu-link::before {
+    width: 6px !important;
+    height: 6px !important;
+    min-width: 6px !important;
+    min-height: 6px !important;
+}
+
+/* border 두께도 줄이기 */
+html body .layout-menu.bg-menu-theme .menu-sub > .menu-item .menu-link::before,
+html body .layout-menu.bg-menu-theme .menu-sub > .menu-item.active > .menu-link::before {
+    border-width: 2px !important;
+}
+
+
+/* ==========================================
+최상위 메뉴 버튼 색상 - 단일 메뉴 포함
+========================================== */
+
+/* 🎓 학생 - Material Green */
+/* hover */
+.role-student .bg-menu-theme .menu-inner > .menu-item > .menu-link:hover {
+    background-color: rgba(76, 175, 80, 0.08) !important;
+    color: #388e3c !important;
+}
+
+.role-student .bg-menu-theme .menu-inner > .menu-item:hover > .menu-link .menu-icon {
+    color: #388e3c !important;
+}
+
+/* 하위 메뉴에 active가 있을 때 (다단계 메뉴) */
+.role-student .bg-menu-theme .menu-inner > .menu-item:has(.menu-sub .menu-item.active) > .menu-link {
+    background-color: rgba(76, 175, 80, 0.16) !important;
+    color: #388e3c !important;
+}
+
+.role-student .bg-menu-theme .menu-inner > .menu-item:has(.menu-sub .menu-item.active) > .menu-link .menu-icon {
+    color: #388e3c !important;
+}
+
+/* 단일 메뉴 자체가 active일 때 (하위 메뉴 없는 경우) */
+.role-student .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link {
+    background-color: rgba(76, 175, 80, 0.16) !important;
+    color: #388e3c !important;
+}
+
+.role-student .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link .menu-icon {
+    color: #388e3c !important;
+}
+
+/* 단일 메뉴 텍스트 볼드 + 아이콘 강조 */
+.role-student .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link {
+    font-weight: 600 !important;  /* 👈 볼드 추가 */
+}
+
+
+/* 👨‍🏫 교수 - 파란색 */
+.role-professor .bg-menu-theme .menu-inner > .menu-item > .menu-link:hover {
+    background-color: rgba(78, 115, 223, 0.08) !important;
+    color: #4e73df !important;
+}
+
+.role-professor .bg-menu-theme .menu-inner > .menu-item:hover > .menu-link .menu-icon {
+    color: #4e73df !important;
+}
+
+.role-professor .bg-menu-theme .menu-inner > .menu-item:has(.menu-sub .menu-item.active) > .menu-link {
+    background-color: rgba(78, 115, 223, 0.16) !important;
+    color: #4e73df !important;
+}
+
+.role-professor .bg-menu-theme .menu-inner > .menu-item:has(.menu-sub .menu-item.active) > .menu-link .menu-icon {
+    color: #4e73df !important;
+}
+
+.role-professor .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link {
+    background-color: rgba(78, 115, 223, 0.16) !important;
+    color: #4e73df !important;
+}
+
+.role-professor .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link .menu-icon {
+    color: #4e73df !important;
+}
+
+.role-professor .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link {
+    font-weight: 600 !important;  /* 👈 추가 */
+}
+
+
+/* 👔 교직원 - 보라색 */
+.role-staff .bg-menu-theme .menu-inner > .menu-item > .menu-link:hover {
+    background-color: rgba(105, 108, 255, 0.08) !important;
+    color: #696cff !important;
+}
+
+.role-staff .bg-menu-theme .menu-inner > .menu-item:hover > .menu-link .menu-icon {
+    color: #696cff !important;
+}
+
+.role-staff .bg-menu-theme .menu-inner > .menu-item:has(.menu-sub .menu-item.active) > .menu-link {
+    background-color: rgba(105, 108, 255, 0.16) !important;
+    color: #696cff !important;
+}
+
+.role-staff .bg-menu-theme .menu-inner > .menu-item:has(.menu-sub .menu-item.active) > .menu-link .menu-icon {
+    color: #696cff !important;
+}
+
+.role-staff .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link {
+    background-color: rgba(105, 108, 255, 0.16) !important;
+    color: #696cff !important;
+}
+
+.role-staff .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link .menu-icon {
+    color: #696cff !important;
+}
+
+.role-staff .bg-menu-theme .menu-inner > .menu-item.active:not(:has(.menu-sub)) > .menu-link {
+    font-weight: 600 !important;  /* 👈 추가 */
+}
+
+
+/* ==========================================
+메뉴 선택 시 오른쪽 막대 색상 (단일 메뉴만)
+========================================== */
+
+/* 🎓 학생 - Material Green */
+html body.role-student .layout-menu.bg-menu-theme .menu-inner > .menu-item.active::before {
+    background-color: #388e3c !important;
+}
+
+/* 👨‍🏫 교수 - 파란색 */
+html body.role-professor .layout-menu.bg-menu-theme .menu-inner > .menu-item.active::before {
+    background-color: #4e73df !important;
+}
+
+/* 👔 교직원 - 보라색 */
+html body.role-staff .layout-menu.bg-menu-theme .menu-inner > .menu-item.active::before {
+    background-color: #696cff !important;
+}
+
+/* ==========================================
+사이드바 너비 조정
+========================================== */
+
+/* 사이드바 너비 늘리기 */
+.layout-menu {
+    width: 270px !important;  /* 기본 260px → 280px (원하는 크기로 조정) */
+}
+
+
+
+/* 반응형 - 모바일에서는 원래대로 */
+@media (max-width: 1199px) {
+    .layout-menu {
+        width: 260px !important;
+    }
+    .layout-page {
+        padding-left: 0 !important;
+    }
+}
+
+/* ==========================================
+사이드바 우측 경계선
+========================================== */
+
+.layout-menu {
+    border-right: 1px solid #e0e0e0 !important;  /* 얇은 회색 선 */
+    /* 또는 */
+    /* border-right: 1px solid rgba(0, 0, 0, 0.08) !important; */ /* 더 연한 선 */
+}
+
+/* ==========================================
+메뉴 항목 크기 조정 - 좌우 여백 균형
+========================================== */
+
+/* 최상위 메뉴 항목 */
+.layout-menu .menu-inner > .menu-item > .menu-link {
+    padding: 12px 24px !important;  /* 좌우 동일하게 24px */
+}
+
+/* 하위 메뉴 항목 */
+.layout-menu .menu-sub .menu-item .menu-link {
+    padding: 10px 24px 10px 48px !important;  /* 우측 24px */
+}
+
+/* 아이콘 크기 */
+.layout-menu .menu-icon {
+    font-size: 24px !important;
+    margin-right: 12px !important;
+}
+
+/* 메뉴 텍스트 크기 */
+.layout-menu .menu-link {
+    font-size: 15px !important;
+}
+
+/* ==========================================
+메뉴 항목 간격 조정 - 여백 겹침 방지
+========================================== */
+
+/* ==========================================
+메뉴 항목 간격 - 완전 균일하게
+========================================== */
+
+/* 모든 최상위 메뉴 항목 - 위아래 동일하게 */
+.layout-menu .menu-inner > .menu-item {
+    margin: 2px 0 !important;  /* 위아래 각 2px */
+}
+
+/* 하위 메뉴 컨테이너 여백 제거 (중요!) */
+.layout-menu .menu-sub {
+    margin: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* 하위 메뉴 항목 간격 */
+.layout-menu .menu-sub > .menu-item {
+    margin: 1px 0 !important;  /* 하위는 더 좁게 */
+}

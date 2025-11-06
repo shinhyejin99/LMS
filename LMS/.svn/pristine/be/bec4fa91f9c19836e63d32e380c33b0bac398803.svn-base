@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctExamMapper">
+
+	<insert id="insertOfflineExam">
+		<selectKey keyProperty="lctExamId" resultType="string" order="BEFORE">
+			SELECT 'LCTEXM' || LPAD(TO_CHAR(SEQ_LCT_EXAM.NEXTVAL), 9, '0') AS LCT_EXAM_ID
+			FROM DUAL
+		</selectKey>
+	    INSERT INTO LCT_EXAM (
+	        LCT_EXAM_ID
+	        , LECTURE_ID
+	        , EXAM_NAME
+	        , EXAM_DESC
+	        , EXAM_TYPE
+	        , CREATE_AT
+	        , START_AT
+	        , END_AT
+	        , WEIGHT_VALUE
+	        , DELETE_YN
+	    ) VALUES (
+	        #{lctExamId}
+	        , #{lectureId}
+	        , #{examName}
+	        , #{examDesc}
+	        , 'OFF'
+	        , SYSDATE
+	        , #{startAt}
+	        , #{endAt}
+	        , #{weightValue}
+	        , 'N'
+	    )
+	</insert>
+	
+	<insert id="insertOfflineExamSubmit">
+		INSERT ALL
+		<foreach collection="eachResult" item="item">
+			INTO EXAM_SUBMIT (
+				ENROLL_ID
+				, LCT_EXAM_ID
+				, SUBMIT_AT
+				, AUTO_SCORE
+				, MODIFIED_SCORE
+				, MODIFY_REASON
+			) VALUES (
+				#{item.enrollId}
+				, #{lctExamId}
+				, #{submitAt}
+				, #{item.autoScore}
+				, NULL
+				, NULL
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<select id="selectExamList_PRF">
+		SELECT
+			  lex.LCT_EXAM_ID
+			, lex.LECTURE_ID
+			, lex.EXAM_NAME
+			, lex.EXAM_DESC
+			, lex.EXAM_TYPE
+			, lex.CREATE_AT
+			, lex.START_AT
+			, lex.END_AT
+			, lex.WEIGHT_VALUE
+			, (
+				SELECT count(*)
+				FROM EXAM_SUBMIT es
+				WHERE es.LCT_EXAM_ID = lex.LCT_EXAM_ID
+				AND es.SUBMIT_AT IS NOT NULL
+			) AS SUBMIT_COUNT
+			, (
+				SELECT count(*)
+				FROM EXAM_SUBMIT es
+				WHERE es.LCT_EXAM_ID = lex.LCT_EXAM_ID 
+			) AS TARGET_COUNT
+		FROM
+			LCT_EXAM lex
+		WHERE
+			lex.LECTURE_ID = #{lectureId}
+			AND DELETE_YN = 'N'
+	</select>
+	
+	<select id="selectExamList_STU">
+		SELECT
+			  lex.LCT_EXAM_ID
+			, lex.LECTURE_ID
+			, lex.EXAM_NAME
+			, lex.EXAM_DESC
+			, lex.EXAM_TYPE
+			, lex.CREATE_AT
+			, lex.START_AT
+			, lex.END_AT
+			, lex.WEIGHT_VALUE
+			, CASE WHEN es.SUBMIT_AT IS NOT NULL THEN 1 ELSE 0 END AS IS_SUBMITTED
+		FROM
+			LCT_EXAM lex
+		JOIN EXAM_SUBMIT es ON
+			lex.LCT_EXAM_ID = es.LCT_EXAM_ID 
+			AND es.ENROLL_ID = #{enrollId}
+		WHERE
+			lex.LECTURE_ID = #{lectureId}
+			AND DELETE_YN = 'N'
+	</select>
+	
+	<update id="updateWeightValue" parameterType="list">
+		UPDATE
+			LCT_EXAM
+		SET
+			WEIGHT_VALUE = CASE LCT_EXAM_ID
+			<foreach collection="list" item="item">
+				WHEN #{item.lctExamId} THEN #{item.weightValue}
+			</foreach>
+		END
+		WHERE
+			LCT_EXAM_ID IN
+			<foreach collection="list" item="item" open="(" separator="," close=")">
+				#{item.lctExamId}
+			</foreach>
+	</update>
+	
+	<select id="selectExam">
+		SELECT
+			  le.LCT_EXAM_ID
+			, le.LECTURE_ID
+			, le.EXAM_NAME
+			, le.EXAM_DESC
+			, le.EXAM_TYPE
+			, le.CREATE_AT
+			, le.START_AT
+			, le.END_AT
+			, le.WEIGHT_VALUE
+			, le.DELETE_YN
+		FROM
+			LCT_EXAM le
+		WHERE
+			le.LCT_EXAM_ID = #{lctExamId}
+	</select>
+	
+	<select id="selectSubmit">
+		SELECT
+			es.ENROLL_ID
+			, es.LCT_EXAM_ID
+			, es.SUBMIT_AT
+			, es.AUTO_SCORE
+			, es.MODIFIED_SCORE
+			, es.MODIFY_REASON
+		FROM
+			EXAM_SUBMIT es
+		WHERE
+			es.ENROLL_ID = #{enrollId}
+			AND es.LCT_EXAM_ID = #{lctExamId}
+	</select>
+	
+	<resultMap type="StudentAndExamSubmitDTO" id="examSubmitDTO">
+	    <id property="enrollId" column="SEL_ENROLL_ID"/>
+	    <association property="submit" javaType="ExamSubmitInfo" columnPrefix="ES_" autoMapping="true"/>
+	</resultMap>
+
+	<select id="selectSubmitList" resultMap="examSubmitDTO">
+	    SELECT
+	        sel.ENROLL_ID       AS SEL_ENROLL_ID
+	      , es.ENROLL_ID        AS ES_ENROLL_ID
+	      , es.LCT_EXAM_ID      AS ES_LCT_EXAM_ID
+	      , es.SUBMIT_AT        AS ES_SUBMIT_AT
+	      , es.AUTO_SCORE       AS ES_AUTO_SCORE
+	      , es.MODIFIED_SCORE   AS ES_MODIFIED_SCORE
+	      , es.MODIFY_REASON    AS ES_MODIFY_REASON
+	    FROM
+	    	STU_ENROLL_LCT sel
+	    LEFT JOIN EXAM_SUBMIT es
+			ON es.ENROLL_ID = sel.ENROLL_ID
+			AND es.LCT_EXAM_ID = #{lctExamId}
+	    WHERE
+        	sel.ENROLL_ID IN
+	        <foreach collection="enrollIds" item="id" open="(" separator="," close=")">
+	            #{id}
+	        </foreach>
+	</select>
+	
+	<update id="updateScore">
+		UPDATE EXAM_SUBMIT
+		SET
+			MODIFIED_SCORE = #{modifiedScore}
+			, MODIFY_REASON = #{modifyReason}
+		WHERE
+			ENROLL_ID = #{enrollId}
+			AND LCT_EXAM_ID = #{lctExamId}
+	</update>
+	
+	<update id="updateExam">
+		UPDATE
+			LCT_EXAM
+		SET
+			  EXAM_NAME = #{examName}
+			, EXAM_DESC = #{examDesc}
+			, START_AT = #{startAt}
+			, END_AT = #{endAt}
+			, WEIGHT_VALUE = #{weightValue}
+		WHERE
+			LCT_EXAM_ID = #{lctExamId}
+	</update>
+	
+	<update id="deleteExamSoftly">
+		UPDATE
+			LCT_EXAM
+		SET
+			DELETE_YN = 'Y'
+		WHERE
+			LCT_EXAM_ID = #{lctExamId}
+	</update>
+	
+	<resultMap type="EachStudentExamScoreResp" id="examScoreMap">
+		<id column="ENROLL_ID" property="enrollId"/>
+		<collection property="scoreList"
+					ofType="StudentExamScoreResp"
+					autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectExamAndEachStudentScore" resultMap="examScoreMap">
+	WITH active_enroll AS (
+		SELECT
+			e.ENROLL_ID
+		FROM
+			STU_ENROLL_LCT e
+		WHERE
+			e.LECTURE_ID = #{lectureId}
+			AND (e.ENROLL_STATUS_CD IS NULL
+				OR e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW'))
+		)
+		SELECT
+			e.ENROLL_ID
+			, le.LCT_EXAM_ID
+			, CASE
+				WHEN s.LCT_EXAM_ID IS NOT NULL THEN 'Y'
+				ELSE 'N'
+			END AS IS_TARGET
+			, s.SUBMIT_AT
+			, CASE
+				WHEN s.SUBMIT_AT IS NULL THEN 0
+				ELSE NVL(s.MODIFIED_SCORE , s.AUTO_SCORE)
+			END AS SCORE
+		FROM
+			LCT_EXAM le
+		CROSS JOIN active_enroll e
+		LEFT JOIN EXAM_SUBMIT s
+		  ON
+			s.LCT_EXAM_ID = le.LCT_EXAM_ID
+			AND s.ENROLL_ID = e.ENROLL_ID
+		WHERE
+			le.LECTURE_ID = #{lectureId}
+			AND le.DELETE_YN = 'N'
+		ORDER BY
+			e.ENROLL_ID
+			, le.LCT_EXAM_ID
+	</select>
+
+</mapper>

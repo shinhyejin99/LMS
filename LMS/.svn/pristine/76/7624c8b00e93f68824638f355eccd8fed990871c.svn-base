@@ -1,0 +1,402 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 9. 30.     	김수현            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* 전체 레이아웃 */
+body {
+    font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: white;
+    margin: 0;
+    padding: 0;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.main-container {
+    max-width: 1000px;
+	margin: 0 auto;
+	padding: 2rem;
+	background-color: white;
+	min-height: calc(100vh - 200px);
+}
+
+/* 브레드크럼 */
+.breadcrumb {
+	margin-bottom: 1.5rem;
+	padding: 0.75rem 0;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.breadcrumb a {
+	color: #6c757d;
+	text-decoration: none;
+	font-size: 0.9rem;
+}
+
+.breadcrumb a:hover {
+	color: #0d6efd;
+}
+
+.breadcrumb span {
+	color: #6c757d;
+	margin: 0 0.5rem;
+}
+
+/* 제목 영역 - 학내채용 스타일과 동일 */
+.title-section {
+    padding: 32px 0;
+    margin-bottom: 32px;
+    border-bottom: 3px solid #4A90E2;
+}
+
+.job-title {
+    color: #2c3e50;
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* 정보 카드 - 2열 레이아웃 */
+.info-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 40px;
+    margin-bottom: 40px;
+    border: 1px solid #e9ecef;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: center;
+}
+
+/* 왼쪽 정보 영역 */
+.info-left {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.info-value {
+    font-size: 18px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+/* 로고 섹션 - 오른쪽 배치 */
+.info-card .logo-section {
+    background: white;
+    border-radius: 8px;
+    padding: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e9ecef;
+    min-height: 200px;
+}
+
+.info-card .company-logo {
+    max-width: 500px;
+    max-height: 250px;
+    object-fit: contain;
+}
+
+/* 로고 섹션 (단독으로 있을 경우) */
+.logo-section:not(.info-card .logo-section) {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 40px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.company-logo:not(.info-card .company-logo) {
+    width: 500px;
+    height: 250px;
+    object-fit: contain;
+}
+
+/* 채용 내용 섹션 */
+.content-section {
+    padding: 0;
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 30px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgb(211, 218, 224);
+}
+
+.content-box {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.content-item h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #495057;
+    margin: 0 0 12px 0;
+    padding-left: 12px;
+    border-left: 4px solid #4A90E2;
+}
+
+.content-text {
+    font-size: 15px;
+    color: #495057;
+    line-height: 1.8;
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    white-space: pre-wrap;
+}
+
+.no-content {
+    text-align: center;
+    color: #adb5bd;
+    padding: 40px;
+    font-size: 15px;
+}
+
+/* 관련 링크 섹션 */
+.link-section {
+    padding: 0;
+    margin-bottom: 40px;
+}
+
+.link-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* 버튼 스타일 */
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #4A90E2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background: white;
+    color: #4A90E2;
+    border: 2px solid #4A90E2;
+}
+
+.btn-outline:hover {
+    background: #4A90E2;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-link {
+    background: transparent;
+    color: #4A90E2;
+    padding: 8px 16px;
+}
+
+.btn-link:hover {
+    color: #357ABD;
+}
+
+/* 버튼 그룹 */
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+/* 네비게이션 바 */
+.navbar {
+    background: #fff;
+	padding: 1rem 2.5rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	border-bottom: 1px solid #dee2e6;
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.navbar-nav {
+	display: flex;
+	list-style: none;
+	margin: 0 auto;
+	padding: 0;
+	align-items: center;
+	gap: 3rem;
+}
+
+.nav-link {
+	color: #343a40;
+	text-decoration: none;
+	font-weight: 600;
+	transition: color 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    color: #0d6efd;
+}
+
+.navbar-right {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+}
+
+.notification-icon {
+	font-size: 1.5rem;
+	cursor: pointer;
+	color: #495057;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.notification-icon:hover {
+	color: #0d6efd;
+}
+
+/* 푸터 */
+.footer {
+    background: #2c3e50;
+    color: #95a5a6;
+    text-align: center;
+    padding: 24px;
+    font-size: 14px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .main-container {
+        margin: 80px auto 20px;
+        padding: 0 16px;
+    }
+    
+    .title-section {
+        padding: 24px 0;
+    }
+    
+    .job-title {
+        font-size: 22px;
+    }
+    
+    .info-card {
+        padding: 24px;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .info-card .logo-section {
+        min-height: 150px;
+    }
+    
+    .content-section {
+        padding: 0;
+    }
+    
+    .link-buttons {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .navbar {
+        flex-wrap: wrap;
+        padding: 12px 16px;
+    }
+    
+    .navbar-nav {
+        gap: 16px;
+        font-size: 14px;
+    }
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.info-card,
+.content-section,
+.link-section {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.title-section {
+    animation: fadeIn 0.4s ease-out;
+}

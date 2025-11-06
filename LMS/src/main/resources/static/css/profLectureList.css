@@ -1,0 +1,184 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 28.     	김수현            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* ==================== */
+/* 교수 강의 목록 페이지 전용 스타일 */
+/* ==================== */
+
+/* 외부 래퍼 */
+.prof-lecture-list-page {
+	padding: 20px;
+	background-color: #f8f9fa;
+	min-height: 100vh;
+}
+
+/* 메인 컨테이너 */
+.prof-lecture-list-page .lecture-container {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 30px;
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	min-height: calc(100vh - 100px);
+}
+
+/* 페이지 헤더 */
+.prof-lecture-list-page .page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 30px;
+	padding-bottom: 20px;
+	border-bottom: 2px solid #2c5aa0;
+}
+
+.prof-lecture-list-page .page-header h1 {
+	font-size: 23px;
+	font-weight: bold;
+	color: #333;
+	margin: 0;
+}
+
+/* 테이블 래퍼 */
+.prof-lecture-list-page .table-wrapper {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+/* 테이블 */
+.prof-lecture-list-page .lecture-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: white;
+	margin: 0;
+}
+
+.prof-lecture-list-page .lecture-table th {
+	background-color: #4a7ab8; /* 변경 */
+	color: white;
+	padding: 15px;
+	text-align: center; /* 헤더는 중앙 정렬 */
+	font-weight: 600;
+	border: none;
+	vertical-align: middle; /* 수직 정렬 */
+}
+
+.prof-lecture-list-page .lecture-table td {
+	padding: 15px;
+	border-bottom: 1px solid #dee2e6;
+	color: #333;
+	text-align: center; /* 기본 중앙 정렬 */
+	vertical-align: middle; /* 수직 정렬 */
+}
+
+/* 강의명 열만 왼쪽 정렬 */
+.prof-lecture-list-page .lecture-table td:nth-child(1) {
+	text-align: left;
+}
+
+.prof-lecture-list-page .lecture-table tbody tr {
+	transition: background-color 0.2s;
+}
+
+.prof-lecture-list-page .lecture-table tbody tr:hover {
+	background-color: #f8f9fa;
+	cursor: pointer;
+}
+
+.prof-lecture-list-page .lecture-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+/* 이수구분 열 중앙 정렬 강제 */
+.prof-lecture-list-page .lecture-table td.completion-cell {
+    text-align: center !important;
+}
+
+/* 메시지 영역 */
+.prof-lecture-list-page .no-data {
+	text-align: center;
+	padding: 50px;
+	color: #6c757d;
+	font-size: 16px;
+}
+
+.prof-lecture-list-page .loading {
+	text-align: center;
+	padding: 50px;
+	color: #6c757d;
+}
+
+.prof-lecture-list-page .error-message {
+	color: #dc3545;
+	padding: 20px;
+	background-color: #f8d7da;
+	border: 1px solid #f5c6cb;
+	border-radius: 8px;
+	margin-bottom: 20px;
+}
+
+.status-badge {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 12px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.status-ended {
+	background-color: #dc3545;
+	color: white;
+}
+
+.status-ongoing {
+	background-color: #28a745;
+	color: white;
+}
+
+.status-scheduled {
+	background-color: #6c757d;
+	color: white;
+}
+
+/* ==================== */
+/* 반응형 */
+/* ==================== */
+@media ( max-width : 768px) {
+	.prof-lecture-list-page {
+		padding: 10px;
+	}
+	.prof-lecture-list-page .lecture-container {
+		padding: 20px 15px;
+		min-height: calc(100vh - 80px);
+	}
+	.prof-lecture-list-page .page-header h1 {
+		font-size: 22px;
+	}
+	.prof-lecture-list-page .lecture-table {
+		font-size: 14px;
+	}
+	.prof-lecture-list-page .lecture-table th, .prof-lecture-list-page .lecture-table td
+		{
+		padding: 10px;
+	}
+
+	/* 모바일에서 테이블 스크롤 */
+	.prof-lecture-list-page .table-wrapper {
+		overflow-x: auto;
+	}
+	.prof-lecture-list-page .lecture-table {
+		min-width: 600px;
+	}
+}

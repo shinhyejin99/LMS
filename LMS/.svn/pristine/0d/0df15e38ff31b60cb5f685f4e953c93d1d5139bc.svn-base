@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.PortalRecruitApiMapper">
+
+ <!-- 채용 API 공고 등록 -->
+    <insert id="insertPortalRecruitApi" parameterType="kr.or.jsu.vo.PortalRecruitApiVO">
+        INSERT INTO PORTAL_RECRUIT_API (
+            API_RECRUIT_ID,
+            TITLE,
+            AGENCY_NAME,
+            AGENCY_TYPE,
+            REC_TYPE,
+            REC_START_DAY,
+            REC_END_DAY,
+            AGENCY_URL,
+            DOCUMENT,
+            APPLY_WAY,
+            ANNOUNCE_DAY,
+            INQUIRY,
+            OTHERS,
+            LOGO_IMG
+        ) VALUES (
+            #{apiRecruitId},
+            #{title},
+            #{agencyName},
+            #{agencyType},
+            #{recType},
+            #{recStartDay},
+            #{recEndDay},
+            #{agencyUrl},
+            #{document},
+            #{applyWay},
+            #{announceDay},
+            #{inquiry},
+            #{others},
+            #{logoImg}
+        )
+    </insert>
+
+    <!-- 채용 API 공고 목록 조회 -->
+    <select id="selectPortalRecruitApiList" resultType="kr.or.jsu.vo.PortalRecruitApiVO">
+        SELECT
+            API_RECRUIT_ID,
+            TITLE,
+            AGENCY_NAME,
+            AGENCY_TYPE,
+            REC_TYPE,
+            REC_START_DAY,
+            REC_END_DAY,
+            AGENCY_URL,
+            DOCUMENT,
+            APPLY_WAY,
+            ANNOUNCE_DAY,
+            INQUIRY,
+            OTHERS,
+            LOGO_IMG
+        FROM PORTAL_RECRUIT_API
+    </select>
+
+    <!-- 특정 채용 API 공고 조회 -->
+    <select id="selectPortalRecruitApi" parameterType="string" resultType="kr.or.jsu.vo.PortalRecruitApiVO">
+        SELECT
+            API_RECRUIT_ID,
+            TITLE,
+            AGENCY_NAME,
+            AGENCY_TYPE,
+            REC_TYPE,
+            REC_START_DAY,
+            REC_END_DAY,
+            AGENCY_URL,
+            DOCUMENT,
+            APPLY_WAY,
+            ANNOUNCE_DAY,
+            INQUIRY,
+            OTHERS,
+            LOGO_IMG
+        FROM PORTAL_RECRUIT_API
+        WHERE API_RECRUIT_ID = #{apiRecruitId}
+    </select>
+
+    <!-- 채용 API 공고 수정 -->
+    <update id="updatePortalRecruitApi" parameterType="kr.or.jsu.vo.PortalRecruitApiVO">
+        UPDATE PORTAL_RECRUIT_API
+        SET
+            TITLE = #{title},
+            AGENCY_NAME = #{agencyName},
+            AGENCY_TYPE = #{agencyType},
+            REC_TYPE = #{recType},
+            REC_START_DAY = #{recStartDay},
+            REC_END_DAY = #{recEndDay},
+            AGENCY_URL = #{agencyUrl},
+            DOCUMENT = #{document},
+            APPLY_WAY = #{applyWay},
+            ANNOUNCE_DAY = #{announceDay},
+            INQUIRY = #{inquiry},
+            OTHERS = #{others},
+            LOGO_IMG = #{logoImg}
+        WHERE API_RECRUIT_ID = #{apiRecruitId}
+    </update>
+
+    <!-- 채용 API 공고 삭제 -->
+    <delete id="deletePortalRecruitApi" parameterType="string">
+        DELETE FROM PORTAL_RECRUIT_API
+        WHERE API_RECRUIT_ID = #{apiRecruitId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,470 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 28.     	김수현            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 28.     	김수현            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* ==================== */
+/* 교수 강의 상세 페이지 */
+/* ==================== */
+
+/* 외부 래퍼 */
+.prof-lecture-detail-page {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* 메인 컨테이너 */
+.prof-lecture-detail-page .detail-container {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 18px 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 100px);
+}
+
+/* 페이지 헤더 */
+.prof-lecture-detail-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #2c5aa0;
+}
+
+.prof-lecture-detail-page .page-header h1 {
+    font-size: 23px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+/* 뒤로가기 버튼 */
+.prof-lecture-detail-page .back-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #4a7ab8;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.prof-lecture-detail-page .back-btn:hover {
+    background-color: #2c5aa0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 에러 & 로딩 */
+.prof-lecture-detail-page .error-message {
+    color: #dc3545;
+    padding: 20px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.prof-lecture-detail-page .loading {
+    text-align: center;
+    padding: 50px;
+    color: #6c757d;
+}
+
+/* ==================== */
+/* 2단 레이아웃 */
+/* ==================== */
+
+.prof-lecture-detail-page .content-wrapper {
+    display: grid;
+    grid-template-columns: 40% 60%;
+    gap: 20px;
+    height: calc(100vh - 280px);
+}
+
+/* 왼쪽 영역 */
+.prof-lecture-detail-page .left-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%; /* 추가 */
+    overflow: hidden; /* 추가 */
+}
+
+/* 오른쪽 영역 */
+.prof-lecture-detail-page .right-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* 추가 */
+    overflow: hidden; /* 추가 */
+}
+
+/* 카드 공통 스타일 */
+.prof-lecture-detail-page .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* ==================== */
+/* 강의 개요 */
+/* ==================== */
+
+.prof-lecture-detail-page .lecture-overview {
+    padding: 25px;
+    flex-shrink: 0; /* 크기 고정 - 축소 안 됨 */
+}
+
+.prof-lecture-detail-page .lecture-overview .card-title {
+    margin-bottom: 20px;
+    color: #333; /*#2c5aa0*/
+    font-size: 22px;
+    font-weight: 700;
+    border-bottom: 2px solid #6c757d;
+    padding-bottom: 10px;
+}
+
+.prof-lecture-detail-page .lecture-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.prof-lecture-detail-page .info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prof-lecture-detail-page .info-label {
+    font-weight: 600;
+    color: #666; /*#2c5aa0*/
+    min-width: 80px;
+}
+
+.prof-lecture-detail-page .info-value {
+    color: #333;
+}
+
+/* 상태 뱃지 */
+.prof-lecture-detail-page .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.prof-lecture-detail-page .status-ended {
+    background-color: #dc3545;
+    color: white;
+}
+
+.prof-lecture-detail-page .status-ongoing {
+    background-color: rgb(40, 167, 69);
+    color: white;
+}
+
+/* ==================== */
+/* 주차 계획 (스크롤) */
+/* ==================== */
+
+.prof-lecture-detail-page .week-plan-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* 추가 - 자식 요소 넘침 방지 */
+}
+
+.prof-lecture-detail-page .week-plan-header {
+    padding: 20px 25px;
+    border-bottom: 2px solid #2c5aa0;
+    background: linear-gradient(135deg, #e8f0f8 0%, #f0f6fc 100%);
+    flex-shrink: 0; /* 크기 고정 */
+}
+
+.prof-lecture-detail-page .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #2c5aa0;
+}
+
+.prof-lecture-detail-page .week-plan-content {
+    flex: 1; /* 남은 공간 전부 차지 */
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    overflow-x: hidden; /* 가로 스크롤 숨김 */
+    padding: 20px 25px;
+}
+
+.prof-lecture-detail-page .week-item {
+    padding: 20px;
+    border-left: 4px solid #4a7ab8;
+    background: #f0f6fc;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.prof-lecture-detail-page .week-item:hover {
+    background: #e8f0f8;
+    border-left-color: #2c5aa0;
+}
+
+.prof-lecture-detail-page .week-number {
+    font-size: 14px;
+    color: #4a7ab8;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.prof-lecture-detail-page .week-goal {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.prof-lecture-detail-page .week-desc {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+}
+
+/* ==================== */
+/* 성적 현황 (스크롤) */
+/* ==================== */
+
+.prof-lecture-detail-page .score-section,
+.prof-lecture-detail-page .no-score-section {
+    height: 100%; /* 부모 높이 전부 차지 */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.prof-lecture-detail-page .score-header {
+    padding: 20px 25px;
+    border-bottom: 2px solid #2c5aa0;
+    background: linear-gradient(135deg, #e8f0f8 0%, #f0f6fc 100%); /* 변경 */
+    flex-shrink: 0; /* 크기 고정 */
+}
+
+.prof-lecture-detail-page .score-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    gap: 15px;
+}
+
+.prof-lecture-detail-page .search-box {
+    flex: 1;
+}
+
+.prof-lecture-detail-page .search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #b8d4f0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.prof-lecture-detail-page .search-box input:focus {
+    outline: none;
+    border-color: #6c757d;
+    box-shadow: 0 0 0 3px rgba(74,122,184,0.1); /* 추가 */
+}
+
+.prof-lecture-detail-page .sort-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prof-lecture-detail-page .sort-box label {
+    font-size: 14px;
+    color: #666;
+    font-weight: 600;
+}
+
+.prof-lecture-detail-page .sort-box select {
+    padding: 8px 12px;
+    border: 1px solid #b8d4f0;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.prof-lecture-detail-page .score-table-wrapper {
+    flex: 1; /* 남은 공간 전부 차지 */
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    overflow-x: hidden; /* 가로 스크롤 숨김 */
+}
+
+
+/* 테이블 */
+.prof-lecture-detail-page .score-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.prof-lecture-detail-page .score-table thead {
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, #2c5aa0 0%, #4a7ab8 100%); /* 변경 */
+    z-index: 10;
+}
+
+.prof-lecture-detail-page .score-table th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #d0e2f0;
+    font-size: 13px;
+    color: white;
+}
+
+.prof-lecture-detail-page .score-table td {
+    padding: 12px 8px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    font-size: 13px;
+}
+
+.prof-lecture-detail-page .score-table tbody tr {
+    transition: background-color 0.2s;
+    color: #495057;
+}
+
+.prof-lecture-detail-page .score-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* 학점 색상 */
+.prof-lecture-detail-page .grade-excellent {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.prof-lecture-detail-page .grade-good {
+    color: #17a2b8;
+    font-weight: 600;
+}
+
+.prof-lecture-detail-page .grade-normal {
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.prof-lecture-detail-page .grade-poor {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* 데이터 없음 */
+.prof-lecture-detail-page .no-data-message {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+    font-size: 16px;
+}
+
+.prof-lecture-detail-page .no-score-section {
+    padding: 25px;
+}
+
+/* ==================== */
+/* 스크롤바 스타일 */
+/* ==================== */
+
+.prof-lecture-detail-page .week-plan-content::-webkit-scrollbar,
+.prof-lecture-detail-page .score-table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.prof-lecture-detail-page .week-plan-content::-webkit-scrollbar-track,
+.prof-lecture-detail-page .score-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.prof-lecture-detail-page .week-plan-content::-webkit-scrollbar-thumb,
+.prof-lecture-detail-page .score-table-wrapper::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.prof-lecture-detail-page .week-plan-content::-webkit-scrollbar-thumb:hover,
+.prof-lecture-detail-page .score-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* ==================== */
+/* 반응형 */
+/* ==================== */
+
+@media (max-width: 1200px) {
+    .prof-lecture-detail-page .content-wrapper {
+        grid-template-columns: 1fr;
+    }
+
+    .prof-lecture-detail-page .left-section,
+    .prof-lecture-detail-page .right-section {
+        min-height: 500px;
+    }
+}
+
+@media (max-width: 768px) {
+    .prof-lecture-detail-page {
+        padding: 10px;
+    }
+
+    .prof-lecture-detail-page .detail-container {
+        padding: 20px 15px;
+    }
+
+    .prof-lecture-detail-page .page-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .prof-lecture-detail-page .page-header h1 {
+        font-size: 22px;
+    }
+
+    .prof-lecture-detail-page .lecture-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .prof-lecture-detail-page .score-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.AuthAccountMapper">
+
+<resultMap type="kr.or.jsu.vo.UsersVO" id="accountMap">
+	<discriminator javaType="string" column="USER_TYPE" >
+		<case value="ROLE_STUDENT" resultType="kr.or.jsu.vo.StudentVO"></case>
+		<case value="ROLE_PROFESSOR" resultType="kr.or.jsu.vo.ProfessorVO"></case>
+		<case value="ROLE_STAFF" resultType="kr.or.jsu.vo.StaffVO"></case>
+	</discriminator>
+</resultMap>
+<select id="selectUserForAuth" resultMap="accountMap">
+
+	WITH ACCOUNT_VIEW AS (
+	SELECT 
+	U.USER_ID, PW_HASH, FIRST_NAME, LAST_NAME, REGI_NO, PHOTO_ID, ADDR_ID, MOBILE_NO, EMAIL, BANK_CODE, BANK_ACCOUNT, CREATE_AT
+	, STUDENT_NO, 
+	NVL(S.UNIV_DEPT_CD, P.UNIV_DEPT_CD ) UNIV_DEPT_CD,
+	GRADE_CD, STU_STATUS_CD, 
+	NVL(S.ENG_LNAME, P.ENG_LNAME) ENG_LNAME, 
+	NVL(S.ENG_FNAME, P.ENG_FNAME) ENG_FNAME,
+	GUARD_NAME, GUARD_RELATION, GUARD_PHONE, PROFESSOR_ID
+	, PROFESSOR_NO, 
+	
+	PRF_STATUS_CD, PRF_APPNT_CD, PRF_POSIT_CD
+	, STAFF_NO, STF_DEPT_CD, TELE_NO
+	, NVL(STUDENT_NO, NVL(PROFESSOR_NO, STAFF_NO) ) USER_NO
+	
+	, CASE
+	WHEN STUDENT_NO IS NOT NULL THEN 'ROLE_STUDENT' 
+	WHEN PROFESSOR_NO IS NOT NULL THEN 'ROLE_PROFESSOR'
+	ELSE 'ROLE_STAFF'
+	END USER_TYPE
+	FROM USERS U LEFT OUTER JOIN STUDENT S ON( U.USER_ID = S.USER_ID)
+	
+	
+	LEFT OUTER JOIN PROFESSOR P ON( U.USER_ID = P.USER_ID) 
+	LEFT OUTER JOIN STAFF ST ON( U.USER_ID = ST.USER_ID) 
+	) 
+	SELECT * 
+	FROM ACCOUNT_VIEW
+	WHERE USER_NO = #{userNo}
+    
+
+
+
+</select>
+</mapper>

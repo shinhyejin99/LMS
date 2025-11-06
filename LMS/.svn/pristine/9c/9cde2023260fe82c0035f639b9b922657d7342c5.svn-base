@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      		수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.09        정태일            MyBatis XML 포맷 정리
+-->
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.CertificateMapper">
+
+    <!-- 증명서 등록 -->
+    <insert id="insertCertificate" parameterType="kr.or.jsu.vo.CertificateVO">
+        INSERT INTO certificate (
+              certificate_cd
+            , certificate_name
+            , expire_period
+            , share_scope_cd
+        ) VALUES (
+              #{certificateCd}
+            , #{certificateName}
+            , #{expirePeriod}
+            , #{shareScopeCd}
+        )
+    </insert>
+
+    <!-- 증명서 목록 조회 -->
+    <select id="selectCertificateList" resultType="kr.or.jsu.vo.CertificateVO">
+        SELECT
+              certificate_cd
+            , certificate_name
+            , expire_period
+            , share_scope_cd
+        FROM
+            certificate
+        ORDER BY
+            certificate_cd
+    </select>
+
+    <!-- 증명서 수정 -->
+    <update id="updateCertificate" parameterType="kr.or.jsu.vo.CertificateVO">
+        UPDATE certificate
+        SET
+              certificate_name = #{certificateName}
+            , expire_period    = #{expirePeriod}
+            , share_scope_cd   = #{shareScopeCd}
+        WHERE
+            certificate_cd = #{certificateCd}
+    </update>
+
+    <!-- 증명서 삭제 -->
+    <delete id="deleteCertificate" parameterType="string">
+        DELETE FROM certificate
+        WHERE
+            certificate_cd = #{certificateCd}
+    </delete>
+
+</mapper>

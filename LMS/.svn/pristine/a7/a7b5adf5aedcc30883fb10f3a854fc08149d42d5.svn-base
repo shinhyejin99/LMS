@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StaffMapper">
+
+	<!-- 전체 조회 -->	<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 30.     	신혜진       교직원 전체 조회, 페이징,검색
+ *
+-->
+	 <select id="selectStaffInfoList"
+        parameterType="java.util.Map"
+        resultMap="UserStaffDtoMap">
+
+        SELECT *
+        FROM (
+            SELECT ROWNUM rn, a.*
+            FROM (
+                SELECT
+                    u.USER_ID,
+                    u.PW_HASH,
+                    u.FIRST_NAME,
+                    u.LAST_NAME,
+                    u.REGI_NO,
+                    u.PHOTO_ID,
+                    u.ADDR_ID,
+                    u.MOBILE_NO,
+                    u.EMAIL,
+                    u.BANK_CODE,
+                    u.BANK_ACCOUNT,
+                    u.CREATE_AT AS USER_CREATE_AT,
+                    s.STAFF_NO,
+                    s.USER_ID AS STAFF_USER_ID,
+                    s.STF_DEPT_CD AS STAFF_STF_DEPT_CD,
+                    s.TELE_NO,
+                    d.STF_DEPT_CD AS DEPT_STF_DEPT_CD,
+                    d.STF_DEPT_NAME,
+                    d.DEPT_TELE_NO,
+                    d.CREATE_AT AS DEPT_CREATE_AT,
+                    d.DELETE_AT,
+                    a.BASE_ADDR,
+                    a.DETAIL_ADDR,
+                    a.ZIP_CODE,
+                    a.LATITUDE,
+                    a.LONGITUDE,
+                    a.USING_YN AS ADDR_USING_YN,
+                    f.FILE_ID,
+                    f.CREATE_AT AS FILE_CREATE_AT,
+                    f.PUBLIC_YN,
+                    f.USING_YN AS FILE_USING_YN,
+                    fd.FILE_ORDER,
+                    fd.ORIGIN_NAME,
+                    fd.EXTENSION,
+                    fd.SAVE_DIR,
+                    fd.FILE_SIZE,
+                    fd.SAVE_NAME
+                FROM
+                    STAFF s
+                    JOIN USERS u ON s.USER_ID = u.USER_ID
+                    LEFT JOIN STAFF_DEPT d ON s.STF_DEPT_CD = d.STF_DEPT_CD
+                    LEFT JOIN ADDRESS a ON u.ADDR_ID = a.ADDR_ID
+                    LEFT JOIN FILES f ON u.PHOTO_ID = f.FILE_ID
+                    LEFT JOIN FILE_DETAIL fd ON f.FILE_ID = fd.FILE_ID AND fd.FILE_ORDER = 1
+                <where>
+                    <!-- ✅ 부서코드 기준 필터링 -->
+                    <if test="filterDeptName != null and filterDeptName != ''">
+                        AND d.STF_DEPT_CD = #{filterDeptName}
+                    </if>
+
+                    <!-- ✅ 검색어 필터 -->
+                    <if test="searchKeyword != null and searchKeyword != ''">
+                        AND (
+                            s.STAFF_NO LIKE '%' || #{searchKeyword} || '%'
+                            OR u.LAST_NAME || u.FIRST_NAME LIKE '%' || #{searchKeyword} || '%'
+                        )
+                    </if>
+                </where>
+                ORDER BY
+                    d.STF_DEPT_NAME ASC,
+                    s.STAFF_NO ASC
+            ) a
+        )
+        WHERE rn BETWEEN #{pagingInfo.startRow} AND #{pagingInfo.endRow}
+    </select>
+
+	        <!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 30.     	신혜진            교직원 페이징 카운트
+ *
+-->
+
+	     <select id="selectStaffCount" parameterType="java.util.Map" resultType="int">
+    SELECT COUNT(s.STAFF_NO)
+    FROM STAFF s
+    JOIN USERS u ON s.USER_ID = u.USER_ID
+    LEFT JOIN STAFF_DEPT d ON s.STF_DEPT_CD = d.STF_DEPT_CD
+    <where>
+        <!-- ✅ 부서명 기준 필터링 -->
+        <if test="filterDeptName != null and filterDeptName != ''">
+            AND d.STF_DEPT_NAME = #{filterDeptName}
+        </if>
+
+        <!-- ✅ 검색어 필터 -->
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (
+                s.STAFF_NO LIKE '%' || #{searchKeyword} || '%'
+                OR u.LAST_NAME || u.FIRST_NAME LIKE '%' || #{searchKeyword} || '%'
+            )
+        </if>
+    </where>
+</select>
+
+	<!-- * == 개정이력(Modification Information) == * * 수정일 수정자 수정내용 * ============
+		============== ======================= * 2025. 9. 26. 신혜진 staff 상세조회 추가 * -->
+	<resultMap id="UserStaffDtoMap"
+		type="kr.or.jsu.dto.UserStaffDTO">
+		<association property="userInfo"
+			javaType="kr.or.jsu.vo.UsersVO" autoMapping="true" />
+		<association property="staffInfo"
+			javaType="kr.or.jsu.vo.StaffVO" autoMapping="true" />
+		<association property="staffDeptInfo"
+			javaType="kr.or.jsu.vo.StaffDeptVO" autoMapping="true" />
+		<association property="addressInfo"
+			javaType="kr.or.jsu.vo.AddressVO" autoMapping="true" />
+		<association property="filesInfo"
+			javaType="kr.or.jsu.vo.FilesVO" autoMapping="true" />
+		<association property="fileDetailInfo"
+			javaType="kr.or.jsu.vo.FileDetailVO" autoMapping="true" />
+	</resultMap>
+
+	<select id="selectStaffInfo" parameterType="string"
+    resultMap="UserStaffDtoMap">
+   			 SELECT
+		            u.USER_ID,
+		            u.PW_HASH,
+		            u.FIRST_NAME,
+		            u.LAST_NAME,
+		            u.REGI_NO,
+		            u.PHOTO_ID,
+		            u.ADDR_ID,
+		            u.MOBILE_NO,
+		            u.EMAIL,
+		            u.BANK_CODE,
+		            u.BANK_ACCOUNT,
+		            u.CREATE_AT AS USER_CREATE_AT,  s.STAFF_NO,
+		            s.USER_ID AS STAFF_USER_ID,
+		            s.STF_DEPT_CD AS STAFF_STF_DEPT_CD,
+		            s.TELE_NO,
+		            d.STF_DEPT_CD AS DEPT_STF_DEPT_CD,
+		            d.STF_DEPT_NAME,
+		            d.DEPT_TELE_NO,
+		            d.CREATE_AT AS DEPT_CREATE_AT,
+		            d.DELETE_AT,
+		            a.BASE_ADDR,
+		            a.DETAIL_ADDR,
+		            a.ZIP_CODE,
+		            a.LATITUDE,
+		            a.LONGITUDE,
+		            a.USING_YN AS ADDR_USING_YN,    f.FILE_ID,
+		            f.CREATE_AT AS FILE_CREATE_AT,
+		            f.PUBLIC_YN,
+		            f.USING_YN AS FILE_USING_YN,    fd.FILE_ORDER,
+		            fd.ORIGIN_NAME,
+		            fd.EXTENSION,
+		            fd.SAVE_DIR,
+		            fd.FILE_SIZE,
+		            fd.SAVE_NAME
+            FROM STAFF s
+            JOIN USERS u ON s.USER_ID = u.USER_ID
+            LEFT JOIN STAFF_DEPT d ON s.STF_DEPT_CD = d.STF_DEPT_CD
+            LEFT JOIN ADDRESS a ON u.ADDR_ID = a.ADDR_ID
+            LEFT JOIN FILES f ON u.PHOTO_ID = f.FILE_ID AND f.USING_YN = 'Y'
+            LEFT JOIN FILE_DETAIL fd ON f.FILE_ID = fd.FILE_ID AND fd.FILE_ORDER = 1
+   		    WHERE s.STAFF_NO = #{staffNo}
+</select>
+	<!-- 교직원 사번 등록 -->
+	<select id="findMaxSequenceByYear" parameterType="string" resultType="int">
+        SELECT   count(*) + 1
+        FROM STAFF
+        WHERE SUBSTR(STAFF_NO, 1, 4) = #{hireYear}
+    </select>
+
+    <!--교직원 등록  -->
+    <insert id="insertStaffInfo" parameterType="kr.or.jsu.dto.UserStaffDTO">
+        INSERT INTO STAFF (
+	        STAFF_NO,
+	        USER_ID,
+	        STF_DEPT_CD,
+	        TELE_NO
+    ) VALUES (
+	        #{staffInfo.staffNo},
+	        #{userInfo.userId},
+	        #{staffInfo.stfDeptCd},
+	        #{staffInfo.teleNo}
+    )
+    </insert>
+
+	<!-- USERS 테이블 업데이트 -->
+	<update id="updateUserInfo" parameterType="kr.or.jsu.vo.UsersVO">
+		UPDATE USERS
+    <set>
+        <if test="pwHash != null and pwHash != ''"> PW_HASH = #{pwHash}, </if>
+        <if test="firstName != null and firstName != ''"> FIRST_NAME = #{firstName}, </if>
+        <if test="lastName != null and lastName != ''"> LAST_NAME = #{lastName}, </if>
+        <if test="regiNo != null and regiNo != ''"> REGI_NO = #{regiNo}, </if>
+        <if test="photoId != null and photoId != ''"> PHOTO_ID = #{photoId}, </if>
+        <if test="addrId != null and addrId != ''"> ADDR_ID = #{addrId}, </if>
+        <if test="mobileNo != null and mobileNo != ''"> MOBILE_NO = #{mobileNo}, </if>
+        <if test="email != null and email != ''"> EMAIL = #{email}, </if>
+        <if test="bankCode != null and bankCode != ''"> BANK_CODE = #{bankCode}, </if>
+        <if test="bankAccount != null and bankAccount != ''"> BANK_ACCOUNT = #{bankAccount} </if>
+    </set>
+    WHERE
+        USER_ID = #{userId}
+	</update>
+
+	<!-- STAFF 테이블 업데이트 -->
+	<update id="updateStaffInfo"
+		parameterType="kr.or.jsu.vo.StaffVO">
+		UPDATE STAFF
+		<set>
+			<if test="teleNo != null">
+				TELE_NO = #{teleNo}
+				<if test='stfDeptCd != null'>,</if>
+			</if>
+			<if test="stfDeptCd != null"> STF_DEPT_CD = #{stfDeptCd} </if>
+		</set>
+		WHERE STAFF_NO = #{staffNo}
+	</update>
+
+	<!-- ADDRESS 테이블 업데이트 -->
+	<update id="updateAddressInfo"
+		parameterType="kr.or.jsu.vo.AddressVO">
+		UPDATE ADDRESS
+		<set>
+			<if test="baseAddr != null"> BASE_ADDR = #{baseAddr}, </if>
+			<if test="detailAddr != null"> DETAIL_ADDR = #{detailAddr}, </if>
+			<if test="zipCode != null"> ZIP_CODE = #{zipCode}, </if>
+			<if test="latitude != null"> LATITUDE = #{latitude}, </if>
+			<if test="longitude != null"> LONGITUDE = #{longitude} </if>
+		</set>
+		WHERE ADDR_ID = #{addrId}
+	</update>
+
+	<!-- FILES 테이블 업데이트 -->
+	<update id="updateFilesInfo"
+		parameterType="kr.or.jsu.vo.FilesVO">
+		UPDATE FILES
+		<set>
+			<if test="publicYn != null"> PUBLIC_YN = #{publicYn}, </if>
+			<if test="usingYn != null"> USING_YN = #{usingYn} </if>
+		</set>
+		WHERE FILE_ID = #{fileId}
+	</update>
+
+	<!-- FILE_DETAIL 테이블 업데이트 -->
+	<update id="updateFileDetailInfo"
+		parameterType="kr.or.jsu.vo.FileDetailVO">
+		UPDATE FILE_DETAIL
+		<set>
+			<if test="fileOrder != null"> FILE_ORDER = #{fileOrder}, </if>
+			<if test="originName != null"> ORIGIN_NAME = #{originName}, </if>
+			<if test="extension != null"> EXTENSION = #{extension}, </if>
+			<if test="saveDir != null"> SAVE_DIR = #{saveDir}, </if>
+			<if test="fileSize != null"> FILE_SIZE = #{fileSize}, </if>
+			<if test="saveName != null"> SAVE_NAME = #{saveName} </if>
+		</set>
+		WHERE FILE_ID = #{fileId}
+	</update>
+
+	<select id="selectStfDeptNameByCode">
+		SELECT
+			STF_DEPT_NAME
+    	FROM
+    		STAFF_DEPT
+    	WHERE
+    		STF_DEPT_CD = #{stfDeptCd}
+	</select>
+
+	<!--부서별 교직원 수  -->
+	<select id="selectStfDeptStatusCounts">
+	SELECT
+	    d.STF_DEPT_NAME AS DEPT_NAME,
+	    COUNT(S.STAFF_NO) AS COUNT
+	FROM
+	    STAFF S
+	JOIN
+	    STAFF_DEPT d ON s.STF_DEPT_CD = d.STF_DEPT_CD
+	GROUP BY
+	    d.STF_DEPT_NAME
+	</select>
+
+</mapper>

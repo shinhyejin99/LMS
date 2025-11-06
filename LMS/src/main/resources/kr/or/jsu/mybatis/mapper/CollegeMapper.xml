@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.CollegeMapper">
+	
+	<insert id="insertCollege">
+        INSERT INTO college (
+            college_cd,
+            college_name,
+            create_at,
+            delete_at
+        ) VALUES (
+            #{collegeCd},
+            #{collegeName},
+            #{createAt},
+            #{deleteAt}
+        )
+    </insert>
+
+    <select id="selectCollegeList">
+        SELECT
+            college_cd,
+            college_name,
+            create_at,
+            delete_at
+        FROM
+            college
+        ORDER BY
+            college_cd
+    </select>
+
+    <update id="updateCollege">
+        UPDATE college
+        SET
+            college_name = #{collegeName},
+            create_at = #{createAt},
+            delete_at = #{deleteAt}
+        WHERE
+            college_cd = #{collegeCd}
+    </update>
+
+    <delete id="deleteCollege">
+        DELETE FROM college
+        WHERE
+            college_cd = #{collegeCd}
+    </delete>
+
+
+
+</mapper>

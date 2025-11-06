@@ -1,0 +1,195 @@
+/** 
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *   
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 10. 15.     	정태일            최초 생성
+ *  2025. 10. 30.     	정태일            스타일 수정
+ *
+ * </pre>
+ */
+
+
+ /* ===== Main Content (Map + List Layout) ===== */
+.facility-res-page .main-content {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: flex-start;
+	gap: 16px;
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.facility-res-page .main-content.split-view #campus-map-view,
+	.facility-res-page .main-content.split-view #facility-list-container {
+	width: 48%;
+	max-width: none;
+}
+
+@media ( max-width : 992px) {
+	.facility-res-page .main-content.split-view #campus-map-view,
+		.facility-res-page .main-content.split-view #facility-list-container {
+		width: 100%;
+	}
+} /* ===== Map Section ===== */
+.facility-res-page #campus-map-view h2, .facility-res-page #facility-list-title
+	{
+	font-size: 16px;
+	font-weight: 700;
+	color: #1f2937;
+	margin: 0 0 10px;
+	text-align: center;
+}
+
+.facility-res-page #campus-map-container {
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+	background-size: cover;
+	background-position: center;
+	overflow: hidden;
+	margin-top: 8px;
+}
+
+.facility-res-page #campus-map-container svg {
+	width: 100%;
+	height: auto;
+	display: block;
+} /* 핫스팟 하이라이트 제거 */
+.facility-res-page #buildings .building-group, .facility-res-page #buildings .building-group:hover
+	{
+	fill: transparent !important;
+	stroke: none !important;
+	cursor: pointer;
+} /* ===== Filter Buttons ===== */
+.facility-res-page .filter-buttons-container {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	justify-content: center;
+	margin: 8px 0 10px;
+}
+
+.facility-res-page .filter-buttons-container .btn {
+	padding: 6px 10px;
+	font-size: 12.5px;
+	border-radius: 8px;
+}
+
+.facility-res-page .filter-buttons-container .btn.active {
+	color: #fff;
+	background: #2563eb;
+	border-color: #2563eb;
+} /* ===== Table (Facility List) ===== */
+.facility-res-page #facility-list-container .table-responsive {
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	overflow: hidden;
+	background: #fff;
+}
+
+.facility-res-page .facility-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.facility-res-page .facility-table thead th {
+	background: #f8fafc;
+	color: #374151;
+	font-weight: 800;
+	font-size: 13.5px;
+	padding: 10px 8px;
+	text-align: center;
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.facility-res-page .facility-table tbody td {
+	font-size: 13px;
+	color: #444;
+	padding: 10px 8px;
+	border-bottom: 1px solid #f3f4f6;
+	vertical-align: middle;
+}
+
+.facility-res-page .facility-table tbody tr:hover {
+	background: #f3f6ff;
+} /* 컬럼 폭 및 정렬 */
+.facility-res-page .facility-table thead th:nth-child(1),
+	.facility-res-page .facility-table tbody td:nth-child(1) {
+	    text-align: center;
+	    width: 44%;}
+
+.facility-res-page .facility-table thead th:nth-child(2),
+	.facility-res-page .facility-table tbody td:nth-child(2) {
+	text-align: center;
+	width: 26%;
+}
+
+.facility-res-page .facility-table thead th:nth-child(3),
+	.facility-res-page .facility-table tbody td:nth-child(3) {
+	text-align: center;
+	width: 14%;
+}
+
+.facility-res-page .facility-table thead th:nth-child(4),
+	.facility-res-page .facility-table tbody td:nth-child(4) {
+	text-align: center;
+	width: 16%;
+} /* 버튼 (예약하기 등) */
+.facility-res-page .facility-table td .btn, .facility-res-page .facility-table td button
+	{
+	background: #2563eb;
+	color: #fff !important; 
+	border: none;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-size: 12.5px;
+	font-weight: 700;
+	min-width: 72px;
+}
+
+.facility-res-page .facility-table td .btn:hover, .facility-res-page .facility-table td button:hover
+	{
+	background: #1e40af;
+} /* ===== Loading Overlay ===== */
+.facility-res-page .loading-spinner-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.7);
+	z-index: 10;
+	border-radius: 12px;
+}
+
+.facility-res-page .spinner-border {
+	width: 2rem;
+	height: 2rem;
+	border: 0.25em solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {to { transform:rotate(360deg);
+	
+}
+
+} /* ===== Responsive ===== */
+@media ( max-width : 768px) {
+	.facility-res-page .page-title {
+		font-size: 20px;
+	}
+	.facility-res-page #campus-map-view h2, .facility-res-page #facility-list-title
+		{
+		font-size: 15px;
+	}
+	.facility-res-page .facility-table thead th, .facility-res-page .facility-table tbody td
+		{
+		padding: 8px 6px;
+		font-size: 12.5px;
+	}
+}

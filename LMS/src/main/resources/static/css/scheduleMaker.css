@@ -1,0 +1,589 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ * 수정일      			수정자           수정내용
+ * -----------   	-------------    ---------------------------
+ * 2025. 10. 30.     	송태호            최초 생성
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* 외부 래퍼 */
+.schedule-maker-page {
+    padding: 20px;
+    background-color: #f8f9fa;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 콘텐츠 레이아웃 */
+.schedule-maker-page .content-row {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 40px);
+    overflow: hidden;
+}
+
+.schedule-maker-page .content-left,
+.schedule-maker-page .content-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 카드 스타일 */
+.schedule-maker-page .card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.5s ease-out forwards;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.schedule-maker-page .card-header {
+    background-color: #4e73df;
+    color: white;
+    padding: 15px 20px 20px 20px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.schedule-maker-page .card-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.card-body {
+    padding : 10px 20px 20px 20px !important;
+}
+
+.schedule-maker-page .card-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 필터 섹션 */
+.schedule-maker-page .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.schedule-maker-page .form-select {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 14px;
+    flex: 1;
+}
+
+/* 강의 목록 아이템 */
+.schedule-maker-page .lecture-item {
+    padding: 12px 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.schedule-maker-page .lecture-item:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.schedule-maker-page .lecture-item.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.schedule-maker-page .lecture-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.schedule-maker-page .lecture-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.schedule-maker-page .lecture-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.schedule-maker-page .lecture-dept {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.schedule-maker-page .lecture-info-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.schedule-maker-page .lecture-professor {
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+}
+
+.schedule-maker-page .lecture-detail {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.schedule-maker-page .lecture-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.schedule-maker-page .lecture-hours {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    background-color: #f6c23e;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 100px;
+}
+
+.schedule-maker-page .lecture-hours.complete {
+    background-color: #28a745;
+}
+
+.schedule-maker-page .lecture-hours.need {
+    background-color: #dc3545;
+}
+
+.schedule-maker-page .lecture-hours.exceed {
+    background-color: #fd7e14;
+}
+
+.schedule-maker-page .lecture-detail-btn {
+    font-size: 12px;
+    padding: 4px 10px;
+    background-color: #0b5ed7;
+    color: #ffffff;
+    border: 1px solid #0a58ca;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 건물 목록 */
+.schedule-maker-page .building-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.schedule-maker-page .building-item {
+    padding: 15px 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.schedule-maker-page .building-item:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+    transform: translateY(-3px);
+}
+
+.schedule-maker-page .building-item.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.schedule-maker-page .building-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+/* 강의실 목록 */
+.schedule-maker-page .classroom-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(160px, 1fr));
+    gap: 15px;
+}
+
+.schedule-maker-page .classroom-item {
+    padding: 15px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.schedule-maker-page .classroom-item:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.schedule-maker-page .classroom-item.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.schedule-maker-page .classroom-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.schedule-maker-page .classroom-capacity,
+.schedule-maker-page .classroom-usage {
+    font-size: 13px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.schedule-maker-page .usage-bar {
+    height: 6px;
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.schedule-maker-page .usage-bar-fill {
+    height: 100%;
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+.schedule-maker-page .usage-bar-fill.high {
+    background-color: #e74a3b;
+}
+
+.schedule-maker-page .usage-bar-fill.medium {
+    background-color: #f6c23e;
+}
+
+.schedule-maker-page .usage-bar-fill.low {
+    background-color: #28a745;
+}
+
+.schedule-maker-page .lecture-plan-container {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 12px;
+    background: #ffffff;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.schedule-maker-page .lecture-plan-empty {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.schedule-maker-page .lecture-plan-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.schedule-maker-page .lecture-plan-item {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.schedule-maker-page .lecture-plan-week {
+    font-weight: 600;
+    font-size: 13px;
+    color: #343a40;
+    margin-bottom: 4px;
+}
+
+.schedule-maker-page .lecture-plan-desc {
+    margin: 0;
+    font-size: 12px;
+    color: #495057;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+/* Empty State */
+.schedule-maker-page .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.schedule-maker-page .empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+/* 시간표 스타일 (모달용) */
+.schedule-maker-page .day-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.schedule-maker-page .day-tab {
+    padding: 8px 20px;
+    border: 2px solid #e5e7eb;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: #333;
+}
+
+.schedule-maker-page .day-tab:hover {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.schedule-maker-page .day-tab.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.schedule-maker-page .timetable-wrapper {
+    overflow-x: auto;
+}
+
+.schedule-maker-page .timetable {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.schedule-maker-page .timetable th {
+    padding: 12px;
+    text-align: center;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    color: #333;
+    font-size: 14px;
+}
+
+.schedule-maker-page .timetable td {
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    text-align: center;
+    font-size: 13px;
+}
+
+.schedule-maker-page .timetable .time-col {
+    width: 120px;
+    font-weight: 500;
+}
+
+.schedule-maker-page .time-slot {
+    height: 60px;
+    transition: all 0.2s ease;
+}
+
+.schedule-maker-page .time-slot.booked {
+    background-color: #f1f5f9;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.schedule-maker-page .time-slot.available {
+    background-color: white;
+    cursor: pointer;
+}
+
+.schedule-maker-page .time-slot.available:hover {
+    background-color: #d1fae5;
+    transform: scale(1.02);
+}
+
+.schedule-maker-page .time-slot.selected {
+    background-color: #28a745;
+    color: white;
+    font-weight: 600;
+}
+
+/* 버튼 스타일 */
+.schedule-maker-page .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.schedule-maker-page .btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.schedule-maker-page .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.schedule-maker-page .btn-primary:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+.schedule-maker-page .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.schedule-maker-page .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* 모달 스타일 - 전역 스타일로 변경 */
+#lectureApplicationModal .modal-content,
+#timetableModal .modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+#lectureApplicationModal .modal-header,
+#timetableModal .modal-header {
+    padding: 15px 20px;
+    border-bottom: none;
+    background-color: #4e73df;
+    color: white;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    position: relative;
+}
+
+#lectureApplicationModal .modal-title,
+#timetableModal .modal-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+#lectureApplicationModal .modal-body,
+#timetableModal .modal-body {
+    padding: 20px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+#lectureApplicationModal .modal-footer,
+#timetableModal .modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #dee2e6;
+}
+
+#lectureApplicationModal .btn-close,
+#timetableModal .btn-close {
+    background: transparent;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: white;
+    opacity: 0.8;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    line-height: 1;
+}
+
+#lectureApplicationModal .btn-close:hover,
+#timetableModal .btn-close:hover {
+    opacity: 1;
+}
+
+#timetableModal .alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+#timetableModal .alert-info {
+    background-color: #e7f3ff;
+    border: 1px solid #b6d4fe;
+    color: #004085;
+}
+
+#timetableModal .badge {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+#timetableModal .badge.bg-success {
+    background-color: #28a745;
+    color: white;
+}
+
+/* SweetAlert2 z-index 조정 */
+.swal2-container {
+    z-index: 9999 !important;
+}
+
+/* 반응형 */
+@media (max-width: 992px) {
+    .schedule-maker-page .content-row {
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,20 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<ul class="nav nav-pills mb-4">
+	<li class="nav-item">
+		<a class="nav-link${activeTab eq 'dashboard' ? ' active' : ''}" href="${ctx}/classroom/student/${lectureId}">학습개요</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link${activeTab eq 'board' ? ' active' : ''}" href="${ctx}/classroom/student/${lectureId}/board">게시판</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link${activeTab eq 'attendance' ? ' active' : ''}" href="${ctx}/classroom/student/${lectureId}/attendance">출결</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link${activeTab eq 'exam' ? ' active' : ''}" href="${ctx}/classroom/student/${lectureId}/exam">시험</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link${activeTab eq 'task' ? ' active' : ''}" href="${ctx}/classroom/student/${lectureId}/task">과제</a>
+	</li>
+</ul>

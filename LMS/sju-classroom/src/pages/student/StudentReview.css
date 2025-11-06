@@ -1,0 +1,180 @@
+/* General styling for the review page */
+.review-page-container {
+	padding-top: 2rem;
+	padding-bottom: 2rem;
+}
+
+/* Styling for each section of the review form */
+.review-section {
+	background-color: #ffffff;
+	border: 1px solid #e9ecef;
+	border-radius: 10px;
+	margin-bottom: 2rem;
+	padding: 2.5rem;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+	transition: all 0.3s ease-in-out;
+}
+
+.review-section:hover {
+	box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1);
+}
+
+.review-section h2 {
+	font-size: 1.75rem;
+	font-weight: 700;
+	margin-bottom: 2rem;
+	color: #343a40;
+	padding-bottom: 1rem;
+	border-bottom: 2px solid #007bff; /* Primary blue color */
+}
+
+/* Objective table styling */
+.objective-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0; /* Spacing between rows */
+}
+
+.objective-table th, .objective-table td {
+	vertical-align: middle;
+	padding: 1.2rem 0.8rem; /* Adjusted padding */
+	border: none; /* Remove default table borders */
+}
+
+.objective-table thead th {
+	background-color: #f8f9fa;
+	font-weight: 600;
+	color: #495057;
+	font-size: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	border-bottom: 1px solid #e9ecef; /* Subtle bottom border for header */
+}
+
+.objective-table tbody tr {
+	background-color: #ffffff;
+	border-radius: 8px;
+	transition: all 0.2s ease-in-out;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03); /* Subtle shadow for rows */
+}
+
+.objective-table tbody tr:hover {
+	background-color: #e9ecef;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.objective-table td:first-child {
+	font-weight: 700;
+	color: #007bff; /* Primary blue color */
+	font-size: 1.1rem;
+	border-top-left-radius: 8px;
+	border-bottom-left-radius: 8px;
+}
+
+.objective-table td:last-child {
+	border-top-right-radius: 8px;
+	border-bottom-right-radius: 8px;
+}
+
+/* Radio button styling */
+.form-check-input[type="radio"] {
+	-webkit-appearance: none;
+	appearance: none;
+	background-color: #fff;
+	margin: 4px;
+	font: inherit;
+	color: #ced4da; /* Border color for unchecked */
+	width: 0.9em; /* Slightly larger */
+	width: 0.9em; /* Slightly larger */
+	border: 2px solid currentColor;
+	border-radius: 50%;
+	  display: grid;
+	place-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+}
+
+.form-check-input[type="radio"]:hover {
+	border-color: #007bff; /* Primary blue on hover */
+}
+
+.form-check-input[type="radio"]::before {
+	content: "";
+	width: 0.55em; /* Adjusted inner circle size */
+	height: 0.55em; /* Adjusted inner circle size */
+	border-radius: 50%;
+	transform: scale(0);
+	transition: 120ms transform ease-in-out;
+	box-shadow: inset 1em 1em #007bff; /* Primary blue for checked state */
+}
+
+.form-check-input[type="radio"]:checked {
+	border-color: #007bff; /* Primary blue for checked border */
+	background-color: #e7f1ff; /* Light blue background when checked */
+}
+
+.form-check-input[type="radio"]:checked::before {
+	transform: scale(1);
+}
+
+/* Form label styling */
+.form-label {
+	font-weight: 600;
+	font-size: 1.1rem;
+	margin-bottom: 0.75rem;
+	color: #495057;
+}
+
+/* Form control styling (input, textarea) */
+.form-control {
+	border-radius: 8px;
+	padding: 0.85rem 1rem;
+	font-size: 1rem;
+	border: 1px solid #ced4da;
+	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+	border-color: #80bdff;
+	box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+textarea.form-control {
+	resize: vertical;
+	min-height: 120px;
+}
+
+/* Submit button styling */
+.btn-primary {
+	padding: 1rem 2rem;
+	font-size: 1.1rem;
+	font-weight: 700;
+	border-radius: 8px;
+	transition: all 0.2s ease;
+	background-color: #007bff; /* Primary blue */
+	border-color: #007bff;
+}
+
+.btn-primary:hover {
+	background-color: #0056b3; /* Darker blue on hover */
+	border-color: #0056b3;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+/* Alert styling */
+.alert-info {
+	background-color: #e0f7fa;
+	border-color: #b2ebf2;
+	color: #006064;
+	border-radius: 8px;
+	padding: 1rem 1.5rem;
+}
+
+.alert-info strong {
+	color: #004d40;
+}

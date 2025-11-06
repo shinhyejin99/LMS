@@ -1,0 +1,38 @@
+테이블정의서,,,,,,,,,
+테이블명,17 장학금,,테이블ID,SCHOLARSHIP,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,"활성화/비활성화된 장학금을 기록하는 테이블입니다. 같은 장학금 코드로 분류된 장학금은 한 학년도학기에 중복으로 수령할 수 없습니다.
+현재 장학금 수령 조건을 ""설명"" 컬럼에서 기술하고 있지만, 선별 대상을 자동으로 구분할 수 있게 하려면 추가 테이블이나 컬럼이 필요합니다.
+
+시퀀스 사용하여 기본키 생성하는 법 : 'SCLSHIP' || LPAD(TO_CHAR(SEQ_USER.NEXTVAL), 8, '0')",,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,SCHOLARSHIP_ID,,장학금ID,시퀀스,CHAR(15),NOT NULL,,PK,"-- 사용법 : 'SCLSHIP' || LPAD(TO_CHAR(SEQ_SCHOLARSHIP.NEXTVAL), 8, '0')"
+2.0,SCHOLARSHIP_CD,,장학금코드,공통코드,VARCHAR2(50),NOT NULL,,FK(공통코드),장학금 분류를 지정합니다.
+3.0,SCHOLARSHIP_NAME,,장학금명,,VARCHAR2(200),NOT NULL,,,ex.25년도 개정 성적장학금 
+4.0,CREATE_AT,,등록일시,,DATE,NOT NULL,,,
+5.0,USING_YN,,사용여부,YN,CHAR(1),NOT NULL,,,
+6.0,AMOUNT,,금액,,NUMBER(10),NOT NULL,,,
+7.0,DESCRIPTION,,설명,,VARCHAR2(1000),,,,
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,17.1 학생_학기별장학금,,테이블ID,STU_SCHOLARSHIP,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,,,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,YEARTERM_CD,,학년도학기코드,학년도학기코드,CHAR(8),NOT NULL,,"PK, FK(학년도학기)",
+2.0,STUDENT_NO,,학번,학번,CHAR(9),NOT NULL,,"PK, FK(학생)",
+3.0,CREATE_AT,,생성일시,,DATE,NOT NULL,,,
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,17.11 학생_학기별장학금구성,,테이블ID,STU_SCHOLAR_DETAIL,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,,,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,YEARTERM_CD,,학년도학기코드,학년도학기코드,CHAR(8),NOT NULL,,"PK, FK(학기별장학금)",
+2.0,STUDENT_NO,,학번,학번,CHAR(9),NOT NULL,,"PK, FK(학기별장학금)",
+3.0,SCHOLARSHIP_ID,,장학금ID,시퀀스,CHAR(15),NOT NULL,,"PK, FK(장학금)",

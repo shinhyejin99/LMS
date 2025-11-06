@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.classroom.ClassroomStatisticsMapper">
+
+	<select id="getEnrollStat">
+		SELECT
+		    COUNT(*) AS TOTAL_CNT
+		    , SUM(CASE WHEN t.ENROLL_STATUS_CD IN ('ENR_CANCEL', 'ENR_WITHDRAW') THEN 1 ELSE 0 END)
+		    AS DROPOUT_CNT
+		    , SUM(CASE WHEN t.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW') THEN 1 ELSE 0 END)
+		    AS ACTIVE_CNT
+		FROM
+			STU_ENROLL_LCT t
+		WHERE
+			t.LECTURE_ID = #{lectureId}	
+	</select>
+
+	<select id="getGradeStat">
+		SELECT
+		    s.GRADE_CD
+		    , COUNT(*) AS CNT
+		FROM
+			STU_ENROLL_LCT t
+		JOIN STUDENT s ON
+			s.STUDENT_NO = t.STUDENT_NO
+		WHERE
+			t.LECTURE_ID = #{lectureId}
+			AND t.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW')
+		GROUP BY s.GRADE_CD
+		ORDER BY s.GRADE_CD
+	</select>
+
+	<select id="getDeptStat">
+		SELECT
+		    s.UNIV_DEPT_CD
+		    , COUNT(*) AS CNT
+		FROM
+			STU_ENROLL_LCT t
+		JOIN STUDENT s ON
+			s.STUDENT_NO = t.STUDENT_NO
+		WHERE
+			t.LECTURE_ID = #{lectureId}
+			AND t.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW')
+		GROUP BY s.UNIV_DEPT_CD
+		ORDER BY s.UNIV_DEPT_CD
+	</select>
+	
+	<select id="getTotalAttData">
+		SELECT
+			COUNT(*) AS TOTAL_CNT
+			, SUM(CASE WHEN ATT_STATUS_CD = 'ATTD_TBD'   THEN 1 ELSE 0 END) AS TBD_CNT    -- 미정
+			, SUM(CASE WHEN ATT_STATUS_CD = 'ATTD_OK'    THEN 1 ELSE 0 END) AS OK_CNT     -- 출석
+			, SUM(CASE WHEN ATT_STATUS_CD = 'ATTD_NO'    THEN 1 ELSE 0 END) AS NO_CNT -- 결석
+			, SUM(CASE WHEN ATT_STATUS_CD = 'ATTD_EARLY' THEN 1 ELSE 0 END) AS EARLY_CNT  -- 조퇴
+			, SUM(CASE WHEN ATT_STATUS_CD = 'ATTD_LATE'  THEN 1 ELSE 0 END) AS LATE_CNT   -- 지각
+			, SUM(CASE WHEN ATT_STATUS_CD = 'ATTD_EXCP'  THEN 1 ELSE 0 END) AS EXCP_CNT -- 공결
+		FROM
+			LCT_STU_ATT
+		WHERE
+			LECTURE_ID = #{lectureId}
+	</select>
+	
+	<select id="getEachStuAttData">
+		<![CDATA[
+		WITH per_student AS (
+			SELECT
+				ENROLL_ID
+				, SUM(CASE WHEN ATT_STATUS_CD <> 'ATTD_TBD' THEN 1 ELSE 0 END)
+				AS RECORDED_CNT
+				, SUM(CASE WHEN ATT_STATUS_CD <> 'ATTD_TBD'
+							AND ATT_STATUS_CD <> 'ATTD_NO'
+							AND ATT_STATUS_CD <> 'ATTD_EXCP' THEN 1 ELSE 0 END)
+				AS NON_ABSENT_CNT
+			FROM
+				LCT_STU_ATT
+			WHERE
+				LECTURE_ID = #{lectureId}
+			GROUP BY ENROLL_ID
+		)
+		SELECT
+			ENROLL_ID
+			, RECORDED_CNT
+			, NON_ABSENT_CNT
+		FROM
+			per_student
+		]]>
+	</select>
+
+	<!-- 1) 개인/조별 과제 개수 -->
+	<select id="selectTaskTypeCount" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.TaskStatisticsResp$TaskTypeCount">
+    <![CDATA[
+      SELECT
+        (SELECT COUNT(*) FROM LCT_INDIVTASK t
+          WHERE t.LECTURE_ID = #{lectureId} AND t.DELETE_YN = 'N') AS indivCnt,
+        (SELECT COUNT(*) FROM LCT_GROUPTASK g
+          WHERE g.LECTURE_ID = #{lectureId} AND g.DELETE_YN = 'N') AS groupCnt
+      FROM DUAL
+    ]]>
+	</select>
+
+
+	<!-- 2) 진행중 개인과제 제출율 -->
+	<select id="selectOngoingIndivSubmitRate" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.TaskStatisticsResp$OngoingIndivtask">
+    <![CDATA[
+      WITH ongoing_indiv AS (
+        SELECT t.INDIVTASK_ID
+        FROM LCT_INDIVTASK t
+        WHERE t.LECTURE_ID = #{lectureId}
+          AND t.DELETE_YN = 'N'
+          AND t.START_AT <= SYSDATE
+          AND (t.END_AT IS NULL OR t.END_AT > SYSDATE)
+      ),
+      active_enroll AS (
+        SELECT e.ENROLL_ID
+        FROM STU_ENROLL_LCT e
+        WHERE e.LECTURE_ID = #{lectureId}
+          AND e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL','ENR_WITHDRAW')
+      ),
+      target AS (
+        SELECT COUNT(*) AS targetCnt
+        FROM ongoing_indiv oi CROSS JOIN active_enroll ae
+      ),
+      submitted AS (
+        SELECT COUNT(*) AS submittedCnt
+        FROM INDIVTASK_SUBMIT s
+        WHERE s.INDIVTASK_ID IN (SELECT INDIVTASK_ID FROM ongoing_indiv)
+          AND s.ENROLL_ID    IN (SELECT ENROLL_ID FROM active_enroll)
+          AND s.SUBMIT_AT IS NOT NULL
+      )
+      SELECT
+        (SELECT COUNT(*) FROM ongoing_indiv) AS ongoingTaskCnt,
+        t.targetCnt,
+        s.submittedCnt,
+        CASE WHEN t.targetCnt > 0
+             THEN ROUND(s.submittedCnt * 100.0 / t.targetCnt, 2)
+             ELSE NULL
+        END AS submitRatePct
+      FROM target t CROSS JOIN submitted s
+    ]]>
+	</select>
+
+
+	<!-- 2) 진행중 조별과제 제출율 -->
+	<select id="selectOngoingGroupSubmitRate" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.TaskStatisticsResp$OngoingGrouptask">
+    <![CDATA[
+      WITH ongoing_group AS (
+        SELECT g.GROUPTASK_ID
+        FROM LCT_GROUPTASK g
+        WHERE g.LECTURE_ID = #{lectureId}
+          AND g.DELETE_YN = 'N'
+          AND g.START_AT <= SYSDATE
+          AND (g.END_AT IS NULL OR g.END_AT > SYSDATE)
+      ),
+      groups_in_use AS (
+        SELECT gg.GROUPTASK_ID, gg.GROUP_ID
+        FROM GROUPTASK_GROUP gg
+        WHERE gg.GROUPTASK_ID IN (SELECT GROUPTASK_ID FROM ongoing_group)
+          AND gg.USING_YN = 'Y'
+      ),
+      target AS (
+        SELECT COUNT(*) AS targetCnt FROM groups_in_use
+      ),
+      submitted AS (
+        SELECT COUNT(*) AS submittedCnt
+        FROM GROUPTASK_SUBMIT gs
+        WHERE (gs.GROUPTASK_ID, gs.GROUP_ID) IN (
+          SELECT GROUPTASK_ID, GROUP_ID FROM groups_in_use
+        )
+          AND gs.SUBMIT_AT IS NOT NULL
+      )
+      SELECT
+        (SELECT COUNT(*) FROM ongoing_group) AS ongoingTaskCnt,
+        t.targetCnt,
+        s.submittedCnt,
+        CASE WHEN t.targetCnt > 0
+             THEN ROUND(s.submittedCnt * 100.0 / t.targetCnt, 2)
+             ELSE NULL
+        END AS submitRatePct
+      FROM target t CROSS JOIN submitted s
+    ]]>
+	</select>
+
+
+	<!-- 3) 마감된 개인과제 제출율 -->
+	<select id="selectClosedIndivSubmitRate" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.TaskStatisticsResp$ClosedIndivtask">
+    <![CDATA[
+      WITH closed_indiv AS (
+        SELECT t.INDIVTASK_ID
+        FROM LCT_INDIVTASK t
+        WHERE t.LECTURE_ID = #{lectureId}
+          AND t.DELETE_YN = 'N'
+          AND t.END_AT IS NOT NULL
+          AND t.END_AT <= SYSDATE
+      ),
+      active_enroll AS (
+        SELECT e.ENROLL_ID
+        FROM STU_ENROLL_LCT e
+        WHERE e.LECTURE_ID = #{lectureId}
+          AND e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL','ENR_WITHDRAW')
+      ),
+      target AS (
+        SELECT COUNT(*) AS targetCnt
+        FROM closed_indiv ci CROSS JOIN active_enroll ae
+      ),
+      submitted AS (
+        SELECT COUNT(*) AS submittedCnt
+        FROM INDIVTASK_SUBMIT s
+        WHERE s.INDIVTASK_ID IN (SELECT INDIVTASK_ID FROM closed_indiv)
+          AND s.ENROLL_ID    IN (SELECT ENROLL_ID FROM active_enroll)
+          AND s.SUBMIT_AT IS NOT NULL
+      )
+      SELECT
+        (SELECT COUNT(*) FROM closed_indiv) AS closedTaskCnt,
+        t.targetCnt,
+        s.submittedCnt,
+        CASE WHEN t.targetCnt > 0
+             THEN ROUND(s.submittedCnt * 100.0 / t.targetCnt, 2)
+             ELSE NULL
+        END AS submitRatePct
+      FROM target t CROSS JOIN submitted s
+    ]]>
+	</select>
+
+
+	<!-- 3) 마감된 조별과제 제출율 -->
+	<select id="selectClosedGroupSubmitRate" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.TaskStatisticsResp$ClosedGrouptask">
+    <![CDATA[
+      WITH closed_group AS (
+        SELECT g.GROUPTASK_ID
+        FROM LCT_GROUPTASK g
+        WHERE g.LECTURE_ID = #{lectureId}
+          AND g.DELETE_YN = 'N'
+          AND g.END_AT IS NOT NULL
+          AND g.END_AT <= SYSDATE
+      ),
+      groups_in_use AS (
+        SELECT gg.GROUPTASK_ID, gg.GROUP_ID
+        FROM GROUPTASK_GROUP gg
+        WHERE gg.GROUPTASK_ID IN (SELECT GROUPTASK_ID FROM closed_group)
+          AND gg.USING_YN = 'Y'
+      ),
+      target AS (
+        SELECT COUNT(*) AS targetCnt FROM groups_in_use
+      ),
+      submitted AS (
+        SELECT COUNT(*) AS submittedCnt
+        FROM GROUPTASK_SUBMIT gs
+        WHERE (gs.GROUPTASK_ID, gs.GROUP_ID) IN (
+          SELECT GROUPTASK_ID, GROUP_ID FROM groups_in_use
+        )
+          AND gs.SUBMIT_AT IS NOT NULL
+      )
+      SELECT
+        (SELECT COUNT(*) FROM closed_group) AS closedTaskCnt,
+        t.targetCnt,
+        s.submittedCnt,
+        CASE WHEN t.targetCnt > 0
+             THEN ROUND(s.submittedCnt * 100.0 / t.targetCnt, 2)
+             ELSE NULL
+        END AS submitRatePct
+      FROM target t CROSS JOIN submitted s
+    ]]>
+	</select>
+
+
+	<!-- 4) 마감된 과제(개인+조별) 학생별 점수 -->
+	<select id="selectScoresByStudentAndTask" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.TaskStatisticsResp$ScoresByStudentAndTask">
+    <![CDATA[
+      WITH
+        closed_indiv AS (
+          SELECT t.INDIVTASK_ID
+          FROM LCT_INDIVTASK t
+          WHERE t.LECTURE_ID = #{lectureId}
+            AND t.DELETE_YN = 'N'
+            AND t.END_AT IS NOT NULL
+            AND t.END_AT <= SYSDATE
+        ),
+        closed_group AS (
+          SELECT g.GROUPTASK_ID
+          FROM LCT_GROUPTASK g
+          WHERE g.LECTURE_ID = #{lectureId}
+            AND g.DELETE_YN = 'N'
+            AND g.END_AT IS NOT NULL
+            AND g.END_AT <= SYSDATE
+        ),
+        active_enroll AS (
+          SELECT e.ENROLL_ID
+          FROM STU_ENROLL_LCT e
+          WHERE e.LECTURE_ID = #{lectureId}
+            AND e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL','ENR_WITHDRAW')
+        ),
+        indiv_scores AS (
+          SELECT
+            s.ENROLL_ID                                            AS enrollId,
+            CAST('INDIV' AS VARCHAR2(5))                           AS taskType,
+            s.INDIVTASK_ID                                         AS taskId,
+            CASE
+              WHEN s.SUBMIT_AT IS NULL   THEN 0
+              WHEN s.EVALU_SCORE IS NULL THEN NULL
+              ELSE s.EVALU_SCORE
+            END                                                    AS score
+          FROM INDIVTASK_SUBMIT s
+          JOIN closed_indiv ci   ON ci.INDIVTASK_ID = s.INDIVTASK_ID
+          JOIN active_enroll ae  ON ae.ENROLL_ID    = s.ENROLL_ID
+        ),
+        group_scores AS (
+          SELECT
+            c.ENROLL_ID                                            AS enrollId,
+            CAST('GROUP' AS VARCHAR2(5))                           AS taskType,
+            gg.GROUPTASK_ID                                        AS taskId,
+            CASE
+              WHEN gs.SUBMIT_AT IS NULL   THEN 0
+              WHEN c.EVALU_SCORE IS NULL  THEN NULL
+              ELSE c.EVALU_SCORE
+            END                                                    AS score
+          FROM GROUPTASK_CREW c
+          JOIN GROUPTASK_GROUP gg ON gg.GROUP_ID      = c.GROUP_ID
+          JOIN closed_group cg    ON cg.GROUPTASK_ID  = gg.GROUPTASK_ID
+          JOIN GROUPTASK_SUBMIT gs
+            ON gs.GROUPTASK_ID = gg.GROUPTASK_ID
+           AND gs.GROUP_ID     = gg.GROUP_ID
+          JOIN active_enroll ae ON ae.ENROLL_ID = c.ENROLL_ID
+        )
+      SELECT enrollId, taskType, taskId, score
+      FROM (
+        SELECT enrollId, taskType, taskId, score FROM indiv_scores
+        UNION ALL
+        SELECT enrollId, taskType, taskId, score FROM group_scores
+      )
+      ORDER BY 1, 2, 3
+    ]]>
+	</select>
+
+	<!-- 시험 통계: 시험 타입별 카운트 -->
+	<select id="selectExamTypeCount" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.ExamStatisticsResp$ExamTypeCount">
+    <![CDATA[
+      SELECT
+        COUNT(*) AS totalCnt,
+        SUM(CASE WHEN lex.EXAM_TYPE = 'ON'  THEN 1 ELSE 0 END) AS onlineCnt,
+        SUM(CASE WHEN lex.EXAM_TYPE = 'OFF' THEN 1 ELSE 0 END) AS offlineCnt
+      FROM
+        LCT_EXAM lex
+      WHERE
+        lex.LECTURE_ID = #{lectureId}
+        AND lex.DELETE_YN = 'N'
+    ]]>
+	</select>
+
+	<!-- 시험 통계: 진행 중 시험 제출률 -->
+	<select id="selectOngoingExamSubmitRate" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.ExamStatisticsResp$OngoingExam">
+    <![CDATA[
+      WITH ongoing_exam AS (
+        SELECT lex.LCT_EXAM_ID
+        FROM LCT_EXAM lex
+        WHERE lex.LECTURE_ID = #{lectureId}
+          AND lex.DELETE_YN = 'N'
+          AND lex.START_AT <= SYSDATE
+          AND lex.END_AT > SYSDATE
+      ),
+      active_enroll AS (
+        SELECT e.ENROLL_ID
+        FROM STU_ENROLL_LCT e
+        WHERE e.LECTURE_ID = #{lectureId}
+          AND e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL','ENR_WITHDRAW')
+      ),
+      target AS (
+        SELECT COUNT(*) AS targetCnt
+        FROM ongoing_exam oe CROSS JOIN active_enroll ae
+      ),
+      submitted AS (
+        SELECT COUNT(*) AS submittedCnt
+        FROM EXAM_SUBMIT es
+        WHERE es.LCT_EXAM_ID IN (SELECT LCT_EXAM_ID FROM ongoing_exam)
+          AND es.ENROLL_ID IN (SELECT ENROLL_ID FROM active_enroll)
+          AND es.SUBMIT_AT IS NOT NULL
+      )
+      SELECT
+        (SELECT COUNT(*) FROM ongoing_exam) AS ongoingExamCnt,
+        t.targetCnt,
+        s.submittedCnt,
+        CASE WHEN t.targetCnt > 0
+             THEN ROUND(s.submittedCnt * 100.0 / t.targetCnt, 2)
+             ELSE NULL
+        END AS submitRatePct
+      FROM target t CROSS JOIN submitted s
+    ]]>
+	</select>
+
+	<!-- 시험 통계: 마감된 시험 제출률 -->
+	<select id="selectClosedExamSubmitRate" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.ExamStatisticsResp$ClosedExam">
+    <![CDATA[
+      WITH closed_exam AS (
+        SELECT lex.LCT_EXAM_ID
+        FROM LCT_EXAM lex
+        WHERE lex.LECTURE_ID = #{lectureId}
+          AND lex.DELETE_YN = 'N'
+          AND lex.END_AT IS NOT NULL
+          AND lex.END_AT <= SYSDATE
+      ),
+      active_enroll AS (
+        SELECT e.ENROLL_ID
+        FROM STU_ENROLL_LCT e
+        WHERE e.LECTURE_ID = #{lectureId}
+          AND e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL','ENR_WITHDRAW')
+      ),
+      target AS (
+        SELECT COUNT(*) AS targetCnt
+        FROM closed_exam ce CROSS JOIN active_enroll ae
+      ),
+      submitted AS (
+        SELECT COUNT(*) AS submittedCnt
+        FROM EXAM_SUBMIT es
+        WHERE es.LCT_EXAM_ID IN (SELECT LCT_EXAM_ID FROM closed_exam)
+          AND es.ENROLL_ID IN (SELECT ENROLL_ID FROM active_enroll)
+          AND es.SUBMIT_AT IS NOT NULL
+      )
+      SELECT
+        (SELECT COUNT(*) FROM closed_exam) AS closedExamCnt,
+        t.targetCnt,
+        s.submittedCnt,
+        CASE WHEN t.targetCnt > 0
+             THEN ROUND(s.submittedCnt * 100.0 / t.targetCnt, 2)
+             ELSE NULL
+        END AS submitRatePct
+      FROM target t CROSS JOIN submitted s
+    ]]>
+	</select>
+
+	<!-- 시험 통계: 시험별 학생 점수 -->
+	<select id="selectScoresByStudentAndExam" parameterType="string"
+		resultType="kr.or.jsu.classroom.dto.response.statistics.ExamStatisticsResp$ScoresByStudentAndExam">
+    <![CDATA[
+      WITH closed_exam AS (
+        SELECT lex.LCT_EXAM_ID
+        FROM LCT_EXAM lex
+        WHERE lex.LECTURE_ID = #{lectureId}
+          AND lex.DELETE_YN = 'N'
+          AND lex.END_AT IS NOT NULL
+          AND lex.END_AT <= SYSDATE
+      ),
+      active_enroll AS (
+        SELECT e.ENROLL_ID
+        FROM STU_ENROLL_LCT e
+        WHERE e.LECTURE_ID = #{lectureId}
+          AND e.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL','ENR_WITHDRAW')
+      )
+      SELECT
+        ae.ENROLL_ID AS enrollId,
+        ce.LCT_EXAM_ID AS examId,
+        CASE
+          WHEN es.SUBMIT_AT IS NULL THEN 0
+          WHEN es.MODIFIED_SCORE IS NOT NULL THEN es.MODIFIED_SCORE
+          WHEN es.AUTO_SCORE IS NOT NULL THEN es.AUTO_SCORE
+          ELSE NULL
+        END AS score
+      FROM closed_exam ce
+      CROSS JOIN active_enroll ae
+      LEFT JOIN EXAM_SUBMIT es
+        ON es.LCT_EXAM_ID = ce.LCT_EXAM_ID
+       AND es.ENROLL_ID = ae.ENROLL_ID
+      ORDER BY
+        ae.ENROLL_ID,
+        ce.LCT_EXAM_ID
+    ]]>
+	</select>
+
+</mapper>

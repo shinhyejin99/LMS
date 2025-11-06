@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.lms.professor.lctapply.LctOpenApplyMapper">
+	
+	<!-- 강의 개설 신청을 생성합니다.
+	 셀렉트키로 강의개설번호를 생성하며,
+	 신청 레코드 생성 전에 미리 생성한 approval ID를 입력해야 합니다. -->
+    <insert id="insertLctOpenApply">
+        <selectKey keyProperty="lctApplyId" resultType="string" order="BEFORE">
+            SELECT 'LCTAPLY' || LPAD(SEQ_LCT_OPEN_APPLY.NEXTVAL, 8, '0') FROM DUAL
+        </selectKey>
+        INSERT INTO LCT_OPEN_APPLY (
+              LCT_APPLY_ID
+            , SUBJECT_CD
+            , PROFESSOR_NO
+            , YEARTERM_CD
+            , LECTURE_INDEX
+            , LECTURE_GOAL
+            , PREREQ_SUBJECT
+            , EXPECT_CAP
+            , DESIRE_OPTION
+            , CANCEL_YN
+            , APPROVE_ID
+            , APPLY_AT
+        ) VALUES (
+              #{lctApplyId}
+            , #{subjectCd}
+            , #{professorNo}
+            , #{yeartermCd}
+            , #{lectureIndex}
+            , #{lectureGoal}
+            , #{prereqSubject}
+            , #{expectCap}
+            , #{desireOption}
+            , 'N'
+            , #{approveId}
+            , SYSDATE
+        )
+    </insert>
+    
+    <!-- 트랜잭션으로, 강의 개설 신청 직후 강의 주차별 계획을 기록합니다. -->
+    <insert id="insertLctApplyWeekbyList" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="weekbyList" item="item">
+	        INTO LCT_APPLY_WEEKBY (
+	              LECTURE_WEEK
+	            , LCT_APPLY_ID
+	            , WEEK_GOAL
+	            , WEEK_DESC
+	        ) VALUES (
+	              #{item.lectureWeek}
+	            , #{item.lctApplyId}
+	            , #{item.weekGoal}
+	            , #{item.weekDesc}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+	
+	<!-- 트랜잭션으로, 강의 개설 신청 직후 강의 성적산출기준과 비율을 기록합니다. -->
+	<insert id="insertLctApplyGraderatioList" parameterType="list">
+	    INSERT ALL
+	    <foreach collection="criteriaList" item="item">
+	        INTO LCT_APPLY_GRADERATIO (
+	              GRADE_CRITEIRA_CD
+	            , LCT_APPLY_ID
+	            , RATIO
+	        ) VALUES (
+	              #{item.gradeCriteriaCd}
+	            , #{item.lctApplyId}
+	            , #{item.ratio}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+	
+	<resultMap type="LctOpenApplySimpleDTO" id="aboutApplyMap">
+		<association property="lctOpenApplyInfo"
+					javaType="LctOpenApplyInfo"
+					columnPrefix="LOA_"
+					autoMapping="true"/>
+		<association property="subjectInfo"
+					javaType="SubjectInfo"
+					columnPrefix="S_"
+					autoMapping="true"/>
+		<association property="approvalInfo"
+					javaType="ApprovalInfo"
+					columnPrefix="A_"
+					autoMapping="true"/>
+	</resultMap>
+		
+	<!-- 강의신청과 관련된 데이터를 가져옵니다. -->
+	<!-- 메인 테이블 : 강의신청 -->
+	<!-- 조인하는 테이블 : 과목, 승인 -->
+	<select id="selectLctApplyList" resultMap="aboutApplyMap">
+		SELECT
+			<include refid="lct_open_apply_all_col"/>
+			, <include refid="subject_all_col"/>
+			, <include refid="approval_all_col"/> 
+		FROM
+			LCT_OPEN_APPLY loa
+		JOIN SUBJECT s 
+			ON loa.SUBJECT_CD = s.SUBJECT_CD
+		JOIN APPROVAL a 
+			ON loa.APPROVE_ID = a.APPROVE_ID
+		WHERE loa.PROFESSOR_NO = #{professorNo}
+		ORDER BY loa.APPLY_AT desc
+	</select>
+	
+	<resultMap type="LctOpenApplyDetailDTO" id="aboutApplyMap2">
+		<id property="lctApplyId" column="LOA_LCT_APPLY_ID"/>
+		<association property="lctOpenApplyInfo"
+					javaType="LctOpenApplyInfo"
+					columnPrefix="LOA_"
+					autoMapping="true"/>
+		<association property="subjectInfo"
+					javaType="SubjectInfo"
+					columnPrefix="S_"
+					autoMapping="true"/>
+		<association property="approvalInfo"
+					javaType="ApprovalInfo"
+					columnPrefix="A_"
+					autoMapping="true"/>
+		<collection property="lctApplyWeekbyInfoList"
+					ofType="LctApplyWeekbyInfo"
+					columnPrefix="LAW_"
+					autoMapping="true"/>
+		<collection property="applyGraderatioInfoList"
+					ofType="LctApplyGraderatioInfo"
+					columnPrefix="LAG_"
+					autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectLctApplyDetail" resultMap="aboutApplyMap2">
+		SELECT
+			<include refid="lct_open_apply_all_col"/>
+			, <include refid="subject_all_col"/>
+			, <include refid="approval_all_col"/>
+			, law.LECTURE_WEEK		  AS LAW_LECTURE_WEEK
+			, law.LCT_APPLY_ID        AS LAW_LCT_APPLY_ID
+			, law.WEEK_GOAL			  AS LAW_WEEK_GOAL
+			, law.WEEK_DESC			  AS LAW_WEEK_DESC
+			, lag.GRADE_CRITEIRA_CD   AS LAG_GRADE_CRITERIA_CD
+			, lag.LCT_APPLY_ID		  AS LAG_LCT_APPLY_ID
+			, lag.RATIO				  AS LAG_RATIO
+		FROM
+			LCT_OPEN_APPLY loa
+		JOIN SUBJECT s 
+			ON loa.SUBJECT_CD = s.SUBJECT_CD
+		JOIN APPROVAL a 
+			ON loa.APPROVE_ID = a.APPROVE_ID
+		JOIN LCT_APPLY_WEEKBY law ON
+			loa.LCT_APPLY_ID = law.LCT_APPLY_ID
+		JOIN LCT_APPLY_GRADERATIO lag ON
+			loa.LCT_APPLY_ID = lag.LCT_APPLY_ID
+		WHERE loa.LCT_APPLY_ID = #{lctApplyId}
+	</select>
+	
+	<select id="selectLctApprovalList" resultMap="aboutApplyMap">
+		SELECT
+			<include refid="lct_open_apply_all_col"/>
+			, <include refid="subject_all_col"/>
+			, <include refid="approval_all_col"/> 
+		FROM
+			LCT_OPEN_APPLY loa
+		JOIN SUBJECT s 
+			ON loa.SUBJECT_CD = s.SUBJECT_CD
+		JOIN APPROVAL a 
+			ON loa.APPROVE_ID = a.APPROVE_ID
+		WHERE
+			a.USER_ID = #{userId}
+		ORDER BY loa.APPLY_AT desc
+	</select>
+	
+	<select id="selectLctApplyByApproveId" resultMap="aboutApplyMap2">
+		SELECT
+			<include refid="lct_open_apply_all_col"/>
+			, law.LECTURE_WEEK		  AS LAW_LECTURE_WEEK
+			, law.LCT_APPLY_ID        AS LAW_LCT_APPLY_ID
+			, law.WEEK_GOAL			  AS LAW_WEEK_GOAL
+			, law.WEEK_DESC			  AS LAW_WEEK_DESC
+			, lag.GRADE_CRITEIRA_CD   AS LAG_GRADE_CRITERIA_CD
+			, lag.LCT_APPLY_ID		  AS LAG_LCT_APPLY_ID
+			, lag.RATIO				  AS LAG_RATIO
+		FROM
+			LCT_OPEN_APPLY loa
+		JOIN LCT_APPLY_WEEKBY law ON
+			loa.LCT_APPLY_ID = law.LCT_APPLY_ID
+		JOIN LCT_APPLY_GRADERATIO lag ON
+			loa.LCT_APPLY_ID = lag.LCT_APPLY_ID
+		WHERE loa.APPROVE_ID = #{approveId}
+	</select>
+	
+	<sql id="lct_open_apply_all_col">
+		loa.LCT_APPLY_ID          AS LOA_LCT_APPLY_ID
+		, loa.SUBJECT_CD          AS LOA_SUBJECT_CD
+		, loa.PROFESSOR_NO        AS LOA_PROFESSOR_NO
+		, loa.YEARTERM_CD         AS LOA_YEARTERM_CD
+		, loa.LECTURE_INDEX       AS LOA_LECTURE_INDEX
+		, loa.LECTURE_GOAL        AS LOA_LECTURE_GOAL
+		, loa.PREREQ_SUBJECT      AS LOA_PREREQ_SUBJECT
+		, loa.EXPECT_CAP          AS LOA_EXPECT_CAP
+		, loa.DESIRE_OPTION       AS LOA_DESIRE_OPTION
+		, loa.CANCEL_YN           AS LOA_CANCEL_YN
+		, loa.APPROVE_ID          AS LOA_APPROVE_ID
+		, loa.APPLY_AT            AS LOA_APPLY_AT
+	</sql>
+	
+	<sql id="subject_all_col">
+		s.SUBJECT_CD              AS S_SUBJECT_CD
+		, s.UNIV_DEPT_CD          AS S_UNIV_DEPT_CD
+		, s.SUBJECT_NAME          AS S_SUBJECT_NAME
+		, s.COMPLETION_CD         AS S_COMPLETION_CD
+		, s.CREDIT                AS S_CREDIT
+		, s."HOUR"                AS S_HOUR
+		, s.CREATE_AT             AS S_CREATE_AT
+		, s.DELETE_AT             AS S_DELETE_AT
+		, s.SUBJECT_TYPE_CD       AS S_SUBJECT_TYPE_CD
+	</sql>
+	
+	<sql id="approval_all_col">
+		a.APPROVE_ID              AS A_APPROVE_ID
+		, a.PREV_APPROVE_ID       AS A_PREV_APPROVE_ID
+		, a.USER_ID               AS A_USER_ID
+		, a.APPROVE_YNNULL        AS A_APPROVE_YNNULL
+		, a.APPROVE_AT            AS A_APPROVE_AT
+		, a.COMMENTS              AS A_COMMENTS
+		, a.ATTACH_FILE_ID        AS A_ATTACH_FILE_ID
+		, a.APPLY_TYPE_CD         AS A_APPLY_TYPE_CD
+		, a.APPLICANT_USER_ID     AS A_APPLICANT_USER_ID
+	</sql>
+	
+</mapper>

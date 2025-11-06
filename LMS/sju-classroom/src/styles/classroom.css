@@ -1,0 +1,560 @@
+/* Layout styles migrated from JSP preStyle.jsp */
+:root {
+  /* 📌 레이아웃 크기 변수 (유지) */
+  --header-h: 74px;
+  --footer-h: 48px;
+  --sidebar-w: 260px;
+  --sidebar-bottom-h: 80px;
+
+  /* 📌 헤더 색상 변수 (유지) */
+  --header-primary-color: #6F9AC8;
+  --header-primary-dark: #547FA8;
+  --header-highlight-color: #FFFFFF;
+  --header-text-color: #FFFFFF;
+  --logout-color: #FF0000;
+  --header-secondary-color: #A9A9A9;
+
+  /* 💡 사이드바 테마 색상 (대분류: 이전 색상 복원 / 소분류: 밝은 색상 유지) */
+  --sidebar-background-color: #F8F9FF;  /* ✨ 사이드바 전체 배경: 아주 옅은 하늘색 (유지) */
+  --sidebar-highlight-bg: #C3D9F8;      /* ✨ 대분류 활성 배경: 이전보다 더 진한 밝은 파란색 (진하게) */
+  --sidebar-hover-bg: #DCE8FC;          /* ✨ 일반 항목 호버 배경: 약간 더 진하게 조정 */
+  --sidebar-text-color: #495057;
+  --sidebar-highlight-text: #1A237E;
+  --sidebar-active-line: #3F51B5;     /* 활성 항목 좌측 라인: 선명한 파란색 */
+
+  /* 사이드바 하단 영역 색상 (유지) */
+  --sidebar-bottom-bg: #F8F9FA;
+  --sidebar-bottom-text: #90A4AE;
+
+  /* 뱃지 색상 변수 (유지) */
+  --badge-bg-color: #D32F2F;
+  --badge-text-color: #FFFFFF;
+  --badge-border-color: #FFFFFF;
+}
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+.app { height: 100dvh; position: relative; }
+
+/* ========================================
+   1. 헤더
+   ======================================== */
+.app-header {
+  background: linear-gradient(90deg, var(--header-primary-color) 0%, var(--header-primary-dark) 100%);
+  color: var(--header-text-color);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-h);
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.app-header .navbar-brand,
+.app-header .navbar-text,
+.app-header .nav-link,
+.app-header .dropdown-toggle,
+.app-header .header-title {
+   color: var(--header-text-color);
+  font-weight: 600;
+}
+
+.app-header .nav-link:hover,
+.app-header .dropdown-toggle:hover {
+  color: var(--header-highlight-color);
+}
+
+.app-header .nav-item .nav-link.text-danger {
+  color: var(--logout-color) !important;
+  font-weight: 700 !important;
+}
+
+.app-header .nav-item .nav-link.text-danger:hover {
+  color: #FF3333 !important;
+}
+
+.app-header .header-secondary-text {
+  color: var(--header-secondary-color);
+  font-weight: 500;
+  text-shadow: none;
+}
+
+.app-header .dropdown-menu {
+    position: absolute;
+    background-color: var(--header-primary-dark) !important;
+    border: 1px solid #070929 !important;
+}
+
+.app-header .dropdown-menu .dropdown-item {
+    color: var(--header-text-color) !important;
+    font-weight: 400;
+    text-shadow: none;
+}
+
+.app-header .dropdown-menu .dropdown-item:hover {
+    background-color: var(--header-primary-color) !important;
+    color: var(--header-highlight-color) !important;
+}
+
+.app-header .dropdown-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
+.header-secondary-text {
+    color: var(--header-secondary-color) !important;
+    font-weight: 500 !important;
+    text-shadow: none !important;
+}
+
+/* ========================================
+   2. 사이드바 (대분류/소분류 색상 분리 적용)
+   ======================================== */
+.app-sidebar {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  width: 0;
+  height: calc(100dvh - var(--header-h) - var(--footer-h));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--sidebar-background-color);
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.03);
+  color: var(--sidebar-text-color);
+  border-right: 1px solid #EEEEEE;
+}
+
+@media (min-width: 992px) {
+  .app-sidebar { width: var(--sidebar-w); }
+}
+
+.sidebar-menu-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 0.5rem;
+}
+
+.sidebar-bottom-area {
+    height: var(--sidebar-bottom-h);
+    flex-shrink: 0;
+    background: var(--sidebar-bottom-bg);
+    border-top: 1px solid #ECEFF1;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    color: var(--sidebar-bottom-text);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* 📌 메뉴 항목 스타일 (대분류) */
+.app-sidebar .list-group-item.list-group-item-action {
+  background-color: transparent !important;
+  color: var(--sidebar-text-color) !important;
+  border: none !important;
+  border-bottom: 1px solid #EBEBEB !important;
+  border-left: 4px solid transparent !important;
+  padding-top: 1.8rem;
+  padding-bottom: 1.8rem;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease, color 0.2s ease, border-left 0.2s ease;
+}
+
+.app-sidebar .list-group-item .me-2 {
+    margin-right: 0.8rem !important;
+}
+
+
+/* 📌 사이드바 메뉴 항목 호버 스타일 (대분류: 복원된 색상) */
+.app-sidebar .list-group-item.list-group-item-action:hover {
+  background-color: var(--sidebar-hover-bg) !important; /* #F7FAFF (복원) */
+  color: var(--sidebar-highlight-text) !important;
+  border-left: 4px solid var(--sidebar-active-line) !important;
+}
+
+/* 📌 사이드바 메뉴 항목 활성 상태 스타일 (대분류: 복원된 색상) */
+.app-sidebar .list-group-item.list-group-item-action.bg-primary-subtle {
+  background-color: var(--sidebar-highlight-bg) !important; /* #E6F4FF (복원) */
+  color: var(--sidebar-highlight-text) !important;
+  border-left: 4px solid var(--sidebar-active-line) !important;
+  border-bottom: 1px solid var(--sidebar-highlight-bg) !important;
+}
+.app-sidebar .list-group-item.list-group-item-action.bg-primary-subtle .text-primary-emphasis {
+    color: var(--sidebar-highlight-text) !important;
+}
+
+/* ❗ 드롭다운 하위 메뉴 컨테이너의 배경색 (대분류 활성 배경색 적용: 복원된 색상) */
+.app-sidebar .list-group-flush.bg-primary-subtle {
+    background-color: var(--sidebar-highlight-bg) !important; /* #E6F4FF (복원) */
+    border-top: 1px solid transparent !important;
+}
+
+/* 📌 서브 메뉴 항목 스타일 (소분류) - 일반 배경 (밝은 색상 유지) */
+.app-sidebar .list-group-flush .list-group-item {
+  background-color: #F6F9FF !important; /* ✨ 소분류 기본 배경색 (유지) */
+  padding-top: 1.4rem;
+  padding-bottom: 1.4rem;
+  padding-left: 2.5rem;
+  color: var(--sidebar-text-color) !important;
+  border-bottom: 1px solid #D1D1D1 !important;
+  font-size: 0.85rem;
+}
+
+/* 📌 서브 메뉴 항목 호버 스타일 (소분류) - 대비되는 색상으로 강조 (밝은 색상 유지) */
+.app-sidebar .list-group-flush .list-group-item:hover {
+  background-color: #F0F5FF !important; /* ✨ 소분류 호버 (유지) */
+  color: var(--sidebar-highlight-text) !important;
+}
+
+/* 📌 뱃지 색상 조정 */
+.app-sidebar .badge,
+.app-sidebar .badge.text-bg-secondary,
+.app-sidebar .list-group-item .badge {
+    background-color: var(--badge-bg-color) !important;
+    color: var(--badge-text-color) !important;
+    border: 1px solid var(--badge-border-color) !important;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2) !important;
+    font-size: 0.7rem;
+}
+
+
+/* ========================================
+   3. 콘텐츠
+   ======================================== */
+.app-content {
+  position: fixed;
+  top: var(--header-h);
+  bottom: var(--footer-h);
+  left: 0;
+  right: 0;
+  overflow: auto;
+  background: #fff;
+}
+
+@media (min-width: 992px) {
+  .app-content { left: var(--sidebar-w); }
+}
+
+/* ========================================
+   4. 푸터
+   ======================================== */
+.app-footer {
+  background: #fff;
+  border-top: 1px solid #dee2e6;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--footer-h);
+  z-index: 1010;
+  display: flex;
+  align-items: center;
+}
+
+/* --- 대시보드 및 카드 스타일 시작 --- */
+
+/* ================================================= */
+/* 0. 기본 테마 및 배경 (밝은 모드 설정) */
+/* ================================================= */
+
+body {
+    background-color: #f8f9fa;
+    color: #343a40;
+}
+
+/* ================================================= */
+/* 1. 기본 카드 디자인 (깔끔한 미니멀 스타일) */
+/* ================================================= */
+
+.card {
+    background-color: #ffffff;
+    color: #343a40;
+    border: 1px solid #e9ecef;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* ================================================= */
+/* 2. 교수 사진 스타일 */
+/* ================================================= */
+
+.stu-card-professor {
+    width: 140px;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: center;
+    background-color: #f8f9fa;
+    border: 2px solid #a0a0a0;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    float: right;
+    margin-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+    .stu-card-professor {
+        width: 100px;
+        height: auto;
+    }
+}
+
+/* ================================================= */
+/* 3. 강의명 및 헤더 */
+/* ================================================= */
+
+/* 강의명 강조: 연한 남색 계열 */
+.card-body a.stretched-link {
+    color: #3F51B5;
+    font-weight: 700;
+    font-size: 1.3rem;
+    line-height: 1.4;
+    text-decoration: none;
+    display: block;
+}
+
+/* 상태 뱃지 */
+.badge {
+    font-size: 0.8rem;
+    padding: 0.4em 0.8em;
+    border-radius: 50rem;
+    font-weight: 600;
+}
+
+/* 💡 진행중 (매우 연한 하늘색) */
+.bg-success-subtle {
+    background-color: #E8F5E9 !important; /* ✨ 연한 초록색 배경 (강제) */
+    color: #4CAF50 !important;             /* ✨ 진한 초록색 글씨 (강제) */
+    border: 1px solid #C8E6C9 !important; /* ✨ 연한 초록색 테두리 (강제) */
+}
+/* 종료 (회색 계열 유지) */
+.bg-secondary-subtle {
+    background-color: #f0f0f0;
+    color: #707070;
+    border: 1px solid #e0e0e0;
+}
+
+/* 학기/학과 정보 */
+.card-body .text-muted.small.mb-1, .card-body .small.text-body-secondary {
+    color: #888888;
+    margin-top: 0.25rem;
+}
+
+
+/* ================================================= */
+/* 4. 상세 정보 목록 (아이콘 추가) */
+/* ================================================= */
+
+/* 정보 목록 */
+.card-body .list-unstyled.small.mb-0 li {
+    font-size: 0.85rem;
+    color: #555555;
+    line-height: 1.8;
+    position: relative;
+    padding-left: 1.2rem;
+}
+
+/* 아이콘 역할 (밝은 파란색 삼각형) */
+.card-body .list-unstyled.small.mb-0 li::before {
+    content: '▶';
+    color: #88B0F2;
+    font-size: 0.7em;
+    position: absolute;
+    left: 0;
+    top: 0.1em;
+}
+
+/* ================================================= */
+/* 5. 시간표 섹션 (강의실 뱃지 색상 통일) */
+/* ================================================= */
+
+/* 시간표 섹션 상단 분리 */
+.card-body .mt-3 {
+    padding-top: 1rem;
+    margin-top: 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    background-color: transparent;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* 시간표 제목 */
+.card-body .mt-3 strong.d-block {
+    font-weight: 600;
+    color: #343a40;
+    margin-bottom: 0.75rem;
+}
+
+/* 📌 강의실 뱃지 (매우 연한 파란색) */
+.card-body .badge.bg-light,
+.card-body .badge.bg-success {
+    font-weight: 500;
+    background-color: #E6F7FF;
+    color: #5AA1D9;
+    border-color: #D0EDFF;
+    padding: 0.25em 0.6em;
+    border-radius: 0.35rem;
+}
+
+/* 시간표 시간 텍스트 */
+.card-body .ps-3 li {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: #555555;
+    margin-bottom: 0.3rem;
+    list-style: none;
+    position: relative;
+    padding-left: 1rem;
+}
+
+/* 시간표 아이콘 (밝은 파란색 원) */
+.card-body .ps-3 li::before {
+    content: '•';
+    color: #88B0F2;
+    font-size: 1.2em;
+    position: absolute;
+    left: 0;
+    top: -0.1em;
+}
+
+
+/* ================================================= */
+/* 6. 대시보드 및 아코디언 */
+/* ================================================= */
+
+/* 📌 페이지 제목: 내 강의 현황 */
+#stu-main-root .h3.mb-0 {
+    color: #343a40;
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin-bottom: 1.2rem;
+}
+
+/* 📌 전체 현황 요약: 진행중 1개 · 종료 4개 */
+.text-end.text-muted.small {
+    font-size: 0.85rem;
+    color: #888888;
+    font-weight: 400;
+    margin-bottom: 0.4rem;
+}
+
+/* 아코디언 버튼 스타일 */
+.accordion-button {
+    font-weight: 600;
+    background-color: #fdfdfd;
+    color: #495057;
+    border-radius: 0.5rem;
+    border: 1px solid #eeeeee;
+}
+
+/* 아코디언 카운트 뱃지 (매우 연한 파란색) */
+.accordion-section .badge {
+    background-color: #42bb6a;
+    color: #3F51B5;
+    font-weight: 600;
+}
+
+/* 📌📌📌 내부 스크롤러 유지 📌📌📌 */
+.accordion-body {
+    background-color: #f8f9fa;
+    border-radius: 0 0 0.5rem 0.5rem;
+    padding: 1.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* 에러 메시지 상자 */
+.alert.alert-danger {
+    background-color: #ffe0e0;
+    color: #b04e4e;
+    border-color: #ffc9c9;
+}
+
+#prof-lecture-root .overview-photo,
+#prof-lecture-root .overview-photo-placeholder {
+  width: 96px;
+  height: 128px;
+  border-radius: 0.75rem;
+}
+
+#prof-lecture-root .overview-photo {
+  object-fit: cover;
+  border: 1px solid #dee2e6;
+}
+
+#prof-lecture-root .overview-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border: 1px dashed #ced4da;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+#prof-lecture-root .nav-link.active {
+  background-color: var(--bs-primary-bg-subtle) !important;
+  color: var(--bs-primary-text-emphasis) !important;
+}
+
+/* Color-Adjusted Design for Weekly Plan Description */
+#prof-lecture-root #plan-section .tab-content .tab-pane .card-body > div:last-child {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  background-color: var(--bs-tertiary-bg);
+  border-radius: 0.5rem;
+  border: 1px solid var(--bs-border-color-translucent);
+  box-shadow: none;
+}
+
+#prof-lecture-root #plan-section .tab-content .tab-pane .card-body > div:last-child .fw-semibold {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--bs-dark);
+  padding-bottom: 0.25rem;
+  border-bottom: 1px dashed var(--bs-border-color-translucent);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#prof-lecture-root #plan-section .tab-content .tab-pane .card-body > div:last-child .fw-semibold::before {
+  content: '💡';
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--bs-primary);
+}
+
+#prof-lecture-root #plan-section .tab-content .tab-pane .card-body > div:last-child p {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--bs-body-color);
+  margin-bottom: 0;
+}
+
+/* Hover effect for student cards */
+.card.h-100.text-decoration-none.text-reset.p-0:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.ScholarshipMapper">
+
+	<!-- 학생) 장학금 총계 -->
+    <select id="selectTotalScholarship">
+        SELECT 
+            NVL(SUM(SC.AMOUNT), 0) AS totalScholarship
+        FROM 
+            STU_SCHOLAR_DETAIL SSD
+        INNER JOIN 
+            SCHOLARSHIP SC ON SSD.SCHOLARSHIP_ID = SC.SCHOLARSHIP_ID
+        WHERE 
+            SSD.STUDENT_NO = #{studentNo}
+    </select>
+    
+	<!-- 학생) 종류별 분포 -->
+    <select id="selectScholarshipDistribution" resultType="ScholarshipDistributionDTO">
+        SELECT 
+            SC.SCHOLARSHIP_NAME AS scholarshipName,
+            COUNT(*) AS count,
+            SUM(SC.AMOUNT) AS totalAmount
+        FROM 
+            STU_SCHOLAR_DETAIL SSD
+        INNER JOIN 
+            SCHOLARSHIP SC ON SSD.SCHOLARSHIP_ID = SC.SCHOLARSHIP_ID
+        WHERE 
+            SSD.STUDENT_NO = #{studentNo}
+        GROUP BY 
+            SC.SCHOLARSHIP_NAME
+        ORDER BY 
+            totalAmount DESC
+    </select>
+    
+	<!-- 학생) 수혜 내역 -->
+	<select id="selectScholarshipHistory" resultType="ScholarshipHistoryDTO">
+        SELECT 
+            -- 학기 이름 변환
+            SUBSTR(SSD.YEARTERM_CD, 1, 4) || '-' ||
+            CASE 
+                WHEN SUBSTR(SSD.YEARTERM_CD, INSTR(SSD.YEARTERM_CD, '_') + 1) = 'REG1' THEN '1학기'
+                WHEN SUBSTR(SSD.YEARTERM_CD, INSTR(SSD.YEARTERM_CD, '_') + 1) = 'REG2' THEN '2학기'
+            END AS semesterName,
+            
+            SC.SCHOLARSHIP_NAME AS scholarshipName,
+            SC.AMOUNT AS amount,
+            '지급완료' AS status 
+            
+        FROM 
+            STU_SCHOLAR_DETAIL SSD
+        INNER JOIN 
+            SCHOLARSHIP SC ON SSD.SCHOLARSHIP_ID = SC.SCHOLARSHIP_ID
+        WHERE 
+            SSD.STUDENT_NO = #{studentNo}  ORDER BY 
+            SSD.YEARTERM_CD DESC
+    </select>
+    
+</mapper>

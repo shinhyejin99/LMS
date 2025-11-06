@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.PrfRoomMapper">
+
+ <!-- 교수 연구실 등록 -->
+    <insert id="insertPrfRoom" parameterType="kr.or.jsu.vo.PrfRoomVO">
+        INSERT INTO PRF_ROOM (
+            PROFESSOR_NO,
+            PLACE_CD,
+            PURPOSE
+        ) VALUES (
+            #{professorNo},
+            #{placeCd},
+            #{purpose}
+        )
+    </insert>
+
+    <!-- 교수 연구실 전체 목록 조회 -->
+    <select id="selectPrfRoomList" resultType="kr.or.jsu.vo.PrfRoomVO">
+        SELECT
+            PROFESSOR_NO,
+            PLACE_CD,
+            PURPOSE
+        FROM PRF_ROOM
+    </select>
+
+    <!-- 특정 교수의 연구실 정보 조회 -->
+    <select id="selectPrfRoom" parameterType="string" resultType="kr.or.jsu.vo.PrfRoomVO">
+        SELECT
+            PROFESSOR_NO,
+            PLACE_CD,
+            PURPOSE
+        FROM PRF_ROOM
+        WHERE PROFESSOR_NO = #{professorNo}
+    </select>
+
+    <!-- 교수 연구실 정보 수정 -->
+    <update id="updatePrfRoom" parameterType="kr.or.jsu.vo.PrfRoomVO">
+        UPDATE PRF_ROOM
+        SET
+            PLACE_CD = #{placeCd},
+            PURPOSE = #{purpose}
+        WHERE
+            PROFESSOR_NO = #{professorNo}
+    </update>
+
+    <!-- 교수 연구실 정보 삭제 -->
+    <delete id="deletePrfRoom" parameterType="string">
+        DELETE FROM PRF_ROOM
+        WHERE PROFESSOR_NO = #{professorNo}
+    </delete>
+
+
+
+</mapper>

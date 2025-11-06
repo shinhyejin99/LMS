@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.SbjTargetMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectSbjTarget" parameterType="string" resultType="kr.or.jsu.vo.SbjTargetVO">
+        SELECT 
+          grade_cd
+        , term_cd
+        , subject_cd
+        FROM sbj_target
+        WHERE subject_cd = #{subjectCd}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectSbjTargetList" resultType="kr.or.jsu.vo.SbjTargetVO">
+        SELECT 
+          grade_cd
+        , term_cd
+        , subject_cd
+        FROM sbj_target
+        ORDER BY grade_cd
+        , term_cd
+        , subject_cd
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertSbjTarget" parameterType="kr.or.jsu.vo.SbjTargetVO">
+        INSERT INTO sbj_target (
+          grade_cd
+        , term_cd
+        , subject_cd
+        ) VALUES (
+          #{gradeCd}
+        , #{termCd}
+        , #{subjectCd}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateSbjTarget" parameterType="kr.or.jsu.vo.SbjTargetVO">
+        UPDATE sbj_target
+        SET 
+          grade_cd = #{gradeCd}
+        , term_cd  = #{termCd}
+        WHERE subject_cd = #{subjectCd}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteSbjTarget" parameterType="string">
+        DELETE FROM sbj_target
+        WHERE subject_cd = #{subjectCd}
+    </delete>
+
+</mapper>

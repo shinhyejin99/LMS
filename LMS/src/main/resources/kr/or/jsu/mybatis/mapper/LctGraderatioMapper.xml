@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctGraderatioMapper">
+
+
+<insert id="insertlctgraderatio">
+        INSERT INTO lct_graderatio (
+            grade_criteira_cd,
+            lecture_id,
+            ratio
+        ) VALUES (
+            #{gradeCriteiraCd},
+            #{lectureId},
+            #{ratio}
+        )
+    </insert>
+
+    <select id="selectLctGraderatioList" resultType="kr.or.jsu.vo.LctGraderatioVO">
+        SELECT
+            grade_criteira_cd,
+            lecture_id,
+            ratio
+        FROM
+            lct_graderatio
+        ORDER BY
+            lecture_id, grade_criteira_cd
+    </select>
+
+    <update id="updatelctgraderatio">
+        UPDATE lct_graderatio
+        SET
+            ratio = #{ratio}
+        WHERE
+            grade_criteira_cd = #{gradeCriteiraCd} AND lecture_id = #{lectureId}
+    </update>
+
+    <delete id="deletelctgraderatio">
+        DELETE FROM lct_graderatio
+        WHERE
+            grade_criteira_cd = #{gradeCriteiraCd} AND lecture_id = #{lectureId}
+    </delete>
+
+</mapper>

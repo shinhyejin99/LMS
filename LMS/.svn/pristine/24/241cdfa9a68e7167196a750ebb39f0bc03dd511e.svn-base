@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.ProfLectRegistMapper">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 21.     	김수현            d3 차트용 case 문 추가 - selectProfessorLectures
+ *
+-->
+	<!-- 교수의 개설 강의 목록 조회 -->
+    <select id="selectProfessorLectures" resultType="kr.or.jsu.classregist.dto.ProfLectureStuListDTO">
+        SELECT
+	        L.LECTURE_ID AS LECTURE_ID
+	        , S.SUBJECT_NAME AS SUBJECT_NAME
+	        , S.SUBJECT_NAME AS LECTURE_NAME -- 과목명 = 강의명
+	        , S.CREDIT AS CREDIT
+	        , S.HOUR AS HOUR
+	        , CC.CD_NAME AS COMPLETION_NAME
+	        -- 강의실 정보
+	        , (
+	            SELECT DISTINCT PLACE_NAME
+	            FROM LCT_ROOM_SCHEDULE LRS2
+	            JOIN PLACE PL2 ON LRS2.PLACE_CD = PL2.PLACE_CD
+	            WHERE LRS2.LECTURE_ID = L.LECTURE_ID
+	            AND ROWNUM = 1
+	        ) AS PLACE_NAME
+	        -- 시간 정보(TIME_INFO)
+	        , (
+	            SELECT LISTAGG(
+	                CASE TB.WEEKDAY
+	                    WHEN 'MO' THEN '월'
+	                    WHEN 'TU' THEN '화'
+	                    WHEN 'WE' THEN '수'
+	                    WHEN 'TH' THEN '목'
+	                    WHEN 'FR' THEN '금'
+	                END || ' ' ||
+	                MIN(TRUNC((TO_NUMBER(SUBSTR(TB.START_HHMM, 1, 2)) - 9) + (TO_NUMBER(SUBSTR(TB.START_HHMM, 3, 2)) / 60)) + 1) ||
+	                '-' ||
+	                MAX(TRUNC((TO_NUMBER(SUBSTR(TB.END_HHMM, 1, 2)) - 9) + (TO_NUMBER(SUBSTR(TB.END_HHMM, 3, 2)) / 60))),
+	                ', '
+	            ) WITHIN GROUP (ORDER BY TB.WEEKDAY)
+	            FROM (
+	                SELECT DISTINCT WEEKDAY, START_HHMM, END_HHMM
+	                FROM LCT_ROOM_SCHEDULE LRS2
+	                JOIN TIMEBLOCK TB2 ON LRS2.TIMEBLOCK_CD = TB2.TIMEBLOCK_CD
+	                WHERE LRS2.LECTURE_ID = L.LECTURE_ID
+	            ) TB
+	            GROUP BY TB.WEEKDAY
+	        ) AS TIME_INFO
+	        , CASE
+	            WHEN COUNT(DISTINCT ST.GRADE_CD) = 4 THEN '전학년'
+	            ELSE LISTAGG(
+	            	DISTINCT
+	                CASE ST.GRADE_CD
+	                    WHEN '1ST' THEN '1학년'
+	                    WHEN '2ND' THEN '2학년'
+	                    WHEN '3RD' THEN '3학년'
+	                    WHEN '4TH' THEN '4학년'
+	                END, ', '
+	            ) WITHIN GROUP (ORDER BY ST.GRADE_CD)
+	        END AS TARGET_GRADES
+
+	        , L.MAX_CAP AS MAX_CAP
+	        , NVL(COUNT(DISTINCT A.STUDENT_NO), 0) AS CURRENT_ENROLL
+	        , CASE
+	            WHEN L.MAX_CAP > 0 THEN ROUND((NVL(COUNT(DISTINCT A.STUDENT_NO), 0) / L.MAX_CAP) * 100, 1)
+	            ELSE 0
+	          END AS ENROLL_RATE
+	        , CASE -- D3 차트용 : 0.0 ~ 1.0 사이의 실수
+	            WHEN L.MAX_CAP > 0 THEN ROUND((NVL(COUNT(DISTINCT A.STUDENT_NO), 0) / L.MAX_CAP), 4)
+	            ELSE 0
+	          END AS CHART_RATE
+	    FROM LECTURE L
+	    JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    LEFT JOIN COMMON_CODE CC ON S.COMPLETION_CD = CC.COMMON_CD
+	    LEFT JOIN SBJ_TARGET ST ON S.SUBJECT_CD = ST.SUBJECT_CD
+	    LEFT JOIN STU_APPLY_LCT A ON L.LECTURE_ID = A.LECTURE_ID
+	    WHERE L.PROFESSOR_NO = #{professorNo}
+	    AND L.YEARTERM_CD = #{yeartermCd}
+	    AND L.CANCEL_YN = 'N'
+	    GROUP BY
+	        L.LECTURE_ID
+	        , S.SUBJECT_NAME
+	        , S.CREDIT
+	        , S.HOUR
+	        , CC.CD_NAME
+	        , L.MAX_CAP
+	    ORDER BY S.SUBJECT_NAME ASC
+    </select>
+
+    <!-- 학생 수 카운트 -->
+	<select id="countLectureStudents" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STU_APPLY_LCT
+	    WHERE LECTURE_ID = #{lectureId}
+	</select>
+
+    <!-- 특정 강의의 수강 학생 목록 조회 -->
+    <select id="selectLectureStudentsPaging" resultType="kr.or.jsu.classregist.dto.LectureStudentDTO">
+	    SELECT * FROM (
+	        SELECT
+	            ROWNUM RNUM,
+	            A.*
+	        FROM (
+	            SELECT
+	                SAL.STUDENT_NO,
+	                U.LAST_NAME || U.FIRST_NAME AS STUDENT_NAME,
+	                CASE STU.GRADE_CD
+	                    WHEN '1ST' THEN '1학년'
+	                    WHEN '2ND' THEN '2학년'
+	                    WHEN '3RD' THEN '3학년'
+	                    WHEN '4TH' THEN '4학년'
+	                END AS GRADE_NAME,
+	                C.COLLEGE_NAME,
+	                UD.UNIV_DEPT_NAME,
+	                TO_CHAR(SAL.APPLY_AT, 'YYYY-MM-DD HH24:MI:SS') AS APPLY_AT
+	            FROM STU_APPLY_LCT SAL
+	            JOIN STUDENT STU ON SAL.STUDENT_NO = STU.STUDENT_NO
+	            JOIN USERS U ON STU.USER_ID = U.USER_ID
+	            LEFT JOIN UNIV_DEPT UD ON STU.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+	            LEFT JOIN COLLEGE C ON UD.COLLEGE_CD = C.COLLEGE_CD
+	            WHERE SAL.LECTURE_ID = #{lectureId}
+	            ORDER BY SAL.APPLY_AT ASC
+	        ) A
+	        WHERE ROWNUM &lt;= #{offset} + #{pageSize}
+	    )
+	    WHERE RNUM &gt; #{offset}
+	</select>
+
+    <!-- 교수의 강의 통계 조회 -->
+    <select id="selectLectureStats" resultType="kr.or.jsu.classregist.dto.LectureEnrollStatsDTO">
+        SELECT
+            COUNT(DISTINCT L.LECTURE_ID) AS TOTAL_LECTURES,
+            NVL(SUM(ENROLL_CNT), 0) AS TOTAL_STUDENTS,
+            CASE
+                WHEN SUM(L.MAX_CAP) > 0 THEN ROUND((NVL(SUM(ENROLL_CNT), 0) / SUM(L.MAX_CAP)), 4)
+                ELSE 0
+            END AS AVG_ENROLL_RATE
+        FROM LECTURE L
+        LEFT JOIN (
+            SELECT LECTURE_ID, COUNT(*) AS ENROLL_CNT
+            FROM STU_APPLY_LCT
+            GROUP BY LECTURE_ID
+        ) A ON L.LECTURE_ID = A.LECTURE_ID
+        WHERE L.PROFESSOR_NO = #{professorNo}
+        AND L.YEARTERM_CD = #{yeartermCd}
+        AND L.CANCEL_YN = 'N'
+    </select>
+
+    <!-- 특정 강의의 현재 수강 인원 조회 -->
+    <select id="selectLectureEnrollInfo" resultType="kr.or.jsu.classregist.dto.LectureEnrollStatsDTO">
+        SELECT
+            NVL(COUNT(A.STUDENT_NO), 0) AS CURRENT_ENROLL,
+            L.MAX_CAP AS MAX_CAP
+        FROM LECTURE L
+        LEFT JOIN STU_APPLY_LCT A ON L.LECTURE_ID = A.LECTURE_ID
+        WHERE L.LECTURE_ID = #{lectureId}
+        AND L.CANCEL_YN = 'N'
+        GROUP BY L.MAX_CAP
+    </select>
+
+</mapper>

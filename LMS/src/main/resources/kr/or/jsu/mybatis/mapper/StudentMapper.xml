@@ -1,0 +1,1074 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StudentMapper">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 30.     	김수현      	학생 맞춤형 채용공고- 학생 학과명 가져오는 쿼리문 작성
+ *  2025. 9. 29.     	신혜진      	교직원이 학생 정보 전체 조회 하기 위한 쿼리
+ *  2025. 10. 01.     	송태호      	sql 조각 추가
+ *	2025. 10. 13.		김수현		총 이수 학점 조회 쿼리 추가
+ *	2025. 10. 14. 		신혜진		학생 학적 상태 갯수 쿼리 추가
+ *						김수현		학생 정보 조회 - 졸업예정년도 추가
+ *  2025. 10. 18.       최건우        쿼리 추가
+ *  2025. 10. 24.		김수현		학생 학기별 평균 평점 조회 추가
+ *						김수현		selectStudentDetailInfo => 교수랑 사용자 테이블 조인 오류 수정
+ *	2025. 11. 03        최건우        쿼리 수정 (주석으로 설명) 502, 542
+-->
+	<sql id="student_min">
+	s.STUDENT_NO
+	, s.UNIV_DEPT_CD
+	, s.GRADE_CD
+	, s.STU_STATUS_CD
+	</sql>
+
+	<sql id="student_extra">
+	s.ENG_LNAME
+	, s.ENG_FNAME
+	, s.GUARD_NAME
+	, s.GUARD_RELATION
+	, s.GUARD_PHONE
+	, s.PROFESSOR_ID
+	</sql>
+
+    <!-- 단건 조회 -->
+    <select id="selectStudent">
+        SELECT
+	          student_no
+	        , user_id
+	        , univ_dept_cd
+    	    , eng_lname
+	        , eng_fname
+        	, guard_name
+    	    , guard_relation
+	        , guard_phone
+    	    , professor_id
+        FROM
+        	student
+        WHERE
+        	student_no = #{studentNo}
+    </select>
+
+    <resultMap id="StudentSimpleDTOMap" type="kr.or.jsu.dto.StudentSimpleDTO">
+	    <association property="userInfo"
+	                 javaType="kr.or.jsu.vo.UsersVO"
+	                 autoMapping="true"/>
+	    <association property="studentInfo"
+	                 javaType="kr.or.jsu.vo.StudentVO"
+	                 autoMapping="true"/>
+	    <association property="majorDeptInfo"
+	                 javaType="kr.or.jsu.vo.UnivDeptVO"
+	                 autoMapping="true"/>
+	    <association property="majorCollegeInfo"
+	                 javaType="kr.or.jsu.vo.CollegeVO"
+	                 autoMapping="true"/>
+
+	</resultMap>
+
+    <select id="selectBasicStudentInfo" resultMap="StudentSimpleDTOMap">
+		SELECT *
+		FROM USERS u
+		JOIN STUDENT s
+		ON u.USER_ID = s.USER_ID
+		JOIN UNIV_DEPT ud
+		ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+		JOIN COLLEGE c
+		ON ud.COLLEGE_CD = c.COLLEGE_CD
+		WHERE
+		s.STUDENT_NO = #{studentNo}
+    </select>
+
+       <!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 29.     	신혜진      교직원이 학생 정보 전체 조회 하기 위한 쿼리
+ *
+-->
+
+
+
+<select id="selectStaffStudentInfoList" parameterType="map" resultType="map">
+    SELECT
+        A.*
+    FROM (
+        SELECT
+            ROWNUM AS RNUM,
+            T1.* FROM (
+            SELECT
+                S.STUDENT_NO as "studentInfo.studentNo",
+                S.GRADE_CD as "studentInfo.gradeCd",
+                CC_G.CD_NAME as "studentInfo.gradeName",
+                S.STU_STATUS_CD as "studentInfo.stuStatusCd",
+                CC_SS.CD_NAME as "studentInfo.stuStatusName",
+
+                U.LAST_NAME as "userInfo.lastName",
+                U.FIRST_NAME as "userInfo.firstName",
+                U.MOBILE_NO as "userInfo.mobileNo",
+
+                D.UNIV_DEPT_CD as "majorDeptInfo.univDeptCd",
+                D.UNIV_DEPT_NAME as "majorDeptInfo.univDeptName",
+                C.COLLEGE_CD as "majorCollegeInfo.collegeCd",
+                C.COLLEGE_NAME as "majorCollegeInfo.collegeName",
+
+               NVL(PU.LAST_NAME || PU.FIRST_NAME, '') AS "professorName"
+
+            FROM STUDENT S
+            INNER JOIN USERS U ON S.USER_ID = U.USER_ID
+            INNER JOIN UNIV_DEPT D ON S.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+            INNER JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+            LEFT JOIN COMMON_CODE CC_G ON S.GRADE_CD = CC_G.COMMON_CD
+            LEFT JOIN COMMON_CODE CC_SS ON S.STU_STATUS_CD = CC_SS.COMMON_CD
+            LEFT JOIN PROFESSOR P ON S.PROFESSOR_ID = P.PROFESSOR_NO
+            LEFT JOIN USERS PU ON P.USER_ID = PU.USER_ID
+
+
+           WHERE 1=1
+
+		    <if test="searchKeyword != null and searchKeyword != ''">
+		        AND (S.STUDENT_NO LIKE '%' || #{searchKeyword} || '%'
+		             OR U.LAST_NAME || U.FIRST_NAME LIKE '%' || #{searchKeyword} || '%'
+		             -- 학과명 통합 검색 추가
+		             OR D.UNIV_DEPT_NAME LIKE '%' || #{searchKeyword} || '%')
+		    </if>
+
+		    <if test="filterStatus != null and filterStatus != ''">
+		       <choose>
+                    <when test="filterStatus == '휴학'">
+		                AND CC_SS.CD_NAME LIKE '%휴학%'
+		            </when>
+		            <otherwise>
+		                AND CC_SS.CD_NAME = #{filterStatus}
+		            </otherwise>
+		        </choose>
+		    </if>
+
+		    <if test="filterCollege != null and filterCollege != ''">
+		        AND C.COLLEGE_NAME = #{filterCollege}
+		    </if>
+
+		    <if test="filterDepartment != null and filterDepartment != ''">
+		        AND D.UNIV_DEPT_NAME = #{filterDepartment}
+		    </if>
+
+		    <if test="filterGrade != null and filterGrade != ''">
+		        AND CC_G.CD_NAME = #{filterGrade}
+		    </if>
+
+		    ORDER BY D.UNIV_DEPT_NAME ASC, S.STUDENT_NO DESC
+
+		       ) T1
+		    ) A
+    WHERE RNUM BETWEEN #{pagingInfo.startRow} AND #{pagingInfo.endRow}
+</select>
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 1.     	신혜진         학번 자동 생성을 위한 쿼리
+ *
+-->
+<select id="findMaxSequenceByYear" resultType="int">
+        SELECT
+          count(*) + 1
+        FROM
+            STUDENT
+        WHERE
+            SUBSTR(STUDENT_NO, 1, 4) = #{year}
+    </select>
+
+
+<!--      <resultMap id="StudentDetailDtoMap" type="kr.or.jsu.dto.StudentDetailDTO"> -->
+<!--     <association property="userInfo" -->
+<!--                  javaType="kr.or.jsu.vo.UsersVO" -->
+<!--                  autoMapping="true"/> -->
+<!--     <association property="studentInfo" -->
+<!--                  javaType="kr.or.jsu.vo.StudentVO" -->
+<!--                  autoMapping="true"/> -->
+<!--     <association property="entranceInfo" -->
+<!--                  javaType="kr.or.jsu.vo.StuEntranceVO" -->
+<!--                  autoMapping="true"/> -->
+<!--     <association property="militaryInfo" -->
+<!--                  javaType="kr.or.jsu.vo.StuMilitaryVO" -->
+<!--                  autoMapping="true"/> -->
+<!-- </resultMap> -->
+    <!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 9. 29.     	신혜진         학생 정보에 주소 포함한 쿼리
+ *
+-->
+
+    <select id="selectStudentDetailInfo">
+    	SELECT
+		    u.USER_ID
+		    , u.PW_HASH
+		    , u.FIRST_NAME
+		    , u.LAST_NAME
+		    , u.LAST_NAME || u.FIRST_NAME AS studentName
+		    , u.REGI_NO
+		    , u.PHOTO_ID
+		    , u.ADDR_ID
+		    , u.MOBILE_NO
+		    , u.EMAIL
+		    , u.BANK_CODE
+		    , c1.CD_NAME AS BANK_NAME
+		    , u.BANK_ACCOUNT
+		    , u.CREATE_AT
+		    , s.STUDENT_NO
+		    , s.UNIV_DEPT_CD
+		    , ud.UNIV_DEPT_NAME
+		    , ud.COLLEGE_CD
+		    , col.COLLEGE_NAME
+		    , s.GRADE_CD
+		    , c2.CD_NAME AS GRADE_NAME
+		    , s.STU_STATUS_CD
+		    , c3.CD_NAME AS STU_STATUS_NAME
+		    , s.ENG_LNAME
+		    , s.ENG_FNAME
+		    , s.GUARD_NAME
+		    , s.GUARD_RELATION
+		    , s.GUARD_PHONE
+		    , s.PROFESSOR_ID
+		    , pu.USER_ID AS PROFESSOR_USER_ID  <!-- 교수의 userId -->
+
+		    , pu.LAST_NAME || pu.FIRST_NAME AS PROFESSOR_NAME
+		    , pu.EMAIL AS PROFESSOR_EMAIL
+
+		    , se.ENTRANCE_TYPE_CD
+		    , c4.CD_NAME AS ENTRANCE_TYPE_NAME -- 입학타입명
+		    , se.GRAD_HIGHSCHOOL
+		    , se.GRAD_YEAR
+		    , se.GRAD_EXAM_YN
+		    , se.TARGET_DEPT
+		    , sm.MILITARY_TYPE_CD
+		    , c5.CD_NAME AS MILITARY_TYPE_NAME -- 병역타입명
+		    , sm.JOIN_AT
+		    , sm.EXIT_AT
+		    , a.BASE_ADDR
+		    , a.DETAIL_ADDR
+		    , a.ZIP_CODE
+		    , SUBSTR(u.REGI_NO, 8, 1) AS gender
+		    , sg.EXPECTED_YEARTERM_CD  -- 예정졸업년도학기 (2029_REG1)
+            , sg.GRADUATE_YEARTERM_CD  -- 실제졸업년도학기 (졸업 전에는 NULL)
+            , NVL(credits.completedCredits, 0) AS completedCredits
+            , NVL(credits.majorRequiredCredits, 0) AS majorRequiredCredits
+            , NVL(credits.majorElectiveCredits, 0) AS majorElectiveCredits
+            , NVL(credits.liberalArtsRequiredCredits, 0) AS liberalArtsRequiredCredits
+            , NVL(credits.liberalArtsElectiveCredits, 0) AS liberalArtsElectiveCredits
+            , NVL(credits.majorBasicCredits, 0) AS majorBasicCredits
+            , NVL(credits.liberalArtsBasicCredits, 0) AS liberalArtsBasicCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'TOTAL_CREDIT') AS totalRequiredCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'MAJOR_REQUIRED_CREDIT') AS majorRequiredTotalCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'MAJOR_ELECTIVE_CREDIT') AS majorElectiveTotalCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'LIBERAL_ARTS_REQUIRED_CREDIT') AS liberalArtsRequiredTotalCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'LIBERAL_ARTS_ELECTIVE_CREDIT') AS liberalArtsElectiveTotalCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'MJ_BASIC_CREDIT') AS majorBasicTotalCredits
+            , (SELECT NVL(TO_NUMBER(MAX(dc.needed_value)), 0) FROM DEPT_CONDITION dc WHERE dc.UNIV_DEPT_CD = s.UNIV_DEPT_CD AND dc.condition_cd = 'GE_BASIC_CREDIT') AS liberalArtsBasicTotalCredits
+		FROM
+		    USERS u
+		JOIN STUDENT s ON u.USER_ID = s.USER_ID
+		JOIN UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+		JOIN COLLEGE col ON ud.COLLEGE_CD = col.COLLEGE_CD
+		JOIN COMMON_CODE c1 ON u.BANK_CODE = c1.COMMON_CD
+		JOIN COMMON_CODE c2 ON s.GRADE_CD = c2.COMMON_CD
+		JOIN COMMON_CODE c3 ON s.STU_STATUS_CD = c3.COMMON_CD
+		LEFT JOIN STU_ENTRANCE se ON s.STUDENT_NO = se.STUDENT_NO -- 입학정보 테이블
+		        LEFT JOIN STU_MILITARY sm ON s.STUDENT_NO = sm.MILITARY_TYPE_CD -- 병역정보 테이블
+		        LEFT JOIN COMMON_CODE c4 ON se.ENTRANCE_TYPE_CD = c4.COMMON_CD -- 입학타입
+		        LEFT JOIN COMMON_CODE c5 ON sm.MILITARY_TYPE_CD = c5.COMMON_CD -- 병역타입
+
+		        LEFT JOIN PROFESSOR p ON s.PROFESSOR_ID = p.PROFESSOR_NO
+				LEFT JOIN USERS pu ON p.USER_ID = pu.USER_ID
+
+		        LEFT JOIN ADDRESS a ON u.ADDR_ID = a.ADDR_ID
+		        LEFT JOIN STU_GRADUATION sg ON s.STUDENT_NO = sg.STUDENT_NO -- 졸업정도 테이블
+		        LEFT JOIN (
+		            SELECT
+		                se.student_no,
+		                SUM(sub.credit) AS completedCredits,
+		                SUM(CASE WHEN sub.completion_cd = 'MAJ_CORE' THEN sub.credit ELSE 0 END) AS majorRequiredCredits,
+		                SUM(CASE WHEN sub.completion_cd = 'MAJ_ELEC' THEN sub.credit ELSE 0 END) AS majorElectiveCredits,
+		                SUM(CASE WHEN sub.completion_cd = 'GE_CORE' THEN sub.credit ELSE 0 END) AS liberalArtsRequiredCredits,
+		                SUM(CASE WHEN sub.completion_cd = 'GE_ELEC' THEN sub.credit ELSE 0 END) AS liberalArtsElectiveCredits,
+		                SUM(CASE WHEN sub.completion_cd = 'MAJ_BASIC' THEN sub.credit ELSE 0 END) AS majorBasicCredits,
+		                SUM(CASE WHEN sub.completion_cd = 'GE_BASIC' THEN sub.credit ELSE 0 END) AS liberalArtsBasicCredits
+		            FROM
+		                stu_enroll_lct se
+		            JOIN
+		                lecture l ON se.lecture_id = l.lecture_id
+		            JOIN
+		                subject sub ON l.subject_cd = sub.subject_cd
+		            WHERE
+		                TO_CHAR(se.final_grade) IS NOT NULL AND TO_CHAR(se.final_grade) != 'F'
+		            GROUP BY
+		                se.student_no
+		        ) credits ON s.student_no = credits.student_no
+				WHERE
+				    s.STUDENT_NO = #{studentNo}
+	</select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStudentList" resultType="kr.or.jsu.vo.StudentVO">
+        SELECT
+            student_no
+	        , user_id
+	        , univ_dept_cd
+	        , eng_lname
+	        , eng_fname
+	        , guard_name
+	        , guard_relation
+	        , guard_phone
+	        , professor_id
+        FROM
+        	student
+        ORDER BY student_no
+    </select>
+
+		<select id="selectStudentCount" parameterType="map" resultType="int">
+		    SELECT COUNT(s.STUDENT_NO)
+		    FROM STUDENT s
+		    JOIN USERS u ON s.USER_ID = u.USER_ID
+		    LEFT JOIN UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+		    LEFT JOIN COLLEGE C ON UD.COLLEGE_CD = C.COLLEGE_CD
+		    LEFT JOIN COMMON_CODE c2 ON s.GRADE_CD = c2.COMMON_CD
+		    LEFT JOIN COMMON_CODE CC ON S.STU_STATUS_CD = CC.COMMON_CD
+
+		     WHERE 1=1
+
+		    <if test="searchKeyword != null and searchKeyword != ''">
+		        AND (s.STUDENT_NO LIKE '%' || #{searchKeyword} || '%'
+		             OR u.LAST_NAME || u.FIRST_NAME LIKE '%' || #{searchKeyword} || '%'
+		             OR UD.UNIV_DEPT_NAME LIKE '%' || #{searchKeyword} || '%')
+		     </if>
+
+		    <if test="filterStatus != null and filterStatus != ''">
+		       <choose>
+		            <when test="filterStatus == '휴학'">
+		                AND CC.CD_NAME LIKE '%휴학%'
+		            </when>
+		            <otherwise>
+		                AND CC.CD_NAME = #{filterStatus}
+		            </otherwise>
+		        </choose>
+		    </if>
+
+		    <if test="filterCollege != null and filterCollege != ''">
+		        AND C.COLLEGE_NAME = #{filterCollege}
+		    </if>
+
+		    <if test="filterDepartment != null and filterDepartment != ''">
+		        AND UD.UNIV_DEPT_NAME = #{filterDepartment}
+		    </if>
+
+		    <if test="filterGrade != null and filterGrade != ''">
+		        AND c2.CD_NAME = #{filterGrade}
+		    </if>
+		</select>
+
+    <!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 1.     	신혜진        교직원이 학생 등록하는 쿼리
+ *
+-->
+
+	<insert id="insertStaffStudentInfo" parameterType="StudentDetailDTO">
+	    INSERT INTO STUDENT (
+	        STUDENT_NO
+	        , USER_ID            , UNIV_DEPT_CD
+	        , GRADE_CD
+	        , STU_STATUS_CD
+	        , ENG_LNAME
+	        , ENG_FNAME
+	        , GUARD_NAME
+	        , GUARD_RELATION
+	        , GUARD_PHONE
+	        , PROFESSOR_ID
+	    )
+	    VALUES
+	    (
+	        #{studentNo}
+	        , #{userId}          , #{univDeptCd}
+	        , #{gradeCd}
+	        , #{stuStatusCd}
+	        , #{engLname}
+	        , #{engFname}
+	        , #{guardName}
+	        , #{guardRelation}
+	        , #{guardPhone}
+	        , #{professorId}
+	    )
+	</insert>
+
+    <!-- 수정 -->
+	<update id="updateStudent" parameterType="kr.or.jsu.vo.StudentVO">
+	    UPDATE student
+    <set>
+        <if test="userId != null">
+            user_id = #{userId},
+        </if>
+
+        mobile_no = #{mobileNo},
+        email = #{email},
+
+        bank_code = #{bankCode},
+        bank_account = #{bankAccount},
+
+        univ_dept_cd = #{univDeptCd},
+
+        guard_phone = #{guardPhone},
+
+        grade_cd = #{gradeCd},
+        stu_status_cd = #{stuStatusCd},
+
+        target_dept = #{targetDept},
+        military_type_cd = #{militaryTypeCd},
+        exit_at = #{exitAt}
+
+    </set>
+    	WHERE student_no = #{studentNo}
+	</update>
+
+	<update id="updateStaffStudentInfo" parameterType="kr.or.jsu.dto.StudentDetailDTO">
+		UPDATE STUDENT
+		    SET
+		       PROFESSOR_ID =
+            <choose>
+                <when test="professorId != null and professorId != ''">
+                    #{professorId}
+                </when>
+                <otherwise>
+		                    NULL
+		                </otherwise>
+		            </choose>
+		        ,
+				GUARD_NAME     = #{guardName},
+		        GUARD_RELATION = #{guardRelation},
+		        GUARD_PHONE    = #{guardPhone},
+		        GRADE_CD       = #{gradeCd},
+		        STU_STATUS_CD  = #{stuStatusCd},
+		        UNIV_DEPT_CD   = #{univDeptCd}
+		    WHERE
+		        STUDENT_NO = #{studentNo}
+		</update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStudent" parameterType="string">
+        DELETE FROM student
+        WHERE student_no = #{studentNo}
+    </delete>
+
+	<select id="selectAdvisingStudentList" parameterType="map" resultType="kr.or.jsu.vo.StudentVO">
+	    SELECT
+	        S.student_no,
+	        U.user_id,
+	        U.last_name || U.first_name as stdName,
+	        UD.univ_dept_name as deptName,
+	        CC_GRADE.CD_NAME AS gradeName,
+	        0 as graduationRate,
+	        S.univ_dept_cd,
+	        S.eng_lname,
+	        S.eng_fname,
+	        CC_STATUS.CD_NAME AS stuStatusName,
+	        U.mobile_no AS stdTel,
+	        U.email AS stdEmail,
+	        A.base_addr AS stdBaseAddr,
+	        A.detail_addr AS stdDetailAddr,
+	        A.zip_code AS stdZipCode
+	    FROM
+	        STUDENT S
+	    LEFT JOIN
+	        USERS U ON S.USER_ID = U.USER_ID
+	    LEFT JOIN
+	        UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+	    LEFT JOIN
+	        COMMON_CODE CC_STATUS ON S.STU_STATUS_CD = CC_STATUS.COMMON_CD
+	    LEFT JOIN
+	    	COMMON_CODE CC_GRADE ON S.GRADE_CD = CC_GRADE.COMMON_CD
+	    LEFT JOIN
+	        ADDRESS A ON U.ADDR_ID = A.ADDR_ID
+	            WHERE
+	                S.professor_id = #{professorNo}
+	                <if test="grade != null and grade != ''">
+	                <!-- || '학년' 추가 -->
+	            AND CC_GRADE.CD_NAME = #{grade} || '학년'
+	        </if>
+	        <if test="status != null and status != ''">
+	            <choose>
+	                <when test="status == 'request'">
+	                    AND EXISTS (SELECT 1 FROM STU_COUNSEL SC WHERE SC.STUDENT_NO = S.STUDENT_NO AND SC.COUNSEL_YN != 'Y')
+	                </when>
+	                <otherwise>
+	                    AND CC_STATUS.CD_NAME = #{status}
+	                </otherwise>
+	            </choose>
+	        </if>
+	    GROUP BY
+	        S.student_no,
+	        U.user_id,
+	        U.last_name || U.first_name,
+	        UD.univ_dept_name,
+	        CC_GRADE.CD_NAME,
+	        S.univ_dept_cd,
+	        S.eng_lname,
+	        S.eng_fname,
+	        CC_STATUS.CD_NAME,
+	        U.mobile_no,
+	        U.email,
+	        A.base_addr,
+	        A.detail_addr,
+	        A.zip_code
+	    ORDER BY
+	        stdName
+	    OFFSET #{offset} ROWS FETCH NEXT #{size} ROWS ONLY
+	</select>
+
+	<select id="selectAdvisingStudentCount" parameterType="map" resultType="int">
+	    SELECT COUNT(*)
+	    FROM STUDENT S
+	    LEFT JOIN COMMON_CODE CC_STATUS ON S.STU_STATUS_CD = CC_STATUS.COMMON_CD
+	    LEFT JOIN COMMON_CODE CC_GRADE ON S.GRADE_CD = CC_GRADE.COMMON_CD
+	    <where>
+	        S.professor_id = #{professorNo}
+	        <if test="grade != null and grade != ''">
+	    <!-- || '학년' 추가 -->
+	            AND CC_GRADE.CD_NAME = #{grade} || '학년'
+	        </if>
+	        <if test="status != null and status != ''">
+	            <choose>
+	                <when test="status == 'request'">
+	                    AND EXISTS (SELECT 1 FROM STU_COUNSEL SC WHERE SC.STUDENT_NO = S.STUDENT_NO AND SC.COUNSEL_YN != 'Y')
+	                </when>
+	                <otherwise>
+	                    AND CC_STATUS.CD_NAME = #{status}
+	                </otherwise>
+	            </choose>
+	        </if>
+	    </where>
+	</select>
+
+	<resultMap id="LectureGradeVOResultMap" type="kr.or.jsu.vo.LectureGradeVO">
+		<id property="lectureId" column="LECTURE_ID"/>
+		<result property="subjectCd" column="SUBJECT_CD"/>
+		<result property="subjectName" column="SUBJECT_NAME"/>
+		<result property="completionCd" column="COMPLETION_CD"/>
+		<result property="completionName" column="COMPLETION_NAME"/>
+		<result property="yeartermCd" column="YEARTERM_CD"/>
+		<result property="finalGrade" column="FINAL_GRADE"/>
+		<result property="credit" column="CREDIT"/>
+	</resultMap>
+
+	<resultMap id="StudentVOResultMap" type="kr.or.jsu.vo.StudentVO">
+		<id property="studentNo" column="STUDENT_NO"/>
+		<!-- Existing fields mapping -->
+		<result property="userId" column="USER_ID"/>
+		<result property="firstName" column="FIRST_NAME"/>
+		<result property="lastName" column="LAST_NAME"/>
+		<result property="stdName" column="STD_NAME"/>
+		<result property="stdTel" column="STD_TEL"/>
+		<result property="stdEmail" column="STD_EMAIL"/>
+		<result property="stdBaseAddr" column="STD_BASE_ADDR"/>
+		<result property="stdDetailAddr" column="STD_DETAIL_ADDR"/>
+		<result property="stdZipCode" column="STD_ZIP_CODE"/>
+		<result property="deptName" column="DEPT_NAME"/>
+		<result property="gradeName" column="GRADE_NAME"/>
+		<result property="stuStatusName" column="STU_STATUS_NAME"/>
+		<!-- Collection for lecture grades -->
+		<collection property="lectureGrades" ofType="kr.or.jsu.vo.LectureGradeVO"
+					select="selectLectureGradesByStudentNo" column="STUDENT_NO"/>
+	</resultMap>
+
+	<select id="selectLectureGradesByStudentNo" parameterType="string" resultMap="LectureGradeVOResultMap">
+		SELECT
+			sel.LECTURE_ID,
+			l.SUBJECT_CD,
+			s.SUBJECT_NAME,
+			s.COMPLETION_CD,
+			l.YEARTERM_CD,
+			CASE sel.FINAL_GRADE
+                WHEN 4.5 THEN 'A+'
+                WHEN 4.0 THEN 'A0'
+                WHEN 3.5 THEN 'B+'
+                WHEN 3.0 THEN 'B0'
+                WHEN 2.5 THEN 'C+'
+                WHEN 2.0 THEN 'C0'
+                WHEN 1.5 THEN 'D+'
+                WHEN 1.0 THEN 'D0'
+                ELSE 'F'
+            END AS FINAL_GRADE,
+			s.CREDIT,
+			cc_comp.CD_NAME AS COMPLETION_NAME
+		FROM
+			STU_ENROLL_LCT sel
+		JOIN LECTURE l ON sel.LECTURE_ID = l.LECTURE_ID
+		JOIN SUBJECT s ON l.SUBJECT_CD = s.SUBJECT_CD
+		LEFT JOIN COMMON_CODE cc_comp ON s.COMPLETION_CD = cc_comp.COMMON_CD AND cc_comp.COMMON_SORT_CD = 'COMPLETION_CD'
+		WHERE
+			sel.STUDENT_NO = #{studentNo}
+			AND sel.ENROLL_STATUS_CD = 'ENR_DONE'
+		ORDER BY
+			l.YEARTERM_CD DESC, s.SUBJECT_NAME ASC
+	</select>
+
+	<select id="selectStudentDetailsByStudentNo" parameterType="string" resultMap="StudentVOResultMap">
+	    SELECT
+		    s.STUDENT_NO,
+		    u.USER_ID,
+		    u.FIRST_NAME,
+		    u.LAST_NAME,
+		    u.LAST_NAME || u.FIRST_NAME AS STD_NAME,
+		    u.MOBILE_NO AS STD_TEL,
+		    u.EMAIL AS STD_EMAIL,
+		    a.BASE_ADDR AS STD_BASE_ADDR,
+		    a.DETAIL_ADDR AS STD_DETAIL_ADDR,
+		    a.ZIP_CODE AS STD_ZIP_CODE,
+		    ud.UNIV_DEPT_NAME AS DEPT_NAME,
+		    CC_GRADE.CD_NAME AS GRADE_NAME,
+		    CC_STATUS.CD_NAME AS STU_STATUS_NAME
+		FROM
+		    STUDENT s
+		JOIN USERS u ON s.USER_ID = u.USER_ID
+		LEFT JOIN UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+		LEFT JOIN ADDRESS a ON u.ADDR_ID = a.ADDR_ID
+		LEFT JOIN COMMON_CODE CC_STATUS ON S.STU_STATUS_CD = CC_STATUS.COMMON_CD
+		LEFT JOIN COMMON_CODE CC_GRADE ON S.GRADE_CD = CC_GRADE.COMMON_CD
+		WHERE
+		    s.STUDENT_NO = #{studentNo}
+	</select>
+
+	<!-- 학생-마이페이지에서 인적 정보 수정 -->
+    <update id="updateUserDetailInfo">
+	    UPDATE USERS
+	    SET
+		    LAST_NAME = #{lastName}
+	  		, FIRST_NAME = #{firstName}
+	        , EMAIL = #{email}
+	        , MOBILE_NO = #{mobileNo}
+	        , BANK_CODE = #{bankCode}
+	        , BANK_ACCOUNT = #{bankAccount}
+	    WHERE USER_ID = #{userId}
+	</update>
+
+	<update id="updateAddressInfo">
+	    UPDATE ADDRESS
+	    SET
+	        ZIP_CODE = #{zipCode}
+	        , BASE_ADDR = #{baseAddr}
+	        , DETAIL_ADDR = #{detailAddr}
+	    WHERE ADDR_ID = #{addrId}
+	</update>
+
+	<update id="updateStudentPersonalInfo">
+	    UPDATE STUDENT
+	    SET
+	        ENG_LNAME = #{engLname}
+	        , ENG_FNAME = #{engFname}
+	        , GUARD_NAME = #{guardName}
+	        , GUARD_PHONE = #{guardPhone}
+	    WHERE STUDENT_NO = #{studentNo}
+	</update>
+
+	<insert id="insertBatchStaffStudentInfo" parameterType="java.util.List">
+	    INSERT ALL
+	    <foreach collection="list" item="item" separator=" ">
+	    INTO STUDENT (
+	        STUDENT_NO,
+	        GRADE_CD,
+	        UNIV_DEPT_CD,
+	        USER_ID,
+	        ENG_LNAME,
+	        ENG_FNAME,
+	        STU_STATUS_CD
+	    ) VALUES (
+	        #{item.studentNo},
+	        #{item.gradeCd},
+	        #{item.univDeptCd},
+	        #{item.userId},
+	        #{item.engLname},
+	        #{item.engFname},
+	        #{item.stuStatusCd}
+	    )
+	    </foreach>
+	    SELECT * FROM DUAL
+	</insert>
+
+	<!-- 총 이수 학점 조회 -->
+	<select id="selectTotalCredit" resultType="int">
+	    SELECT
+	    	COALESCE(SUM(s.CREDIT), 0)
+	    FROM
+	    	STU_ENROLL_LCT sel
+	    JOIN LECTURE l ON sel.LECTURE_ID = l.LECTURE_ID
+	    JOIN SUBJECT s ON l.SUBJECT_CD = s.SUBJECT_CD
+	    WHERE
+	    	sel.ENROLL_STATUS_CD = 'ENR_DONE'
+	      	AND sel.STUDENT_NO = #{studentNo}
+	</select>
+
+
+	<!--학생 학적 상태  -->
+	<select id="selectStudentStatusCounts" resultType="map">
+	SELECT
+        CASE
+            /* '휴학' 포함 상태를 모두 '휴학'으로 통일 */
+            WHEN C3.CD_NAME LIKE '%휴학%' THEN '휴학'
+            ELSE C3.CD_NAME
+        END AS stuStatusName,
+        COUNT(S.STUDENT_NO) AS STATUSCOUNT
+    FROM
+        COMMON_CODE C3
+    LEFT JOIN
+        STUDENT S
+    ON
+        C3.COMMON_CD = S.STU_STATUS_CD
+    WHERE
+        C3.COMMON_SORT_CD = 'STU_STATUS_CD'
+    GROUP BY
+        CASE
+            WHEN C3.CD_NAME LIKE '%휴학%' THEN '휴학'
+            ELSE C3.CD_NAME
+        END
+    ORDER BY
+        1
+</select>
+
+<resultMap id="CollegeCountMap" type="map">
+    <result property="collegeName" column="COLLEGE_NAME"/>
+    <result property="studentCount" column="STUDENT_COUNT"/>
+</resultMap>
+
+	<!--학생 학적에 따른 단과학생 갯수  -->
+	<select id="selectStudentCountsByCollege" resultType="map">
+    SELECT
+        C.COLLEGE_NAME AS COLLEGE_NAME,
+        COUNT(S.STUDENT_NO) AS STUDENT_COUNT
+    FROM
+        STUDENT S
+    JOIN
+        UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+    JOIN
+        COLLEGE C ON UD.COLLEGE_CD = C.COLLEGE_CD
+    JOIN
+        COMMON_CODE CC ON S.STU_STATUS_CD = CC.COMMON_CD
+
+    <where>
+        <choose>
+            <when test="stuStatusName == null or stuStatusName.isEmpty()">
+                1 = 1
+            </when>
+            <otherwise>
+                CC.CD_NAME LIKE '%' || #{stuStatusName} || '%'
+            </otherwise>
+        </choose>
+    </where>
+
+    GROUP BY
+        C.COLLEGE_NAME
+    ORDER BY
+        C.COLLEGE_NAME
+</select>
+<!-- 학생 단과대에 따른 학과학생 갯수 -->
+<select id="selectStudentCountsByDepartment" resultType="map">
+    SELECT
+        UD.UNIV_DEPT_NAME AS UNIV_DEPT_NAME,
+        COUNT(S.STUDENT_NO) AS STUDENT_COUNT
+    FROM
+        STUDENT S
+    JOIN
+        UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+    JOIN
+        COLLEGE C ON UD.COLLEGE_CD = C.COLLEGE_CD
+    JOIN
+        COMMON_CODE CC ON S.STU_STATUS_CD = CC.COMMON_CD
+    <where>
+        <choose>
+            <when test="stuStatusName == null or stuStatusName.isEmpty()">
+                1 = 1
+            </when>
+            <otherwise>
+                CC.CD_NAME LIKE '%' || #{stuStatusName} || '%'
+            </otherwise>
+        </choose>
+        <if test="collegeName != null and collegeName != ''">
+            AND C.COLLEGE_NAME = #{collegeName}
+        </if>
+    </where>
+
+    GROUP BY
+        UD.UNIV_DEPT_NAME
+    ORDER BY
+        UD.UNIV_DEPT_NAME
+</select>
+
+	<!-- 학년 별 학생 수  -->
+		<select id="selectStudentCountsByGrade" resultType="map">
+			SELECT
+        c2.CD_NAME AS GRADE_NAME,
+        CAST(COUNT(S.STUDENT_NO) AS INT) AS STUDENT_COUNT
+    FROM
+        STUDENT S
+        JOIN UNIV_DEPT UD ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+        JOIN COLLEGE C ON UD.COLLEGE_CD = C.COLLEGE_CD
+        JOIN COMMON_CODE CC ON S.STU_STATUS_CD = CC.COMMON_CD
+      	JOIN COMMON_CODE c2 ON s.GRADE_CD = c2.COMMON_CD
+     <where>
+        <choose>
+            <when test="stuStatusName == null or stuStatusName.isEmpty()">
+                1 = 1
+            </when>
+            <otherwise>
+                CC.CD_NAME LIKE '%' || #{stuStatusName} || '%'
+            </otherwise>
+        </choose>
+        <if test="collegeName != null and collegeName != ''">
+            AND C.COLLEGE_NAME = #{collegeName}
+        </if>
+        <if test="univDeptName != null and univDeptName != ''">
+            AND UD.UNIV_DEPT_NAME = #{univDeptName}
+        </if>
+    </where>
+   GROUP BY
+        c2.CD_NAME
+    ORDER BY
+         c2.CD_NAME
+   		</select>
+		<!--학생등록 엑셀파일  -->
+   		<select id="selectStudentListForExcel" parameterType="map" resultType="map">
+				SELECT
+					u.USER_ID AS "userId",
+					u.PW_HASH AS "pwHash",
+					u.FIRST_NAME AS "firstName",
+					u.LAST_NAME AS "lastName",
+					u.LAST_NAME || u.FIRST_NAME AS "studentName", u.REGI_NO AS "regiNo",
+					SUBSTR(u.REGI_NO, 8, 1) AS "gender",
+					u.PHOTO_ID AS "photoId",
+					u.MOBILE_NO AS "mobileNo",
+					u.EMAIL AS "email",
+					u.BANK_CODE AS "bankCode",
+					c1.CD_NAME AS "bankName",
+					u.BANK_ACCOUNT AS "bankAccount",
+					u.CREATE_AT AS "createAt",
+
+					s.STUDENT_NO AS "studentNo",
+					s.UNIV_DEPT_CD AS "univDeptCd",
+					ud.UNIV_DEPT_NAME AS "univDeptName",
+					s.GRADE_CD AS "gradeCd",
+					c2.CD_NAME AS "gradeName",
+					s.STU_STATUS_CD AS "stuStatusCd",
+					c3.CD_NAME AS "stuStatusName",
+
+					s.ENG_LNAME AS "engLname",
+					s.ENG_FNAME AS "engFname",
+					s.GUARD_NAME AS "guardName",
+					s.GUARD_RELATION AS "guardRelation",
+					s.GUARD_PHONE AS "guardPhone",
+					s.PROFESSOR_ID AS "professorId",
+					pu.FIRST_NAME ||' '|| pu.LAST_NAME AS "professorName",
+
+					se.ENTRANCE_TYPE_CD AS "entranceTypeCd",
+					c4.CD_NAME AS "entranceTypeName",
+					TO_CHAR(se.ENTRANCE_DATE, 'YYYY-MM-DD') AS "entranceDate", se.GRAD_HIGHSCHOOL AS "gradHighschool",
+					se.GRAD_YEAR AS "gradYear",
+					se.GRAD_EXAM_YN AS "gradExamYn",
+					se.TARGET_DEPT AS "targetDept",
+
+					sm.MILITARY_TYPE_CD AS "militaryTypeCd",
+					c5.CD_NAME AS "militaryTypeName",
+					sm.EXIT_AT AS "exitAt",
+
+					a.ADDR_ID AS "addrId",
+					a.BASE_ADDR AS "baseAddr",
+					a.DETAIL_ADDR AS "detailAddr",
+					a.ZIP_CODE AS "zipCode",
+
+					co.COLLEGE_CD AS "collegeCd",
+					co.COLLEGE_NAME AS "collegeName"
+				FROM
+					STUDENT s
+				JOIN USERS u ON s.USER_ID = u.USER_ID
+				JOIN UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+				JOIN COLLEGE co ON ud.COLLEGE_CD = co.COLLEGE_CD JOIN COMMON_CODE c1 ON u.BANK_CODE = c1.COMMON_CD
+				JOIN COMMON_CODE c2 ON s.GRADE_CD = c2.COMMON_CD
+				JOIN COMMON_CODE c3 ON s.STU_STATUS_CD = c3.COMMON_CD
+				LEFT JOIN STU_ENTRANCE se ON s.STUDENT_NO = se.STUDENT_NO
+				LEFT JOIN STU_MILITARY sm ON s.STUDENT_NO = sm.STUDENT_NO
+				LEFT JOIN COMMON_CODE c4 ON se.ENTRANCE_TYPE_CD = c4.COMMON_CD
+				LEFT JOIN COMMON_CODE c5 ON sm.MILITARY_TYPE_CD = c5.COMMON_CD
+				LEFT JOIN PROFESSOR p ON s.PROFESSOR_ID = p.PROFESSOR_NO
+				LEFT JOIN USERS pu ON p.USER_ID = pu.USER_ID
+				LEFT JOIN ADDRESS a ON u.ADDR_ID = a.ADDR_ID
+
+				ORDER BY s.STUDENT_NO ASC
+			</select>
+
+	<!-- 평균 학점(GPA) 조회 -->
+	<select id="selectStudentGPA" resultType="double">
+	    SELECT COALESCE(AVG(sel.FINAL_GRADE), 0)
+	    FROM STU_ENROLL_LCT sel
+	    WHERE sel.ENROLL_STATUS_CD = 'ENR_DONE'
+	      AND sel.STUDENT_NO = #{studentNo}
+	</select>
+
+	<!-- 소속 학과 조회 -->
+	<select id="selectDeptCd" resultType="string">
+	    SELECT UNIV_DEPT_CD
+	    FROM STUDENT
+	    WHERE STUDENT_NO = #{studentNo}
+	</select>
+
+	<!-- 소속 단과대학 조회 -->
+	<select id="selectCollegeCd" resultType="string">
+	    SELECT ud.COLLEGE_CD
+	    FROM STUDENT s
+	    JOIN UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+	    WHERE s.STUDENT_NO = #{studentNo}
+	</select>
+
+	<!-- 학년코드 조회 -->
+	<select id="selectGradeCd">
+		SELECT GRADE_CD
+		FROM STUDENT
+		WHERE STUDENT_NO = #{student_no}
+	</select>
+
+	<!-- 학생의 학기별 평균 평점 조회 -->
+	<select id="selectSemesterGrades" resultType="kr.or.jsu.dto.SemesterGradeDTO">
+	    SELECT
+	        L.YEARTERM_CD AS yeartermCd,
+	        SUBSTR(L.YEARTERM_CD, 1, 4) || '학년도 ' ||
+		    (
+		        CASE
+		            WHEN SUBSTR(L.YEARTERM_CD, 6) = 'REG1' THEN '1학기'
+		            WHEN SUBSTR(L.YEARTERM_CD, 6) = 'REG2' THEN '2학기'
+		            ELSE SUBSTR(L.YEARTERM_CD, 6)
+		        END
+		    ) AS yeartermName,
+	        ROUND(AVG(E.FINAL_GRADE), 2) AS avgGrade,
+	        COUNT(E.ENROLL_ID) AS subjectCount
+	    FROM STU_ENROLL_LCT E
+	    INNER JOIN LECTURE L ON E.LECTURE_ID = L.LECTURE_ID
+	    INNER JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+	    WHERE E.STUDENT_NO = #{studentNo}
+	        AND E.FINAL_GRADE IS NOT NULL
+	        AND S.SUBJECT_TYPE_CD != 'SUBJ_PASSFAIL'
+	        AND L.YEARTERM_CD LIKE '%_REG%'
+	    GROUP BY L.YEARTERM_CD
+	    ORDER BY L.YEARTERM_CD ASC
+	</select>
+<select id="selectDeptStudentCount" resultType="map">
+    SELECT
+        UD.UNIV_DEPT_NAME AS deptName,
+        COUNT(S.STUDENT_NO) AS studentCount
+    FROM STUDENT S
+    JOIN UNIV_DEPT UD
+        ON S.UNIV_DEPT_CD = UD.UNIV_DEPT_CD
+    GROUP BY UD.UNIV_DEPT_NAME
+    ORDER BY UD.UNIV_DEPT_NAME
+</select>
+
+<!-- 전체 학생 수 조회 -->
+<select id="selectTotalStudentCount" resultType="int">
+    SELECT COUNT(*) FROM STUDENT
+</select>
+<select id="selectStudentGenderCounts" resultType="map">
+        <![CDATA[
+        SELECT
+            -- 주민번호 7번째 자리 숫자를 추출하여 홀수/짝수 판별 후 성별 이름 부여
+            CASE
+                WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('1', '3', '5', '7', '9') THEN '남'
+                WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('2', '4', '6', '8', '0') THEN '여'
+                ELSE '알 수 없음' -- 주민번호 형식이 잘못된 경우
+            END AS GENDER_NAME,
+            COUNT(S.STUDENT_NO) AS STUDENT_COUNT
+        FROM
+            STUDENT S
+        INNER JOIN
+            USERS U ON S.USER_ID = U.USER_ID
+        WHERE
+            U.REGI_NO IS NOT NULL AND LENGTH(U.REGI_NO) >= 7  -- REGI_NO가 존재하고 성별 구분 가능할 때만 집계
+        GROUP BY
+            CASE
+                WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('1', '3', '5', '7', '9') THEN '남'
+                WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('2', '4', '6', '8', '0') THEN '여'
+                ELSE '알 수 없음'
+            END
+        ORDER BY
+            GENDER_NAME
+        ]]>
+    </select>
+
+    <select id="selectOverallStudentCountsByGrade" resultType="map">
+        SELECT
+            C.CD_NAME AS GRADE_NAME,
+            C.COMMON_CD AS GRADE_CD,
+            COUNT(S.STUDENT_NO) AS STUDENT_COUNT
+        FROM
+            COMMON_CODE C
+        LEFT JOIN
+            STUDENT S ON C.COMMON_CD = S.GRADE_CD
+        WHERE
+            C.COMMON_SORT_CD = 'GRADE_CD'
+        GROUP BY
+            C.CD_NAME, C.COMMON_CD
+        ORDER BY
+            C.COMMON_CD
+    </select>
+		<select id="selectOverallGradeStatistics" resultType="map">
+		    SELECT
+		        CC.CD_NAME AS "grade",
+		        COUNT(S.STUDENT_NO) AS "studentCount"
+		    FROM
+		        STUDENT S
+		    LEFT JOIN
+		        COMMON_CODE CC ON S.GRADE_CD = CC.COMMON_CD
+		    WHERE
+		        CC.COMMON_SORT_CD = 'GRADE_CD'
+		    GROUP BY
+		        CC.CD_NAME, CC.COMMON_CD
+		    ORDER BY
+		        CC.COMMON_CD
+		</select>
+
+		<select id="selectOverallGenderStatistics" resultType="map">
+			  SELECT
+		        CASE
+		            WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('1', '3', '5', '7') THEN '남성'
+		            WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('2', '4', '6', '8') THEN '여성'
+		            ELSE NULL  -- 성별 구분이 불가능한 경우 NULL로 설정
+		        END AS "gender",
+		        COUNT(S.STUDENT_NO) AS "studentCount"
+		    FROM
+		        STUDENT S
+		    JOIN
+		        USERS U ON S.USER_ID = U.USER_ID
+		    WHERE
+		        U.REGI_NO IS NOT NULL  -- 주민등록번호가 있는 학생
+		        AND SUBSTR(U.REGI_NO, 7, 1) IN ('1', '2', '3', '4', '5', '6', '7', '8')  -- 성별 코드가 유효한 학생만 포함
+		    GROUP BY
+		        CASE
+		            WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('1', '3', '5', '7') THEN '남성'
+		            WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('2', '4', '6', '8') THEN '여성'
+		            ELSE NULL
+		        END
+		    HAVING
+		        CASE
+		            WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('1', '3', '5', '7') THEN '남성'
+		            WHEN SUBSTR(U.REGI_NO, 7, 1) IN ('2', '4', '6', '8') THEN '여성'
+		            ELSE NULL
+		        END IS NOT NULL  -- NULL 그룹은 최종 결과에서 제외
+		    ORDER BY
+		        "gender"
+	</select>
+
+
+
+</mapper>

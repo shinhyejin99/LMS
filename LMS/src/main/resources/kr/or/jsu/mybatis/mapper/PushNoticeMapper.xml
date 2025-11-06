@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.PushNoticeMapper">
+
+<insert id="insertPushNotice" parameterType="kr.or.jsu.dto.PushNoticeDetailDTO">
+    <selectKey keyProperty="pushId" resultType="string" order="BEFORE">
+        SELECT 'PUSH' || LPAD(SEQ_PUSH_NOTICE.NEXTVAL, 11, '0') FROM DUAL
+    </selectKey>
+    INSERT INTO PUSH_NOTICE (
+        PUSH_ID,
+        SENDER,
+        PUSH_DETAIL,
+        CREATE_AT,
+        PUSH_URL  ) VALUES (
+        #{pushId},
+        NVL(#{sender}, '시스템'),
+        #{pushDetail},
+        SYSDATE,
+        #{pushUrl}  )
+</insert>
+
+   <select id="findUserIdByUserDetail" parameterType="map" resultType="string">
+    SELECT
+        USER_ID
+    FROM
+        USERS
+    WHERE
+        LAST_NAME = #{lastName}
+        AND FIRST_NAME = #{firstName}
+        AND REPLACE(MOBILE_NO, '-', '') = REPLACE(#{mobileNo}, '-', '')
+</select>
+
+     <select id="selectPushNoticeListByTargetId" parameterType="string"
+      resultType="kr.or.jsu.dto.PushNoticeDetailDTO">
+    SELECT
+        A.PUSH_ID,
+        A.SENDER,
+        A.PUSH_DETAIL,
+        A.CREATE_AT,
+        A.PUSH_URL,
+        B.RECEIVE_AT,
+        B.CHECK_AT,
+        B.USER_ID,
+        CASE WHEN B.CHECK_AT IS NOT NULL THEN 'Y' ELSE 'N' END AS IS_READ,
+
+        U_SENDER.LAST_NAME AS senderLastName,
+        U_SENDER.FIRST_NAME AS senderFirstName,
+        T_DEPT.STF_DEPT_NAME AS stfDeptName
+
+    FROM PUSH_NOTICE A
+    INNER JOIN PUSH_NOTICE_TARGET B ON A.PUSH_ID = B.PUSH_ID
+
+    LEFT JOIN USERS U_SENDER ON A.SENDER = U_SENDER.USER_ID
+    LEFT JOIN STAFF T_STAFF ON U_SENDER.USER_ID = T_STAFF.USER_ID
+    LEFT JOIN STAFF_DEPT T_DEPT ON T_STAFF.STF_DEPT_CD = T_DEPT.STF_DEPT_CD
+
+    WHERE B.USER_ID = #{userId}
+    ORDER BY B.RECEIVE_AT DESC
+</select>
+
+  <select id="selectPushNoticeDetail" parameterType="map"
+          resultType="kr.or.jsu.dto.PushNoticeDetailDTO">
+   SELECT
+        A.PUSH_ID,
+        A.SENDER,
+        A.PUSH_DETAIL,
+        A.CREATE_AT,
+        A.PUSH_URL,
+        B.RECEIVE_AT,
+        B.CHECK_AT,
+        B.USER_ID,
+        CASE WHEN B.CHECK_AT IS NOT NULL THEN 'Y' ELSE 'N' END AS IS_READ,
+
+        U_SENDER.LAST_NAME AS senderLastName,
+        U_SENDER.FIRST_NAME AS senderFirstName,
+
+        NVL(T_DEPT.STF_DEPT_NAME, '시스템') AS stfDeptName
+
+    FROM PUSH_NOTICE A
+    INNER JOIN PUSH_NOTICE_TARGET B ON A.PUSH_ID = B.PUSH_ID
+
+    LEFT JOIN USERS U_SENDER ON A.SENDER = U_SENDER.USER_ID
+    LEFT JOIN STAFF T_STAFF ON U_SENDER.USER_ID = T_STAFF.USER_ID
+    LEFT JOIN STAFF_DEPT T_DEPT ON T_STAFF.STF_DEPT_CD = T_DEPT.STF_DEPT_CD
+
+    WHERE
+        A.PUSH_ID = #{pushId}
+        AND B.USER_ID = #{userId}
+</select>
+
+
+  <select id="selectUnreadNoticeCount" parameterType="string" resultType="int">
+    SELECT
+        COUNT(*)
+    FROM PUSH_NOTICE_TARGET
+    WHERE
+        USER_ID = #{userId}
+        AND CHECK_AT IS NULL
+  </select>
+
+  <update id="updatePushNotice" parameterType="kr.or.jsu.vo.PushNoticeVO">
+    UPDATE PUSH_NOTICE
+    SET
+      SENDER = #{sender},
+      PUSH_DETAIL = #{pushDetail},
+      PUSH_URL = #{pushUrl}
+    WHERE PUSH_ID = #{pushId}
+    </update>
+
+  <delete id="deletePushNotice" parameterType="string">
+    DELETE FROM PUSH_NOTICE
+    WHERE PUSH_ID = #{pushId}
+    </delete>
+
+ <select id="selectPushNoticeCount" parameterType="kr.or.jsu.core.paging.PaginationInfo" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM PUSH_NOTICE A
+        INNER JOIN PUSH_NOTICE_TARGET B ON A.PUSH_ID = B.PUSH_ID
+        WHERE A.SENDER = #{detailSearch.userId}
+</select>
+
+<select id="selectNotificationHistoryList" resultType="kr.or.jsu.dto.PushNoticeDetailDTO">
+		<![CDATA[
+		SELECT
+    T1.PUSH_ID,
+    T1.senderLastName,
+    T1.senderFirstName,
+    T1.senderDeptName,
+    T1.PUSH_DETAIL,
+    T1.CREATE_AT,
+    T1.IS_READ,
+    -- PNT.USER_ID에 따라 RECIPIENT_INFO를 결정
+    CASE
+        -- U_TARGET의 LAST_NAME이 NULL이 아니면 (개별 발송) 이름 표시
+        WHEN T1.lastName IS NOT NULL THEN T1.lastName || T1.firstName
+        -- 그 외 (그룹 발송으로 간주) '그룹 대상자'로 표시
+        ELSE '그룹 대상자'
+    END AS RECIPIENT_INFO
+FROM (
+    SELECT
+        ROWNUM AS RN,
+        PN.PUSH_ID,
+        U_SENDER.LAST_NAME AS senderLastName,
+        U_SENDER.FIRST_NAME AS senderFirstName,
+        T_DEPT.STF_DEPT_NAME AS senderDeptName,
+
+        -- 수신자 정보 (개별 발송 시 사용)
+        U_TARGET.LAST_NAME AS lastName,
+        U_TARGET.FIRST_NAME AS firstName,
+
+        -- 오류를 유발했던 TARGET_NAME 로직은 완전히 제거하고 NULL로 대체
+        NULL AS TARGET_NAME,
+
+        PN.PUSH_DETAIL,
+        TO_CHAR(PN.CREATE_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_AT,
+        CASE WHEN PNT.CHECK_AT IS NOT NULL THEN 'Y' ELSE 'N' END AS IS_READ
+    FROM
+        PUSH_NOTICE PN
+    JOIN
+        PUSH_NOTICE_TARGET PNT ON PN.PUSH_ID = PNT.PUSH_ID
+    LEFT JOIN USERS U_SENDER ON PN.SENDER = U_SENDER.USER_ID
+    LEFT JOIN USERS U_TARGET ON PNT.USER_ID = U_TARGET.USER_ID
+    LEFT JOIN STAFF T_STAFF ON U_SENDER.USER_ID = T_STAFF.USER_ID
+    LEFT JOIN STAFF_DEPT T_DEPT ON T_STAFF.STF_DEPT_CD = T_DEPT.STF_DEPT_CD
+		    WHERE 1=1
+		]]>
+		<if test="detailSearch.userId != null and detailSearch.userId != ''">
+		    AND PN.SENDER = #{detailSearch.userId}
+		</if>
+		<![CDATA[
+		    ORDER BY PN.CREATE_AT DESC
+		) T1
+		WHERE RN BETWEEN #{detailSearch.startRow} AND (#{detailSearch.startRow} + #{detailSearch.screenSize} - 1)
+		]]>
+</select>
+
+<select id="selectNotificationHistoryCount"
+        parameterType="kr.or.jsu.core.paging.PaginationInfo"
+        resultType="int">
+    SELECT
+        COUNT(*)
+    FROM
+        PUSH_NOTICE PN
+    INNER JOIN
+        PUSH_NOTICE_TARGET PNT ON PN.PUSH_ID = PNT.PUSH_ID  WHERE
+        PN.SENDER = #{detailSearch.userId}
+
+    <if test="simpleSearch != null and simpleSearch.searchWord != null and simpleSearch.searchWord != ''">
+        AND (
+            PN.PUSH_TITLE LIKE '%' || #{simpleSearch.searchWord} || '%'
+            OR PN.PUSH_DETAIL LIKE '%' || #{simpleSearch.searchWord} || '%'
+        )
+    </if>
+</select>
+</mapper>

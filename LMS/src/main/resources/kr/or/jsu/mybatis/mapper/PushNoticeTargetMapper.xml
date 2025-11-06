@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.PushNoticeTargetMapper">
+
+  <!-- 알림 대상 등록 -->
+  <insert id="insertPushNoticeTarget" parameterType="kr.or.jsu.vo.PushNoticeTargetVO">
+    INSERT INTO PUSH_NOTICE_TARGET (
+        PUSH_ID, USER_ID, RECEIVE_AT, CHECK_AT
+    ) VALUES (
+        #{pushId}, #{userId}, SYSDATE, NULL
+    )
+  </insert>
+
+  <!-- 알림 대상 다중 등록 -->
+  <insert id="insertPushNoticeTargets" parameterType="java.util.List">
+    INSERT ALL
+    <foreach collection="list" item="target" separator=" ">
+      INTO PUSH_NOTICE_TARGET (
+          PUSH_ID, USER_ID, RECEIVE_AT, CHECK_AT
+      ) VALUES (
+          #{target.pushId}, #{target.userId}, SYSDATE, NULL
+      )
+    </foreach>
+    SELECT * FROM DUAL
+  </insert>
+
+  <!-- 알림 대상 목록 조회 (발신자/수신자 정보 포함) -->
+  <select id="selectPushNoticeTargetList" resultType="kr.or.jsu.dto.PushNoticeDetailDTO">
+    SELECT
+        PN.PUSH_ID,
+        U_SENDER.LAST_NAME AS senderLastName,
+        U_SENDER.FIRST_NAME AS senderFirstName,
+        T_DEPT.STF_DEPT_NAME AS senderDeptName,
+        U_TARGET.LAST_NAME AS lastName,
+        U_TARGET.FIRST_NAME AS firstName,
+        PN.PUSH_DETAIL,
+        TO_CHAR(PN.CREATE_AT, 'YYYY-MM-DD HH24:MI:SS') AS CREATE_AT,
+        CASE WHEN PNT.CHECK_AT IS NOT NULL THEN 'Y' ELSE 'N' END AS IS_READ
+    FROM
+        PUSH_NOTICE PN
+    JOIN
+        PUSH_NOTICE_TARGET PNT ON PN.PUSH_ID = PNT.PUSH_ID
+    LEFT JOIN
+        USERS U_SENDER ON PN.SENDER = U_SENDER.USER_ID
+    LEFT JOIN
+        USERS U_TARGET ON PNT.USER_ID = U_TARGET.USER_ID
+    LEFT JOIN
+        STAFF T_STAFF ON U_SENDER.USER_ID = T_STAFF.USER_ID
+    LEFT JOIN
+        STAFF_DEPT T_DEPT ON T_STAFF.STF_DEPT_CD = T_DEPT.STF_DEPT_CD
+    ORDER BY
+        PN.CREATE_AT DESC
+  </select>
+
+  <!-- 특정 대상 조회 -->
+  <select id="selectPushNoticeTarget" parameterType="map" resultType="kr.or.jsu.vo.PushNoticeTargetVO">
+    SELECT
+        PUSH_ID,
+        USER_ID,
+        RECEIVE_AT,
+        CHECK_AT
+    FROM
+        PUSH_NOTICE_TARGET
+    WHERE
+        PUSH_ID = #{pushId}
+        AND USER_ID = #{userId}
+  </select>
+
+  <!-- 읽지 않은 알림 개수 -->
+  <select id="selectUnreadNoticeCount" parameterType="string" resultType="int">
+    SELECT COUNT(*)
+    FROM PUSH_NOTICE_TARGET
+    WHERE USER_ID = #{userId}
+      AND CHECK_AT IS NULL
+  </select>
+
+  <!-- 발신자 부서명 조회 -->
+  <select id="selectSenderDepartmentName" parameterType="string" resultType="string">
+   SELECT
+        T_DEPT.STF_DEPT_NAME
+    FROM
+        STAFF T_STAFF
+    LEFT JOIN
+        STAFF_DEPT T_DEPT ON T_STAFF.STF_DEPT_CD = T_DEPT.STF_DEPT_CD
+    WHERE
+        T_STAFF.STAFF_NO = #{senderId}
+  </select>
+
+  <!-- 읽음 처리 (CHECK_AT 업데이트) -->
+  <update id="updateCheckAt" parameterType="map">
+    UPDATE PUSH_NOTICE_TARGET
+    SET CHECK_AT = SYSDATE
+    WHERE
+        PUSH_ID = #{pushId}
+        AND USER_ID = #{targetUserId}
+        AND CHECK_AT IS NULL
+  </update>
+
+
+
+
+		<select id="findStaffNoByUserId" resultType="string">
+		    SELECT
+		        T_STAFF.STAFF_NO
+		    FROM
+		        USERS T_USER
+		        JOIN STAFF T_STAFF ON T_USER.USER_ID = T_STAFF.USER_ID
+		    WHERE
+		        T_USER.USER_ID = #{userId}
+		</select>
+
+		<select id="findProfNoByUserId" resultType="string">
+		    SELECT
+		        T_PROF.PROFESSOR_NO
+		    FROM
+		        USERS T_USER
+		        JOIN PROFESSOR T_PROF ON T_USER.USER_ID = T_PROF.USER_ID
+		    WHERE
+		        T_USER.USER_ID = #{userId}
+		</select>
+
+		<select id="selectStudentUserIdsAll" resultType="string">
+		    SELECT
+			T_USER.USER_ID
+		FROM
+			STUDENT T_STU
+		JOIN
+			USERS T_USER ON T_STU.USER_ID = T_USER.USER_ID
+		WHERE
+			T_STU.STU_STATUS_CD IN ('ENROLLED', 'ON_LEAVE_MIL')
+		  </select>
+
+		  <select id="selectStudentUserIdsByGrade" parameterType="string" resultType="string">
+		    SELECT
+		        T_USER.USER_ID
+		    FROM
+		        STUDENT T_STU
+		    JOIN
+		        USERS T_USER ON T_STU.USER_ID = T_USER.USER_ID
+		    WHERE
+		        T_STU.GRADE_CD = #{grandCd}
+		        AND T_STU.STU_STATUS_CD IN ('ENROLLED', 'ON_LEAVE_MIL')
+		  </select>
+
+		  <select id="selectStudentUserIdsByDepartment" parameterType="kr.or.jsu.dto.PushNoticeDetailDTO" resultType="string">
+		  SELECT
+		        T_USER.USER_ID
+		    FROM
+		        STUDENT T_STU
+		    JOIN
+		        USERS T_USER ON T_STU.USER_ID = T_USER.USER_ID
+		   WHERE
+		        T_STU.UNIV_DEPT_CD = #{targetCode}  AND T_STU.GRADE_CD = #{gradeCode}
+		     AND T_STU.STU_STATUS_CD IN ('ENROLLED', 'ON_LEAVE_MIL')
+		  </select>
+
+		  <select id="findStudentNoByUserId" resultType="string">
+		    SELECT
+		        T_STU.STUDENT_NO
+		    FROM
+		        USERS T_USER
+		        JOIN STUDENT T_STU ON T_USER.USER_ID = T_STU.USER_ID
+		    WHERE
+		        T_USER.USER_ID = #{userId}
+		</select>
+
+
+
+
+
+</mapper>

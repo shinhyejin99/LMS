@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.UnivRecordApplyMapper">
+
+    <insert id="insertUnivRecordApply">
+        INSERT INTO univ_record_apply (
+            apply_id,
+            student_no,
+            record_change_cd,
+            disire_term,
+            apply_at,
+            apply_reason,
+            apply_status_cd,
+            attach_file_id,
+            approval_line
+        ) VALUES (
+            #{applyId},
+            #{studentNo},
+            #{recordChangeCd},
+            #{disireTerm},
+            #{applyAt},
+            #{applyReason},
+            #{applyStatusCd},
+            #{attachFileId},
+            #{approvalLine}
+        )
+    </insert>
+
+    <select id="selectUnivRecordApplyById" resultType="kr.or.jsu.vo.UnivRecordApplyVO">
+        SELECT
+            apply_id,
+            student_no,
+            record_change_cd,
+            disire_term,
+            apply_at,
+            apply_reason,
+            apply_status_cd,
+            attach_file_id,
+            approval_line
+        FROM
+            univ_record_apply
+        WHERE
+            apply_id = #{applyId}
+    </select>
+
+    <select id="selectAllUnivRecordApplies" resultType="kr.or.jsu.vo.UnivRecordApplyVO">
+        SELECT
+            apply_id,
+            student_no,
+            record_change_cd,
+            disire_term,
+            apply_at,
+            apply_reason,
+            apply_status_cd,
+            attach_file_id,
+            approval_line
+        FROM
+            univ_record_apply
+        ORDER BY
+            apply_id
+    </select>
+
+    <update id="updateUnivRecordApply">
+        UPDATE univ_record_apply
+        SET
+            student_no = #{studentNo},
+            record_change_cd = #{recordChangeCd},
+            disire_term = #{disireTerm},
+            apply_at = #{applyAt},
+            apply_reason = #{applyReason},
+            apply_status_cd = #{applyStatusCd},
+            attach_file_id = #{attachFileId},
+            approval_line = #{approvalLine}
+        WHERE
+            apply_id = #{applyId}
+    </update>
+
+    <delete id="deleteUnivRecordApply">
+        DELETE FROM univ_record_apply
+        WHERE
+            apply_id = #{applyId}
+    </delete>
+
+
+    <select id="selectProfAcademicChangeStatusList" parameterType="kr.or.jsu.core.paging.PaginationInfo"
+    resultType="kr.or.jsu.dto.RecordApplyResponseDTO">
+       
+        SELECT *
+    FROM (
+        SELECT 
+            ROWNUM rn,
+            a.*
+        FROM (
+		  SELECT
+			    UAA.APPLY_ID
+			    , UAA.STUDENT_NO
+			    , UAA.TARGET_DEPT_CD
+			    , UAA.AFFIL_CHANGE_CD
+			    , UAA.APPLY_AT
+			    , UAA.APPLY_REASON
+			    , UAA.APPLY_STATUS_CD
+			    , UAA.ATTACH_FILE_ID
+			    , URA.APPROVAL_LINE 
+			    , URA.RECORD_CHANGE_CD
+			    , URA.DISIRE_TERM
+		FROM
+		    TEAM2_202504F.UNIV_AFFIL_APPLY UAA
+		 JOIN 
+		    UNIV_RECORD_APPLY URA ON URA.APPLY_ID = UAA.APPLY_ID ; 
+		    <where>
+	        <if test="simpleSearch != null and simpleSearch.searchWord != null and simpleSearch.searchWord != ''">
+	            <choose>
+	                <when test="simpleSearch.searchType == 'recordChangeCd'">
+	                    AND URA.RECORD_CHANGE_CD	 LIKE '%' || #{simpleSearch.searchWord} || '%'
+	                </when>
+	                <when test="simpleSearch.searchType == 'applyStatusCd'">
+	                    AND UAA.APPLY_STATUS_CD LIKE '%' || #{simpleSearch.searchWord} || '%'
+	                </when>
+	            </choose>
+	        </if>
+	    </where>
+	            ORDER BY
+	            s.STAFF_NO  ASC
+	        ) a
+	    )
+	    WHERE rn BETWEEN #{startRow} AND #{endRow}
+    </select>
+</mapper>

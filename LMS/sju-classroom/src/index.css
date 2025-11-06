@@ -1,0 +1,266 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* UserInfoHover Popover Styles */
+.popover {
+    /* 팝오버의 최대 너비를 설정하여 내용이 너무 길어지는 것을 방지 */
+    max-width: 350px; 
+    /* 팝오버 배경색: 밝은 회색 또는 아주 연한 파란색 */
+    background-color: #f8f9fa; /* 현재 페이지 배경색과 유사하게 유지하되 약간 다르게 */
+    /* 테두리: 부드러운 회색 */
+    border: 1px solid #e0e0e0;
+    /* 그림자: 부드러운 그림자 효과 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    /* 모서리 둥글게 */
+    border-radius: 0.75rem;
+    /* 폰트 크기 조정 */
+    font-size: 0.9rem;
+}
+
+/* 📌 팝오버 헤더 ('내 정보' 부분) 스타일 */
+.popover-header {
+    /* 배경색: 약간 더 진한 회색 또는 연한 파란색 */
+    background-color: #F0F2F5; /* 연한 파란색/회색 */
+    /* 텍스트 색상: 진한 남색 */
+    color: #1A237E; 
+    /* 폰트 두께 및 크기 */
+    font-weight: 700;
+    font-size: 1rem;
+    /* 테두리 하단 */
+    border-bottom: 1px solid #e0e0e0;
+    /* 상단 모서리 둥글게 */
+    border-top-left-radius: calc(0.75rem - 1px);
+    border-top-right-radius: calc(0.75rem - 1px);
+    /* 패딩 조정 */
+    padding: 0.8rem 1rem;
+}
+
+/* 📌 팝오버 본문 (내용) 스타일 */
+.popover-body {
+    /* 내부 패딩 */
+    padding: 1rem;
+    /* 텍스트 색상 */
+    color: #343a40;
+}
+
+/* 팝오버 본문 내 데이터 리스트 (dl) 스타일 */
+.popover-body dl {
+    margin-bottom: 0; /* Bootstrap dl 기본 마진 제거 */
+}
+
+/* 팝오버 본문 내 항목 이름 (dt) 스타일 */
+.popover-body dt {
+    /* 항목 이름 폰트 두께 */
+    font-weight: 500; /* 보통 */
+    /* 항목 이름 색상 */
+    color: #555555;
+    /* 간격 조정 */
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+}
+.popover-body dt:first-of-type {
+    margin-top: 0; /* 첫 번째 항목 이름은 위쪽 마진 없음 */
+}
+
+/* 팝오버 본문 내 항목 값 (dd) 스타일 */
+.popover-body dd {
+    /* 항목 값 폰트 두께 */
+    font-weight: 600; /* 조금 더 진하게 */
+    /* 항목 값 색상 */
+    color: #212529;
+    /* 간격 조정 */
+    margin-bottom: 0.5rem;
+    margin-left: 0; /* 기본 들여쓰기 제거 */
+    font-size: 0.95rem;
+    word-break: break-all; /* Added for long text like email */
+}
+
+/* Refined LectureInfoHover Popover Styles */
+.lecture-info-popover .popover-header {
+  background-color: #f0f5ff; /* Lighter, softer blue */
+  color: #0d47a1;
+  font-weight: 700;
+  border-bottom: 1px solid #d6e4ff;
+  font-size: 1.05rem;
+}
+
+.lecture-info-popover .popover-body {
+  background-color: #FFFFFF;
+  padding: 0.75rem;
+}
+
+.lecture-info-popover-content hr {
+  border-top: 1px solid #e9ecef;
+}
+
+.lecture-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid #f1f3f5;
+}
+.lecture-info-item:last-child {
+  border-bottom: none;
+}
+
+.lecture-info-label {
+  font-weight: 600;
+  color: #345a8d;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.lecture-info-label .bi {
+  color: #6b9eff;
+}
+
+.lecture-info-value {
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.lecture-info-sub {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.lecture-sub-info-item {
+  flex-direction: column;
+  align-items: flex-start;
+  background-color: #f8f9fa;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  text-align: center;
+}
+
+.lecture-sub-info-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6c757d;
+  margin: 0 auto;
+}
+
+.lecture-sub-info-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0d47a1;
+  margin: 0.25rem auto 0;
+}
+
+.lecture-schedule-section {
+  margin-top: 0.5rem;
+}
+
+.lecture-schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.lecture-schedule-entry {
+  background-color: #f0f8ff; /* Very light blue background */
+  border: 1px solid #e0f2ff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lecture-schedule-place, .lecture-schedule-time {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.lecture-schedule-place .bi, .lecture-schedule-time .bi {
+  margin-right: 0.5rem;
+  color: #42a5f5; /* Blue icon color */
+  font-size: 1rem;
+}
+
+.lecture-schedule-place {
+  font-weight: 600;
+  color: #1976d2; /* Darker blue for place */
+}
+
+.lecture-info-popover .popover-body .badge {
+  background-color: #e7f5ff !important;
+  color: #1971c2 !important;
+  border: none !important;
+  font-weight: 500;
+}

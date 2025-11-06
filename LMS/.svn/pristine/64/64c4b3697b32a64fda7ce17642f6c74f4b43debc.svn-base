@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.FilesMapper">
+	<insert id="insertFiles">
+		<selectKey keyProperty="fileId" resultType="string" order="BEFORE">
+			SELECT 'FILE' || LPAD(TO_CHAR(SEQ_FILE.NEXTVAL), 11, '0') AS FILE_ID
+			FROM DUAL
+		</selectKey>
+		INSERT INTO FILES (
+			FILE_ID
+			, USER_ID
+			, CREATE_AT
+			, PUBLIC_YN
+			, USING_YN
+		) VALUES (
+			#{fileId}
+			, #{userId}
+			, SYSDATE
+			, #{publicYn}
+			, 'Y'
+		)
+	</insert>
+
+	<insert id="insertFileDetails">
+		<if test="details != null and details.size() > 0">
+			INSERT ALL
+			<foreach collection="details" item="d">
+				INTO FILE_DETAIL (
+					FILE_ORDER
+					, FILE_ID
+					, ORIGIN_NAME
+					, EXTENSION
+					, SAVE_DIR
+					, FILE_SIZE
+					, SAVE_NAME
+				) VALUES (
+					#{d.fileOrder}
+					, #{fileId}
+					, #{d.originName}
+					, #{d.extension}
+					, #{d.saveDir}
+					, #{d.fileSize}
+					, #{d.saveName}
+				)
+			</foreach>
+			SELECT 1 FROM DUAL
+		</if>
+	</insert>
+	
+	<select id="selectFileDetail">
+		SELECT
+			FILE_ORDER
+			, FILE_ID
+			, ORIGIN_NAME
+			, EXTENSION
+			, RTRIM(SAVE_DIR) AS SAVE_DIR
+			, FILE_SIZE
+			, RTRIM(SAVE_NAME) AS SAVE_NAME
+		FROM
+			FILE_DETAIL
+		WHERE
+			FILE_ORDER = #{fileOrder}
+			AND FILE_ID = #{fileId}
+	</select>
+	
+	<resultMap id="FileBundleDTOMap" type="kr.or.jsu.dto.FileBundleDTO">
+		<id property="fileId" column="f_file_id"/>
+		<association property="filesInfo" javaType="kr.or.jsu.vo.FilesVO" autoMapping="true" columnPrefix="f_"/>
+		<collection property="fileDetailsInfo"  ofType="kr.or.jsu.vo.FileDetailVO" autoMapping="true" columnPrefix="fd_"/>
+	</resultMap>
+	
+	<select id="selectFileBundle" resultMap="FileBundleDTOMap">
+		SELECT
+			f.FILE_ID        		AS f_file_id
+			, f.USER_ID      		AS f_user_id
+			, f.CREATE_AT    		AS f_create_at
+			, f.PUBLIC_YN    		AS f_public_yn
+			, f.USING_YN     		AS f_using_yn
+			, fd.FILE_ORDER  		AS fd_file_order
+			, fd.FILE_ID     		AS fd_file_id
+			, fd.ORIGIN_NAME 		AS fd_origin_name
+			, fd.EXTENSION   		AS fd_extension
+			, RTRIM(fd.SAVE_DIR)    AS fd_save_dir
+			, fd.FILE_SIZE   		AS fd_file_size
+			, RTRIM(fd.SAVE_NAME) 	AS fd_save_name
+		FROM files f
+		JOIN FILE_DETAIL fd
+			ON f.FILE_ID = fd.FILE_ID
+		WHERE f.FILE_ID = #{fileId}
+	</select>
+	
+	<update id="updateFileUsingYn">
+		UPDATE 
+			FILES
+    	SET 
+    		USING_YN = #{usingYn}
+    	WHERE 
+    		FILE_ID = #{fileId}
+	</update>
+
+</mapper>

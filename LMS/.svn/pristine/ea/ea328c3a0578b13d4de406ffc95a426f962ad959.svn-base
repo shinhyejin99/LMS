@@ -1,0 +1,73 @@
+#stu-lecture-root .overview-photo,
+#stu-lecture-root .overview-photo-placeholder {
+  width: 96px;
+  height: 128px;
+  border-radius: 0.75rem;
+}
+
+#stu-lecture-root .overview-photo {
+  object-fit: cover;
+  border: 1px solid #dee2e6;
+}
+
+#stu-lecture-root .overview-photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border: 1px dashed #ced4da;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+#stu-lecture-root .classmate-summary-list {
+  min-height: 1.5rem;
+}
+
+#stu-lecture-root .modal-backdrop.custom {
+  opacity: 0.5;
+}
+
+#schedule-section tbody tr {
+  background-color: white !important; /* Forces all tbody tr to be white */
+}
+
+.nav-link.active {
+  background-color: var(--bs-primary-bg-subtle) !important; /* Changed to subtle background */
+  color: var(--bs-primary-text-emphasis) !important; /* Changed to emphasized text color */
+}
+
+/* Color-Adjusted Design for Weekly Plan Description */
+#plan-section .tab-content .tab-pane .card-body > div:last-child {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  background-color: var(--bs-tertiary-bg); /* Use a very subtle background */
+  border-radius: 0.5rem;
+  border: 1px solid var(--bs-border-color-translucent); /* Keep border subtle */
+  box-shadow: none;
+}
+
+#plan-section .tab-content .tab-pane .card-body > div:last-child .fw-semibold {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--bs-dark); /* Use a darker color for the label for better contrast */
+  padding-bottom: 0.25rem;
+  border-bottom: 1px dashed var(--bs-border-color-translucent); /* Even more subtle underline */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#plan-section .tab-content .tab-pane .card-body > div:last-child .fw-semibold::before {
+  content: '💡';
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--bs-primary); /* Keep icon color as primary for a touch of branding */
+}
+
+#plan-section .tab-content .tab-pane .card-body > div:last-child p {
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: var(--bs-body-color);
+  margin-bottom: 0;
+}

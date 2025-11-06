@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.TimeblockMapper">
+
+    <insert id="insertTimeblock">
+        INSERT INTO timeblock (
+            timeblock_cd,
+            weekday,
+            start_hhmm,
+            end_hhmm
+        ) VALUES (
+            #{timeblockCd},
+            #{weekday},
+            #{startHhmm},
+            #{endHhmm}
+        )
+    </insert>
+
+    <select id="selectTimeblockByCd" resultType="kr.or.jsu.vo.TimeblockVO">
+        SELECT
+            timeblock_cd,
+            weekday,
+            start_hhmm,
+            end_hhmm
+        FROM
+            timeblock
+        WHERE
+            timeblock_cd = #{timeblockCd}
+    </select>
+
+    <select id="selectAllTimeblocks" resultType="kr.or.jsu.vo.TimeblockVO">
+        SELECT
+            timeblock_cd,
+            weekday,
+            start_hhmm,
+            end_hhmm
+        FROM
+            timeblock
+        ORDER BY
+            timeblock_cd
+    </select>
+
+    <update id="updateTimeblock">
+        UPDATE timeblock
+        SET
+            weekday = #{weekday},
+            start_hhmm = #{startHhmm},
+            end_hhmm = #{endHhmm}
+        WHERE
+            timeblock_cd = #{timeblockCd}
+    </update>
+
+    <delete id="deleteTimeblock">
+        DELETE FROM timeblock
+        WHERE
+            timeblock_cd = #{timeblockCd}
+    </delete>
+
+</mapper>

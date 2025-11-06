@@ -1,0 +1,153 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ * 수정일      			수정자           수정내용
+ * -----------   	-------------    ---------------------------
+ * 2025. 10. 13.     	신혜진            최초 생성
+ *
+ * </pre>
+ */
+@charset "UTF-8";
+
+/* 일반 알림 목록 스타일 (Full Page Notification List) */
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+.notification-item:last-child {
+    border-bottom: none;
+}
+.notification-item:hover {
+    background-color: #f8f9fa;
+}
+.notification-item.unread {
+    font-weight: bold;
+    background-color: #f0f7ff;
+}
+
+/* Toast 컨테이너 위치 지정 */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1055; /* Bootstrap Modal보다 위에 표시 */
+}
+
+/* 뱃지 스타일 (Bootstrap 기본 bg-danger) */
+.badge.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+
+/* ---------------------------------------------------- */
+/* 🔔 알림 뱃지 스타일 (아이콘 오른쪽 상단에 붙이기 - 최종 통일) */
+/* ---------------------------------------------------- */
+/* .nav-item .badge.rounded-pill {  */
+#notificationDropdown .badge.rounded-pill {
+    position: absolute;
+    top: 0;
+    left: 100%; /* start-100 대신 left 사용 */
+
+    /* 🚨 수정된 부분: Y축 (-50%에서 10%로 변경) 뱃지를 아래로 내립니다. */
+    transform: translate(-30%, 10%);
+
+    font-size: 0.75em; /* 폰트 크기 조정 */
+    padding: 0.25em 0.55em; /* 패딩 조정 (크기 맞추기) */
+    min-width: 1.5em; /* 1자리 숫자가 들어가도 원형 유지 */
+    height: 1.5em; /* 높이 조정 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #fff; /* 흰색 테두리 */
+}
+
+
+/* ---------------------------------------------------- */
+/* 🔔 알림 드롭다운 항목 스타일 (목록 불릿 및 레이아웃 - 최종 통일) */
+/* ---------------------------------------------------- */
+
+/* 알림 항목 기본 스타일 */
+#dropdown-list-container .list-group-item {
+    position: relative;
+    padding: 0.5rem 1rem;
+    color: #343a40;
+    text-decoration: none;
+    /* 목록 항목 간 경계선 추가 */
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem; /* 폰트 크기 통일 */
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#dropdown-list-container .list-group-item:last-child {
+    border-bottom: none;
+}
+
+#dropdown-list-container .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* 읽지 않은 알림 항목 스타일 */
+#dropdown-list-container .list-group-item.unread {
+    font-weight: 700;
+    color: #212529;
+    /* 🚨 수정: 점 크기가 줄어든 만큼, 왼쪽 패딩 공간을 줄임 */
+    padding-left: 1.5rem !important;
+}
+
+/* 읽지 않은 알림에 빨간 점 표시 (목록 불릿처럼) */
+#dropdown-list-container .list-group-item.unread::before {
+    content: '•'; /* 점 모양 문자 */
+    color: #dc3545; /* 빨간색 */
+    /* 🚨 수정: 점 크기를 2.5rem에서 1.5rem로 줄임 */
+    font-size: 1.5rem;
+    line-height: 0;
+    position: absolute;
+    top: 50%;
+    /* 🚨 수정: 점을 더 왼쪽(항목 시작 지점)으로 붙임 */
+    left: 0.3rem;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+/* 제목과 내용의 줄 간격을 조정하여 두 줄 구조를 명확히 함 */
+#dropdown-list-container .list-group-item h6,
+#dropdown-list-container .list-group-item p {
+    line-height: 1.3;
+    margin-bottom: 0 !important;
+}
+
+/* 추가 부분  */
+ /* ===== 알림 아이콘 (헤더 벨) ===== */
+.notification-icon {
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #495057;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notification-icon:hover { color: #0d6efd; }
+
+
+/* ===== 드롭다운 컨테이너 ===== */
+#notification-dropdown-menu {
+  min-width: 300px;
+  max-width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1100;
+  border-radius: 0.75rem;
+  border: none; /* Bootstrap shadow만 사용 */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+#notification-dropdown-menu .dropdown-header {
+  border-top-left-radius: 0.75rem;
+  border-top-right-radius: 0.75rem;
+}
+
+

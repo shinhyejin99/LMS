@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LoginHistoryMapper">
+
+ <!-- 로그인 이력 등록 -->
+  <insert id="insertLoginHistory" parameterType="kr.or.jsu.vo.LoginHistoryVO">
+    <selectKey keyProperty="loginHistoryId" resultType="string" order="BEFORE">
+      SELECT 'LH' || LPAD(SEQ_LOGIN_HISTORY.NEXTVAL, 13, '0') FROM DUAL
+    </selectKey>
+    INSERT INTO LOGIN_HISTORY (
+      LOGIN_HISTORY_ID,
+      USER_ID,
+      SUCCESS_YN,
+      TRY_AT,
+      TRY_IP
+    ) VALUES (
+      #{loginHistoryId},
+      #{userId},
+      #{successYn},
+      #{tryAt},
+      #{tryIp}
+    )
+  </insert>
+
+  <!-- 로그인 이력 전체 목록 조회 -->
+  <select id="selectLoginHistoryList" resultType="kr.or.jsu.vo.LoginHistoryVO">
+    SELECT
+      LOGIN_HISTORY_ID,
+      USER_ID,
+      SUCCESS_YN,
+      TRY_AT,
+      TRY_IP
+    FROM LOGIN_HISTORY
+  </select>
+
+  <!-- 특정 로그인 이력 조회 -->
+  <select id="selectLoginHistory" parameterType="string" resultType="kr.or.jsu.vo.LoginHistoryVO">
+    SELECT
+      LOGIN_HISTORY_ID,
+      USER_ID,
+      SUCCESS_YN,
+      TRY_AT,
+      TRY_IP
+    FROM LOGIN_HISTORY
+    WHERE LOGIN_HISTORY_ID = #{loginHistoryId}
+  </select>
+
+  <!-- 로그인 이력 수정 -->
+  <update id="updateLoginHistory" parameterType="kr.or.jsu.vo.LoginHistoryVO">
+    UPDATE LOGIN_HISTORY
+    SET
+      USER_ID = #{userId},
+      SUCCESS_YN = #{successYn},
+      TRY_AT = #{tryAt},
+      TRY_IP = #{tryIp}
+    WHERE LOGIN_HISTORY_ID = #{loginHistoryId}
+  </update>
+
+  <!-- 로그인 이력 삭제 -->
+  <delete id="deleteLoginHistory" parameterType="string">
+    DELETE FROM LOGIN_HISTORY
+    WHERE LOGIN_HISTORY_ID = #{loginHistoryId}
+  </delete>
+</mapper>

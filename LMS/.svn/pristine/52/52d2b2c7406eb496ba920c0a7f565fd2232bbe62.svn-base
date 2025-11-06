@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.UnivAffilHistoryMapper">
+
+    <insert id="insertUnivAffilHistory">
+        INSERT INTO univ_affil_history (
+            change_at,
+            affil_change_cd,
+            student_no
+        ) VALUES (
+            #{changeAt},
+            #{affilChangeCd},
+            #{studentNo}
+        )
+    </insert>
+
+    <select id="selectUnivAffilHistoryByCd" resultType="kr.or.jsu.vo.UnivAffilHistoryVO">
+        SELECT
+            change_at,
+            affil_change_cd,
+            student_no
+        FROM
+            univ_affil_history
+        WHERE
+            affil_change_cd = #{affilChangeCd}
+    </select>
+
+    <select id="selectAllUnivAffilHistories" resultType="kr.or.jsu.vo.UnivAffilHistoryVO">
+        SELECT
+            change_at,
+            affil_change_cd,
+            student_no
+        FROM
+            univ_affil_history
+        ORDER BY
+            affil_change_cd
+    </select>
+
+    <update id="updateUnivAffilHistory">
+        UPDATE univ_affil_history
+        SET
+            change_at = #{changeAt},
+            student_no = #{studentNo}
+        WHERE
+            affil_change_cd = #{affilChangeCd}
+    </update>
+
+    <delete id="deleteUnivAffilHistory">
+        DELETE FROM univ_affil_history
+        WHERE
+            affil_change_cd = #{affilChangeCd}
+    </delete>
+
+</mapper>

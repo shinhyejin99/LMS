@@ -1,0 +1,5 @@
+.student-detail-text {
+    font-weight: 600;
+    color: #666;
+    font-size: 14px;
+}

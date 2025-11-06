@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctPostMapper">
+
+	<insert id="insertLctPost">
+	    <selectKey keyProperty="lctPostId" order="BEFORE" resultType="string">
+	        SELECT 'LCTPST' || LPAD(SEQ_LCT_POST.NEXTVAL, 9, '0') 
+	        FROM DUAL
+	    </selectKey>
+	    INSERT INTO LCT_POST (
+	          LCT_POST_ID
+	        , LECTURE_ID
+	        , TITLE
+	        , CONTENT
+	        , CREATE_AT
+	        , ATTACH_FILE_ID
+	        , DELETE_YN
+	        , POST_TYPE
+	        , TEMP_SAVE_YN
+	        , REVEAL_AT
+	    ) VALUES (
+	          #{lctPostId}
+	        , #{lectureId}
+	        , #{title}
+	        , #{content}
+	        , SYSDATE
+	        , #{attachFileId}
+	        , 'N'
+	        , #{postType}
+	        , #{tempSaveYn}
+	        , #{revealAt,jdbcType=DATE} -- revealAt은 nullable이므로 jdbcType=DATE
+	    )
+	</insert>
+	
+	<select id="selectPostListForPrf">
+		SELECT
+			LCT_POST_ID
+			, LECTURE_ID
+			, TITLE
+			, CONTENT
+			, CREATE_AT
+			, ATTACH_FILE_ID
+			, DELETE_YN
+			, POST_TYPE
+			, TEMP_SAVE_YN
+			, REVEAL_AT
+		FROM
+			LCT_POST
+		WHERE
+			DELETE_YN = 'N'
+		AND
+			LECTURE_ID = #{lectureId}
+		<if test="postType != null">
+		AND
+			POST_TYPE = #{postType}	
+		</if>
+		ORDER BY CREATE_AT DESC
+	</select>
+	
+	<select id="selectPost">
+		SELECT
+			LCT_POST_ID
+			, LECTURE_ID
+			, TITLE
+			, CONTENT
+			, CREATE_AT
+			, ATTACH_FILE_ID
+			, DELETE_YN
+			, POST_TYPE
+			, TEMP_SAVE_YN
+			, REVEAL_AT
+		FROM
+			LCT_POST
+		WHERE
+			LCT_POST_ID = #{lctPostId}
+			AND DELETE_YN = 'N'
+	</select>
+	
+	<update id="deleteLctPostSoft">
+		UPDATE
+			LCT_POST
+		SET
+			DELETE_YN = 'Y'
+		WHERE
+			LCT_POST_ID = #{lctPostId}
+	</update>
+	
+	<update id="updateLctPost">
+		UPDATE
+			LCT_POST
+		SET
+			TITLE = #{title}
+			, CONTENT = #{content}
+			, ATTACH_FILE_ID = #{attachFileId}
+			, POST_TYPE = #{postType}
+			, TEMP_SAVE_YN = #{tempSaveYn}
+			, REVEAL_AT = #{revealAt,jdbcType=DATE}
+		WHERE
+			LCT_POST_ID = #{lctPostId}
+	</update>
+	
+
+</mapper>

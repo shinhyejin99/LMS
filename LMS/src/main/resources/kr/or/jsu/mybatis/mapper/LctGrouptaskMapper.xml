@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctGrouptaskMapper">
+
+	<insert id="insertGrouptask">
+		<selectKey keyProperty="grouptaskId" resultType="string" order="BEFORE">
+			SELECT 'TSKGRUP' || LPAD(TO_CHAR(SEQ_TASK_GROUP.NEXTVAL), 8, '0') AS GROUPTASK_ID
+			FROM DUAL
+		</selectKey>
+		INSERT INTO LCT_GROUPTASK lgt (
+			<include refid="grouptask_all_col"/>
+		) VALUES (
+			#{grouptaskId}
+			, #{lectureId}
+			, #{grouptaskName}
+			, #{grouptaskDesc}
+			, SYSDATE
+			, #{startAt}
+			, #{endAt}
+			, 'N'
+			, #{attachFileId}
+		)
+	</insert>
+	
+	<insert id="insertGroups">
+		<selectKey keyProperty="groupId" resultType="string" order="BEFORE">
+			SELECT 'TASKJO' || LPAD(TO_CHAR(SEQ_JO_FOR_TASK.NEXTVAL), 9, '0') AS GROUP_ID
+			FROM DUAL
+		</selectKey>
+		INSERT INTO GROUPTASK_GROUP (
+			GROUP_ID
+			, LEADER_ENROLL_ID
+			, GROUPTASK_ID
+			, GROUP_NAME
+			, CREATE_AT
+			, USING_YN
+		) VALUES (
+			#{groupId}
+			, #{leaderEnrollId}
+			, #{grouptaskId}
+			, #{groupName}
+			, SYSDATE
+			, 'Y'
+		)
+	</insert>
+	
+	<insert id="insertGrouptaskSubmit">
+		INSERT INTO GROUPTASK_SUBMIT (
+			GROUPTASK_ID
+			, GROUP_ID
+			, SUBMIT_DESC
+			, SUBMIT_FILE_ID
+			, SUBMIT_AT
+		) VALUES (
+			#{grouptaskId}
+			, #{groupId}
+			, null
+			, null
+			, null
+		)
+	</insert>
+	
+	<insert id="insertGrouptaskCrew">
+	    INSERT ALL
+	    <foreach collection="crewsEnrollIdList" item="enrollId">
+	        INTO GROUPTASK_CREW (
+	            GROUP_ID,
+	            ENROLL_ID,
+	            EVALU_SCORE,
+	            EVALU_AT,
+	            EVALU_DESC
+	        ) VALUES (
+	            #{groupId},
+	            #{enrollId},
+	            NULL,
+	            NULL,
+	            NULL
+	        )
+	    </foreach>
+	    SELECT * FROM DUAL
+	</insert>
+	
+	<select id="selectGrouptaskList_PRF">
+		SELECT
+			<include refid="grouptask_all_col"/>
+			, (
+				SELECT count(*)
+				FROM GROUPTASK_SUBMIT gts
+				WHERE gts.GROUPTASK_ID = lgt.GROUPTASK_ID
+				AND gts.SUBMIT_AT IS NOT NULL		
+			) AS SUBMITTED_TASK
+			, (
+				SELECT count(*)
+				FROM GROUPTASK_SUBMIT gts
+				WHERE gts.GROUPTASK_ID = lgt.GROUPTASK_ID
+			) AS TARGET_JO_CNT
+		FROM
+			LCT_GROUPTASK lgt
+		WHERE
+			lgt.LECTURE_ID = #{lectureId}
+			AND lgt.DELETE_YN = 'N'
+	</select>
+	
+	<select id="selectGrouptaskList_STU">
+		SELECT
+			lgt.*
+			, (
+				SELECT
+					CASE WHEN gs.SUBMIT_AT  IS NOT NULL THEN 1 ELSE 0 END
+				FROM
+					GROUPTASK_CREW gc
+				JOIN GROUPTASK_GROUP gg ON
+					gc.GROUP_ID = gg.GROUP_ID 
+				JOIN GROUPTASK_SUBMIT gs 
+					ON gg.GROUP_ID = gs.GROUP_ID 
+				WHERE
+					gc.ENROLL_ID = #{enrollId}
+					AND gs.GROUPTASK_ID = lgt.GROUPTASK_ID	
+			) AS IS_SUBMITTED
+		FROM
+			LCT_GROUPTASK lgt
+		WHERE
+			lgt.LECTURE_ID = #{lectureId}
+			AND lgt.DELETE_YN = 'N'
+	</select>
+	
+	<select id="selectGrouptask">
+		SELECT
+			<include refid="grouptask_all_col"/>
+		FROM
+			LCT_GROUPTASK lgt
+		WHERE
+			lgt.GROUPTASK_ID = #{grouptaskId}
+			AND DELETE_YN = 'N'
+	</select>
+	
+	<resultMap type="GrouptaskGroupWithCrewDTO" id="groupCrewMap">
+		<id property="groupId" column="GTG_GROUP_ID"/>
+		<association property="groupInfo"
+			javaType="GrouptaskGroupInfo" columnPrefix="GTG_" autoMapping="true" />
+		<association property="submitInfo"
+			javaType="GrouptaskSubmitInfo" columnPrefix="GTS_" autoMapping="true" />
+		<collection property="crewInfoList"
+			ofType="GrouptaskCrewInfo" columnPrefix="GTC_" autoMapping="true" />
+	</resultMap>
+	
+	<select id="selectGroupList" resultMap="groupCrewMap">
+		SELECT
+		    -- GROUPTASK_GROUP
+			  gtg.GROUP_ID AS GTG_GROUP_ID
+			, gtg.LEADER_ENROLL_ID AS GTG_LEADER_ENROLL_ID
+			, gtg.GROUPTASK_ID AS GTG_GROUPTASK_ID
+			, gtg.GROUP_NAME AS GTG_GROUP_NAME
+			, gtg.CREATE_AT AS GTG_CREATE_AT
+			, gtg.USING_YN AS GTG_USING_YN
+		    -- GROUPTASK_SUBMIT
+			, gts.GROUPTASK_ID AS GTS_GROUPTASK_ID
+			, gts.GROUP_ID AS GTS_GROUP_ID
+			, gts.SUBMIT_DESC AS GTS_SUBMIT_DESC
+			, gts.SUBMIT_FILE_ID AS GTS_SUBMIT_FILE_ID
+			, gts.SUBMIT_AT AS GTS_SUBMIT_AT
+		    -- GROUPTASK_CREW
+			, gtc.GROUP_ID AS GTC_GROUP_ID
+			, gtc.ENROLL_ID AS GTC_ENROLL_ID
+			, gtc.EVALU_SCORE AS GTC_EVALU_SCORE
+			, gtc.EVALU_AT AS GTC_EVALU_AT
+			, gtc.EVALU_DESC AS GTC_EVALU_DESC
+		FROM GROUPTASK_GROUP gtg
+		JOIN GROUPTASK_SUBMIT gts
+			ON gtg.GROUP_ID = gts.GROUP_ID
+		JOIN GROUPTASK_CREW gtc
+			ON gtg.GROUP_ID = gtc.GROUP_ID
+		WHERE
+			gtg.GROUPTASK_ID = #{grouptaskId}
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(stuNo)">
+			AND gtg.GROUP_ID = (
+			SELECT gtg.GROUP_ID  FROM
+			GROUPTASK_GROUP gtg
+			JOIN GROUPTASK_CREW gtc ON 
+				gtg.GROUP_ID = gtc.GROUP_ID
+			JOIN STU_ENROLL_LCT sel ON
+				gtc.ENROLL_ID = sel.ENROLL_ID
+			WHERE
+				sel.STUDENT_NO = #{stuNo}
+				AND gtg.GROUPTASK_ID = #{grouptaskId}
+			)
+		</if>
+	</select>
+	
+	<update id="updateGrouptaskSubmit">
+		UPDATE
+			GROUPTASK_SUBMIT
+		SET
+			SUBMIT_DESC = #{submitDesc}
+			, SUBMIT_FILE_ID = #{submitFileId}
+			, SUBMIT_AT = SYSDATE
+		WHERE
+			GROUPTASK_ID = #{grouptaskId}
+			AND GROUP_ID = #{groupId}
+	</update>
+	
+	<update id="deleteGrouptaskSoftly">
+		UPDATE
+			LCT_GROUPTASK
+		SET
+			DELETE_YN = 'Y'
+		WHERE
+			GROUPTASK_ID = #{grouptaskId}
+	</update>
+	
+	<update id="updateGrouptask">
+		UPDATE
+			LCT_GROUPTASK lg
+		SET
+			lg.GROUPTASK_NAME = #{grouptaskName}
+			, lg.GROUPTASK_DESC = #{grouptaskDesc}
+			, lg.START_AT = #{startAt}
+			, lg.END_AT = #{endAt}
+			, lg.ATTACH_FILE_ID = #{attachFileId}
+		WHERE
+			lg.GROUPTASK_ID = #{grouptaskId}
+	</update>
+	
+	<resultMap type="NotEvaluatedGrouptaskDTO" id="needEvalGrouptask" autoMapping="true">
+		<association property="lecture" javaType="LectureInfo"
+						columnPrefix="L_" autoMapping="true"/>
+		<association property="grouptask" javaType="LctGrouptaskInfo"
+						columnPrefix="LG_" autoMapping="true"/>
+	</resultMap>
+	
+	<select id="notEvaluatedTaskList" resultMap="needEvalGrouptask">
+		SELECT
+		      l.LECTURE_ID        AS L_LECTURE_ID
+		    , l.SUBJECT_CD        AS L_SUBJECT_CD
+		    , l.PROFESSOR_NO      AS L_PROFESSOR_NO
+		    , l.YEARTERM_CD       AS L_YEARTERM_CD
+		    , l.MAX_CAP           AS L_MAX_CAP
+		    , l.LECTURE_INDEX     AS L_LECTURE_INDEX
+		    , l.LECTURE_GOAL      AS L_LECTURE_GOAL
+		    , l.PREREQ_SUBJECT    AS L_PREREQ_SUBJECT
+		    , l.CANCEL_YN         AS L_CANCEL_YN
+		    , l.END_AT            AS L_END_AT
+		    , lg.GROUPTASK_ID     AS LG_GROUPTASK_ID
+		    , lg.LECTURE_ID       AS LG_LECTURE_ID
+		    , lg.GROUPTASK_NAME   AS LG_GROUPTASK_NAME
+		    , lg.GROUPTASK_DESC   AS LG_GROUPTASK_DESC
+		    , lg.CREATE_AT        AS LG_CREATE_AT
+		    , lg.START_AT         AS LG_START_AT
+		    , lg.END_AT           AS LG_END_AT
+		    , lg.DELETE_YN        AS LG_DELETE_YN
+		    , lg.ATTACH_FILE_ID   AS LG_ATTACH_FILE_ID
+		    , NVL(pnd.PENDING_GROUPS, 0) AS SUBMIT_COUNT
+		FROM PROFESSOR p
+		JOIN LECTURE l
+		  ON p.PROFESSOR_NO = l.PROFESSOR_NO
+		 AND l.END_AT IS NULL
+		JOIN LCT_GROUPTASK lg
+		  ON l.LECTURE_ID = lg.LECTURE_ID
+		JOIN (
+		    SELECT
+		          x.GROUPTASK_ID
+		        , COUNT(*) AS PENDING_GROUPS
+		    FROM (
+		        SELECT DISTINCT
+		              gs.GROUPTASK_ID
+		            , gs.GROUP_ID
+		        FROM GROUPTASK_SUBMIT gs
+		        WHERE gs.SUBMIT_AT IS NOT NULL
+		          AND EXISTS (
+		                SELECT 1
+		                  FROM GROUPTASK_CREW gc2
+		                 WHERE gc2.GROUP_ID = gs.GROUP_ID
+		                   AND gc2.EVALU_AT IS NULL
+		              )
+		    ) x
+		    GROUP BY x.GROUPTASK_ID
+		) pnd
+		  ON pnd.GROUPTASK_ID = lg.GROUPTASK_ID
+		WHERE p.PROFESSOR_NO = #{professorNo}
+	</select>
+	
+<sql id="grouptask_all_col">
+  lgt.GROUPTASK_ID
+, lgt.LECTURE_ID
+, lgt.GROUPTASK_NAME
+, lgt.GROUPTASK_DESC
+, lgt.CREATE_AT
+, lgt.START_AT
+, lgt.END_AT
+, lgt.DELETE_YN
+, lgt.ATTACH_FILE_ID
+</sql>
+
+</mapper>

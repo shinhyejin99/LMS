@@ -1,0 +1,317 @@
+/* ==================== */
+/* 학생 개인정보 페이지 전용 스타일 */
+/* ==================== */
+
+/* 외부 래퍼 */
+.student-personal-info-page {
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* 메인 컨테이너 */
+.student-personal-info-page .student-info-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: calc(100vh - 100px);
+    box-sizing: border-box;
+}
+
+/* 페이지 헤더 */
+.student-personal-info-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid white; /* 초록색 테마 */
+}
+
+.student-personal-info-page .page-header h1 {
+    font-size: 23px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+/* 기존 페이지 제목 숨김 */
+.student-personal-info-page .info-page-title {
+    display: none;
+}
+
+/* 카드 */
+.student-personal-info-page .info-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: none; /* 부모 컨테이너가 그림자 담당 */
+    margin-bottom: 24px;
+}
+
+.student-personal-info-page .info-card-header {
+    padding: 20px 24px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.student-personal-info-page .info-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.student-personal-info-page .info-card-body {
+    padding: 24px;
+}
+
+/* ============================================== */
+/* 학적정보 Flexbox 레이아웃 */
+/* ============================================== */
+
+.student-personal-info-page .stu-info-layout {
+    display: flex;
+    gap: 24px;
+}
+
+.student-personal-info-page .stu-info-flex-container {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.student-personal-info-page .stu-item-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: calc((100% - (16px * 3)) / 4);
+}
+
+.student-personal-info-page .stu-col-2 {
+    width: calc(((100% - (16px * 3)) / 4) * 2 + 16px);
+}
+
+.student-personal-info-page .stu-item-label {
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.student-personal-info-page .stu-item-value {
+    background: #f8f9fa;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #333;
+    height: 40px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+}
+
+/* 증명사진 */
+.student-personal-info-page .info-photo {
+    width: 220px;
+    flex-shrink: 0;
+    text-align: center;
+    align-self: center;
+}
+
+.student-personal-info-page .photo-img {
+    width: 200px;
+    height: 240px;
+    object-fit: cover;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    margin-bottom: 12px;
+}
+
+.student-personal-info-page .photo-placeholder {
+    width: 200px;
+    height: 240px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    color: #999;
+}
+
+.student-personal-info-page .photo-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 8px;
+}
+
+.student-personal-info-page .photo-placeholder span {
+    font-size: 14px;
+}
+
+.student-personal-info-page .photo-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+/* 폼 그리드 (인적정보 섹션) */
+.student-personal-info-page .form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.student-personal-info-page .form-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-personal-info-page .form-item-full {
+    grid-column: 1 / -1;
+}
+
+.student-personal-info-page .form-label {
+    font-weight: 600;
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.student-personal-info-page .required {
+    color: #d32f2f;
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.student-personal-info-page .form-input,
+.student-personal-info-page .form-select {
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.student-personal-info-page .form-input:focus,
+.student-personal-info-page .form-select:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+.student-personal-info-page .input-with-button {
+    display: flex;
+    gap: 8px;
+}
+
+.student-personal-info-page .input-with-button .form-input {
+    flex: 1;
+}
+
+.student-personal-info-page .btn-search {
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.student-personal-info-page .btn-search:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+/* 버튼 영역 */
+.student-personal-info-page .form-actions {
+    margin-top: 24px;
+    text-align: right;
+}
+
+.student-personal-info-page .btn-submit {
+    padding: 12px 32px;
+    background: #28a745; /* 초록색 테마 */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.student-personal-info-page .btn-submit:hover {
+    background: #218838;
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+    transform: translateY(-1px);
+}
+
+.student-personal-info-page .btn-submit:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== */
+/* 반응형 */
+/* ==================== */
+
+@media (max-width: 1200px) {
+    .student-personal-info-page .stu-info-layout {
+        flex-direction: column;
+    }
+
+    .student-personal-info-page .info-photo {
+        width: 100%;
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .student-personal-info-page {
+        padding: 10px;
+    }
+
+    .student-personal-info-page .student-info-container {
+        padding: 20px 15px;
+        min-height: calc(100vh - 80px);
+    }
+
+    .student-personal-info-page .page-header h1 {
+        font-size: 22px;
+    }
+
+    .student-personal-info-page .stu-item-wrapper,
+    .student-personal-info-page .stu-col-2 {
+        width: 100%;
+    }
+
+    .student-personal-info-page .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .student-personal-info-page .photo-img,
+    .student-personal-info-page .photo-placeholder {
+        width: 160px;
+        height: 192px;
+    }
+
+    .student-personal-info-page .info-card-body {
+        padding: 16px;
+    }
+}

@@ -1,0 +1,54 @@
+테이블정의서,,,,,,,,,
+테이블명,15 증명서,,테이블ID,CERTIFICATE,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,"학내 시스템에서 발행할 수 있는 증명서의 종류와 그 유효기간, 어떤 사용자가 접근하여 발급받을 수 있는지를 기록한 테이블입니다.
+""접근가능액터"" 는 S, P, F를 사용합니다(Student, Professor, stafF).
+(""SF""는 학생과 직원이 발급할 수 있는 증명서, ""P""는 교수만 발급할 수 있는 증명서)",,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,CERTIFICATE_CD,,증명서코드,증명서코드,VARCHAR2(50),NOT NULL,,PK,
+2.0,CERTIFICATE_NAME,,증명서이름,,VARCHAR2(100),NOT NULL,,,
+3.0,EXPIRE_PERIOD,,유효일수,,NUMBER(5),NOT NULL,,,"""일"" 단위입니다."
+4.0,SHARE_SCOPE_CD,,액터범위코드,급조코드,VARCHAR2(50),NOT NULL,,,액터범위코드 : 5. LMS 자료사전
+5.0,TEMPLATE_PATH,,증명서양식경로,,VARCHAR2(255),NOT NULL,,,
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,15.1 증명서_발급,,테이블ID,CERTIFICATE_REQ,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,"모든 사용자가 발급한 증명서에 대한 데이터를 기록하는 테이블입니다.
+증명서를 발급받으면 ""현재 시간 + 각 증명서의 개별 유효일수""만큼 자동 계산되어 만료일이 적용됩니다.",,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,CERT_REQ_ID,,증명서발급ID,시퀀스,CHAR(15),NOT NULL,,PK,
+2.0,USER_ID,,발급사용자ID,사용자ID,CHAR(15),NOT NULL,,FK(사용자),
+3.0,CERTIFICATE_CD,,증명서코드,증명서코드,VARCHAR2(50),NOT NULL,,FK(증명서),
+4.0,REQUEST_AT,,발급일,,DATE,NOT NULL,SYSDATE,,
+5.0,EXPIRE_AT,,만료일,,DATE,NOT NULL,,,
+6.0,COPIES,,발급부수,,NUMBER,NOT NULL,1.0,,
+7.0,SUBMISSION_PLACE,,제출처,,VARCHAR2(255),,,,
+8.0,PURPOSE,,용도,,VARCHAR2(255),,,,
+9.0,STATUS_CD,,신청 상태 코드,,VARCHAR2(50),NOT NULL,PENDING,,
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,15.2 증명서_종류별항목,,테이블ID,CERTIFICATE_ITEM,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,"어떤 증명서에 어떤 항목이 포함되어 있는지를 기록한 테이블입니다. ex) 성적증명서 : [ 이름, 나이, 최종성적... ]",,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,ITEM,,항목,,VARCHAR2(50),NOT NULL,,PK,
+2.0,CERTIFICATE_CD,,증명서코드,증명서코드,VARCHAR2(50),NOT NULL,,"PK, FK(증명서)",
+3.0,DESCRIBE,,항목설명,,VARCHAR2(200),,,,""" * 필수 항목입니다 "" 등 항목에 붙일 데이터"
+,,,,,,,,,
+,,,,,,,,,
+테이블정의서,,,,,,,,,
+테이블명,15.3 증명서_항목,,테이블ID,CERTIFICATE_DETAIL,,,,,
+작성일,2025-09-25 00:00:00,,작성자,송태호,,UNIQUE,,,
+테이블 설명,"발급한 증명서의 어떤 항목에 어떤 값이 입력되어 있는지를 기록한 테이블입니다. ex) 성적증명서 : [ 이름 : 홍길동, 나이 : 24, 최종성적 : 4.3 ... ]",,,,,,,,
+,,,,,,,,,
+번호,컬럼ID,,컬럼명,도메인,데이터타입,NULL,기본값,KEY,설명
+1.0,CERT_REQ_ID,,증명서발급ID,시퀀스,CHAR(15),NOT NULL,,"PK, FK(증명서_발급)",
+2.0,CERTIFICATE_CD,,증명서코드,증명서코드,VARCHAR2(50),NOT NULL,,"PK, FK(증명서_항목)",
+3.0,ITEM,,항목,,VARCHAR2(50),NOT NULL,,"PK, FK(증명서_항목)",
+4.0,VALUE,,항목값,,VARCHAR2(200),NOT NULL,,,

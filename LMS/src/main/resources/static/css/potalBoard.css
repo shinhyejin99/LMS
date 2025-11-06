@@ -1,0 +1,588 @@
+/**
+ * <pre>
+ * << 개정이력(Modification Information) >>
+ *
+ *   수정일      			수정자           수정내용
+ *  -----------   	-------------    ---------------------------
+ *  2025. 9. 26.     	김수현            포털 사이트 게시글 css 분리
+ *	2025. 9. 29.		김수현			job-title-link 호버 효과 변경
+ *	2025.10. 16.		정태일			페이징 관련 중복코드 제거
+ *  2025.10. 20.     	정태일            대시보드 피드백 수정(학사관리버튼추가)
+ *  2025.10. 20.		김수현			D-Day 뱃지 스타일 추가(채용정보)
+ *  2025.10. 21.		김수현			검색바 위치 => 오른쪽 정렬로 수정
+ *  2025.10. 23.		정태일			긴급 공지사항 버튼 스타일 추가
+ *  2025.10. 24.		정태일			알림 충돌 스타일 정
+ * </pre>
+ */
+@charset "UTF-8";
+
+body {
+	font-family: 'Public Sans', sans-serif;
+	margin: 0;
+	background-color: white;
+	color: #212529;
+}
+
+
+.btn {
+	padding: 0.625rem 1.25rem;
+	border-radius: 0.375rem;
+	font-weight: 600;
+	border: none;
+	cursor: pointer;
+}
+
+.btn-primary {
+	background-color: #0d6efd;
+	color: #fff;
+}
+
+.btn-link {
+	background: none;
+	color: #0d6efd;
+	text-decoration: none;
+}
+
+.btn-link:hover {
+	color: #0b5ed7;
+}
+
+
+/* 메인 컨테이너 */
+.main-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 2rem;
+	background-color: white;
+	min-height: calc(100vh - 200px);
+}
+
+/* 브레드크럼 */
+.breadcrumb {
+	margin-top: 1.5rem;
+	margin-bottom: 1.5rem;
+	padding: 0.75rem 0;
+}
+
+.breadcrumb a {
+	color: #6c757d;
+	text-decoration: none;
+	font-size: 0.9rem;
+}
+
+.breadcrumb a:hover {
+	color: #0d6efd;
+}
+
+.breadcrumb span {
+	color: #6c757d;
+	margin: 0 0.5rem;
+}
+
+.breadcrumb a.breadcrumb-current {
+    font-weight: 700;
+    color: #1565C0 !important;
+    border-bottom: 2px solid #1565C0;
+    padding-bottom: 2px;
+}
+
+.page-title {
+	text-align: left;
+	font-size: 2.3rem;
+	font-weight: 600;
+	margin-bottom: 2rem;
+	color: #343a40;
+	padding-bottom: 2rem;
+	border-bottom: 2px solid #e9ecef;
+}
+
+.tab-navigation {
+	display: flex;
+	justify-content: left;
+	margin-bottom: 2rem;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.tab-item {
+	padding: 1rem 2rem;
+	cursor: pointer;
+	color: #6c757d;
+	font-weight: 500;
+	border-bottom: 3px solid transparent;
+	transition: all 0.3s ease;
+}
+
+.tab-item.active {
+	color: #0d6efd;
+	border-bottom-color: #0d6efd;
+}
+
+.tab-item:hover {
+	color: #0d6efd;
+}
+
+.notice-public {
+	background-color: rgb(220, 250, 209);
+	border: 1px solid #38cb34;
+	padding: 15px;
+	border-radius: 4px;
+	margin-bottom: 40px;
+}
+
+.search-container {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 2rem;
+	gap: 0.5rem;
+}
+
+.search-select {
+	padding: 0.5rem;
+	border: 1px solid #ced4da;
+	border-radius: 4px;
+}
+
+.search-input {
+	padding: 0.5rem;
+	border: 1px solid #ced4da;
+	border-radius: 4px;
+	width: 300px;
+}
+
+.search-btn {
+	padding: 0.5rem 1.5rem;
+	background-color: #1565C0;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.search-btn:hover {
+	background-color: #135bae;
+}
+
+/* 테이블 스타일 */
+.job-table {
+	width: 100%;
+	border-collapse: collapse;
+	background-color: white;
+	margin-bottom: 2rem;
+	border: 1px solid #dee2e6;
+}
+
+.job-table th {
+	background-color: #f8f9fa;
+	border: 1px solid #dee2e6;
+	padding: 12px 8px;
+	text-align: center;
+	font-weight: 600;
+	color: #495057;
+	font-size: 0.95rem;
+}
+
+.job-table td {
+	border: 1px solid #dee2e6;
+	padding: 12px 8px;
+	text-align: center;
+	color: #495057;
+	font-size: 0.9rem;
+}
+/* 목록 길어졌을떄 두줄로 되는 스타일 수정 */
+.job-table th, .job-table td {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+
+
+.job-table tbody tr:hover {
+	background-color: #f8f9fa;
+}
+
+.job-title-link {
+	color: #6c757d;
+	text-decoration: none;
+	font-weight: 500;
+	text-align: left;
+	padding-left: 12px;
+}
+
+.job-title-link:hover {
+	text-decoration: none;
+	color: #6c757d;
+}
+
+/* 공지사항 목록의 제목열만 왼쪽 정렬 */
+.job-table td:nth-child(2) {
+  text-align: left !important;
+  padding-left: 12px;
+}
+
+
+.col-num {
+	width: 8%;
+}
+
+.col-title {
+	width: 40%;
+}
+
+.col-dept {
+	width: 15%;
+}
+
+.col-period {
+	width: 20%;
+}
+
+.col-date {
+	width: 10%;
+}
+
+.col-views {
+	width: 7%;
+}
+
+
+.closed-label {
+    font-weight: bold;
+    color: #cc0000; /* 빨간색 계열 */
+    background-color: #ffe0e0;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+
+.job-closed {
+    opacity: 0.7;
+    background-color: #f7f7f7;
+}
+
+.job-closed .job-title-link {
+    color: #666;
+}
+
+.pagination-container {
+	display: flex;
+	justify-content: center;
+	margin-top: 2rem;
+}
+
+.pagination {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	justify-content: center;
+	margin: 20px 0;
+}
+
+.page-btn {
+	padding: 0.5rem 0.75rem;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    color: #1565C0 !important;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.page-btn:hover {
+	background-color: #E3F2FD !important;  /* 👈 호버 시 연한 파란색 */
+    color: #1565C0 !important;
+    border-color: #1565C0 !important;
+}
+
+.page-btn.active {
+	background-color: #1565C0 !important;
+	color: white !important;
+	border-color: #1565C0 !important;;
+}
+
+.page-btn.disabled {
+	color: #6c757d;
+	cursor: not-allowed;
+}
+
+.footer {
+	text-align: center;
+	padding: 2rem;
+	color: #6c757d;
+	font-size: 0.9rem;
+	border-top: 1px solid #e0e0e0;
+	margin-top: 3rem;
+}
+
+.admin-btn {
+	display: inline-block;
+	margin-bottom: 1rem;
+	padding: 0.5rem 1rem;
+	background-color: #28a745;
+	color: white;
+	text-decoration: none;
+	border-radius: 4px;
+	font-weight: 600;
+}
+
+.admin-btn:hover {
+	background-color: #218838;
+	color: white;
+	text-decoration: none;
+}
+
+
+/* 맞춤형 탭 특별 스타일 */
+
+.tab-special .sparkle {
+    font-size: 14px;
+    animation: sparkle 1.5s infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+}
+
+.badge-new {
+    background: #FF6B6B;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-left: 6px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+
+
+
+/* ==========================
+   아래쪽에 레이아웃, 사이드바 전용 스타일 추가
+   ========================== */
+/* 레이아웃 래퍼 */
+.layout-container {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px; /* 좌-메인-우 */
+  gap: 24px;
+  max-width: 1600px;  /* 전체 폭을 더 넓게 */
+  margin: 0 auto;
+  padding: 20px 24px;
+  box-sizing: border-box;
+}
+
+/* 공지사항 전용 확장 스타일 */
+.portal-notice-page .main-container {
+  max-width: 1200px;       /* 고정 */
+  box-shadow: 0 8px 20px rgba(0,0,0,.05);
+  border-radius: 12px;
+  padding: 2.5rem;
+  background-color: #fff;
+  transition: box-shadow .2s ease;
+}
+
+.portal-notice-page .main-container:hover {
+  box-shadow: 0 10px 28px rgba(0,0,0,.08);
+}
+
+
+/* ===== Left Sidebar ===== */
+.side-menu{
+  background: #fff;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  padding: 14px;
+  position: sticky; top: 88px;  /* 상단바 높이에 맞춰 조정 */
+  height: fit-content;
+  border: var(--border);
+}
+
+.side-menu .side-nav{ list-style:none; margin:0; padding:6px 0; }
+.side-menu .nav-item{ margin: 4px 0; }
+
+.side-menu .nav-link{
+  display:flex; align-items:center; gap:10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  text-decoration:none;
+  border-radius: 10px;
+  transition: background .15s ease, color .15s ease, transform .05s ease;
+  line-height: 1.2;
+}
+.side-menu .nav-link:hover{ background:#f1f4ff; color:#0b5ed7; }
+.side-menu .nav-item.active > .nav-link{
+  background: linear-gradient(90deg, rgba(13,110,253,.16), rgba(13,110,253,.06));
+  color:#0b5ed7; font-weight:700; box-shadow: inset 3px 0 0 var(--brand);
+}
+.side-menu .badge{
+  margin-left:auto; font-size:.75rem; padding:.18rem .4rem;
+  border-radius:999px; background:#eef2ff; color:#4c6fff;
+}
+
+
+
+
+/* ===== Right Widgets ===== */
+.side-menu.right{
+  padding: 0; overflow: hidden;  /* 카드 그룹 느낌 */
+}
+
+.widget{
+  background:#fff;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  border: var(--border);
+  margin-bottom: var(--gap);
+  overflow:hidden;
+}
+
+.widget .w-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 14px;
+  background: linear-gradient(180deg,#ffffff, #f7f9ff);
+  border-bottom: var(--border);
+}
+.widget .w-title{
+  margin:0; font-size:.95rem; font-weight:700; color:#1f2937;
+}
+.widget .w-body{ padding: 10px 12px; }
+
+.quick-links{ list-style:none; margin:0; padding:0; }
+.quick-links li{ margin:6px 0; }
+.quick-links a{
+  display:flex; align-items:center; gap:8px;
+  padding:8px 10px; border-radius:8px; text-decoration:none;
+  color: var(--ink);
+}
+.quick-links a:hover{ background:#f4f6fb; color:#0b5ed7; }
+
+.badge-dot{
+  display:inline-block; width:8px; height:8px; border-radius:50%;
+  background:#22c55e;
+}
+.w-list{ list-style:none; margin:0; padding:0; }
+.w-list li{
+  padding:8px 10px; border-bottom: var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.w-list li:last-child{ border-bottom: none; }
+.w-meta{ color:var(--muted); font-size:.82rem; margin-left:auto; }
+
+/* D-Day 뱃지 스타일 */
+.dday-closed {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px; /* 날짜와 약간의 간격 */
+    background-color: #f44336; /* 빨간색 배경 */
+    color: white;
+    border-radius: 12px;
+    font-size: 12px; /* D-Day와 유사한 크기 */
+    font-weight: 600;
+}
+
+.dday-today {
+    background: #ff5252;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    animation: blink 1s infinite;
+}
+
+.dday-urgent {
+    background: #ff9800;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.dday-normal {
+    background: #4caf50;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+
+/* 긴급 공지 뱃지 스타일 */
+.badge-urgent {
+    display: inline-block; /* 텍스트 크기에 맞춰 영역을 설정 */
+    background-color: #f44336; /* D-Day closed와 유사한 빨간색 */
+    color: white; /* 흰색 글자 */
+    font-weight: 600; /* 글자 굵기 (semibold) */
+    padding: 2px 8px; /* D-Day 뱃지와 유사한 패딩 */
+    border-radius: 12px; /* D-Day 뱃지와 동일한 둥근 모서리 (pill 형태) */
+    font-size: 12px; /* D-Day 뱃지와 유사한 글자 크기 */
+    line-height: 1.2; /* 줄 높이 조절 */
+    margin-right: 8px; /* 뒤에 오는 제목과의 간격 */
+    vertical-align: middle; /* 텍스트와 세로 정렬 맞추기 */
+    animation: pulse 1.5s infinite; /* NEW 뱃지의 pulse 애니메이션 적용 */
+    margin-left: 0; /* 왼쪽에 불필요한 마진이 있다면 제거 */
+}
+
+/* NEW 뱃지에 적용된 pulse 애니메이션을 badge-urgent에도 적용 */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); } /* 조금 더 부드러운 효과를 위해 1.1에서 1.05로 조정 */
+}
+
+/* 긴급 공지 토글 버튼 스타일 */
+.btn-urgent-toggle {
+    /* 기본 버튼 스타일 */
+    font-weight: 500;
+    border-radius: 4px; /* 약간 둥근 모서리 */
+    transition: all 0.2s ease-in-out;
+}
+
+/* 1. '긴급' 등록 버튼 (현재 긴급이 아닌 상태 'N') */
+.btn-urgent-toggle[data-is-urgent="N"] {
+    background-color: #dc3545; /* Primary Blue */
+    color: white;
+    border: 1px solid #dc3545;
+}
+
+/* 2. '해제' 버튼 (현재 긴급인 상태 'Y') */
+.btn-urgent-toggle[data-is-urgent="Y"] {
+    /* 회색 계열: 현재 상태를 취소/해제하는 '부정적' 액션 */
+    background-color: #6c757d; /* Secondary Gray */
+    color: white;
+    border: 1px solid #6c757d;
+}
+
+/* 마우스 호버 효과 */
+.btn-urgent-toggle[data-is-urgent="N"]:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+.btn-urgent-toggle[data-is-urgent="Y"]:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+
+/* 알림 충돌 스타일 추가 */
+#notification-dropdown-menu {
+    /* position: static; 을 무효화하고 부트스트랩의 기본 'absolute' 로 돌아가도록 합니다. */
+    position: absolute !important;
+
+    /* z-index는 충돌 방지를 위해 유지 */
+    z-index: 1060 !important;
+}

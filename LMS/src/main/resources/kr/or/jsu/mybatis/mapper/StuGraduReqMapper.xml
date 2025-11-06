@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuGraduReqMapper">
+
+<!-- 
+* == 개정이력(Modification Information) ==
+*   
+*   수정일      			수정자           수정내용
+*  ============   	============== =======================
+*  2025. 9. 25.     	최건우            내용 추가
+*
+-->
+    <!-- 단건 조회 -->
+    <select id="selectStuGraduReq" parameterType="string" resultType="kr.or.jsu.vo.StuGraduReqVO">
+        SELECT
+            gradu_req_submit_id
+          , student_no
+          , professor_no
+          , gradu_req_cd
+          , file_id
+          , submit_at
+          , evaluate_at
+          , evaluation
+          , delete_yn
+        FROM stu_gradu_req
+        WHERE TRIM(gradu_req_submit_id) = #{graduReqSubmitId}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStuGraduReqList" resultType="kr.or.jsu.vo.StuGraduReqVO">
+        SELECT
+            gradu_req_submit_id
+          , student_no
+          , professor_no
+          , gradu_req_cd
+          , file_id
+          , submit_at
+          , evaluate_at
+          , evaluation
+          , delete_yn
+        FROM stu_gradu_req
+        ORDER BY submit_at DESC
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStuGraduReq" parameterType="kr.or.jsu.vo.StuGraduReqVO">
+        INSERT INTO stu_gradu_req (
+            gradu_req_submit_id
+          , student_no
+          , professor_no
+          , gradu_req_cd
+          , file_id
+          , submit_at
+          , evaluate_at
+          , evaluation
+          , delete_yn
+        ) VALUES (
+            #{graduReqSubmitId}
+          , #{studentNo}
+          , #{professorNo}
+          , #{graduReqCd}
+          , #{fileId}
+          , #{submitAt}
+          , #{evaluateAt}
+          , #{evaluation}
+          , #{deleteYn}
+        )
+    </insert>
+
+    <!-- 다음 졸업요건 제출 ID 가져오기 -->
+    <select id="getNextGraduReqSubmitId" resultType="string">
+        SELECT 'GRS' || LPAD(SEQ_STU_GRADU_REQ_SUBMIT.NEXTVAL, 10, '0') FROM DUAL
+    </select>
+
+    <!-- 수정 -->
+    <update id="updateStuGraduReq" parameterType="kr.or.jsu.vo.StuGraduReqVO">
+        UPDATE stu_gradu_req
+        SET
+            student_no   = #{studentNo}
+          , professor_no = #{professorNo}
+          , gradu_req_cd = #{graduReqCd}
+          , file_id      = #{fileId}
+          , submit_at    = #{submitAt}
+          , evaluate_at  = #{evaluateAt}
+          , evaluation   = #{evaluation}
+          , delete_yn    = #{deleteYn}
+        WHERE TRIM(gradu_req_submit_id) = #{graduReqSubmitId}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStuGraduReq" parameterType="string">
+        DELETE FROM stu_gradu_req
+        WHERE gradu_req_submit_id = #{graduReqSubmitId}
+    </delete>
+
+    <!-- =================================================================== -->
+    <!-- 새로운 기능 (추가) -->
+    <!-- =================================================================== -->
+
+    <!-- 교수의 총 학생 수 조회 -->
+    <select id="countStudentsByProfessorNo" parameterType="map" resultType="int">
+        SELECT COUNT(s.STUDENT_NO)
+        FROM STUDENT s
+        LEFT JOIN COMMON_CODE CC_GRADE ON s.GRADE_CD = CC_GRADE.COMMON_CD
+        <if test="status != null and status != '' and status != 'not_submitted'">
+            JOIN stu_gradu_req sgr ON s.student_no = sgr.student_no AND sgr.delete_yn = 'N'
+        </if>
+        WHERE s.professor_id = #{professorNo}
+        AND TO_NUMBER(SUBSTR(CC_GRADE.CD_NAME, 1, 1)) >= 3
+        <if test="grade != null and grade != ''">
+            AND CC_GRADE.CD_NAME = #{grade} || '학년'
+        </if>
+
+    </select>
+
+    <select id="selectStuGraduReqListByProfessorNoPaginated" parameterType="map" resultType="kr.or.jsu.vo.StuGraduReqVO">
+        SELECT
+            s.student_no,
+            TO_CHAR(s.professor_id) AS professorNo,
+            u.last_name || u.first_name AS stdName,
+            ud.UNIV_DEPT_NAME AS deptName,
+            CC_GRADE.CD_NAME AS gradeName,
+            u.MOBILE_NO AS stdTel,
+            TRIM(sgr.gradu_req_submit_id) AS gradu_req_submit_id,
+            TRIM(sgr.gradu_req_cd) AS gradu_req_cd,
+            sgr.file_id,
+            sgr.submit_at,
+            sgr.evaluate_at,
+            sgr.evaluation,
+            sgr.delete_yn,
+            TO_NUMBER(dc.needed_value) AS totalRequiredCredits,
+            NVL(credits.completedCredits, 0) AS completedCredits,
+            NVL(credits.majorCredits, 0) AS majorCredits,
+            NVL(credits.liberalArtsCredits, 0) AS liberalArtsCredits
+        FROM
+            student s
+        JOIN
+            users u ON s.user_id = u.user_id
+        LEFT JOIN
+            UNIV_DEPT ud ON s.UNIV_DEPT_CD = ud.UNIV_DEPT_CD
+        LEFT JOIN
+            COMMON_CODE CC_GRADE ON s.GRADE_CD = CC_GRADE.COMMON_CD
+        LEFT JOIN
+            DEPT_CONDITION dc ON s.UNIV_DEPT_CD = dc.UNIV_DEPT_CD AND dc.condition_cd = 'TOTAL_CREDIT'
+        LEFT JOIN (
+            SELECT
+                sgr_inner.*,
+                ROW_NUMBER() OVER (PARTITION BY sgr_inner.student_no ORDER BY sgr_inner.submit_at DESC) as rn
+            FROM
+                stu_gradu_req sgr_inner
+            WHERE
+                sgr_inner.delete_yn = 'N'
+        ) sgr ON s.student_no = sgr.student_no AND sgr.rn = 1 AND sgr.PROFESSOR_NO = #{professorNo}
+        LEFT JOIN (
+            SELECT
+                se.student_no,
+                SUM(sub.credit) AS completedCredits,
+                SUM(CASE WHEN sub.completion_cd IN ('MAJ_CORE', 'MAJ_BASIC', 'MAJ_ELEC') THEN sub.credit ELSE 0 END) AS majorCredits,
+                SUM(CASE WHEN sub.completion_cd IN ('GE_CORE', 'GE_BASIC', 'GE_ELEC') THEN sub.credit ELSE 0 END) AS liberalArtsCredits
+            FROM
+                stu_enroll_lct se
+            JOIN
+                lecture l ON se.lecture_id = l.lecture_id
+            JOIN
+                subject sub ON l.subject_cd = sub.subject_cd
+            WHERE
+                TO_CHAR(se.final_grade) IS NOT NULL AND TO_CHAR(se.final_grade) != 'F'
+            GROUP BY
+                se.student_no
+        ) credits ON s.student_no = credits.student_no
+        WHERE
+            s.professor_id = #{professorNo}
+            AND TO_NUMBER(SUBSTR(CC_GRADE.CD_NAME, 1, 1)) >= 3
+            <if test="grade != null and grade != ''">
+                AND CC_GRADE.CD_NAME = #{grade} || '학년'
+            </if>
+
+        ORDER BY
+            s.student_no
+        OFFSET #{offset, jdbcType=NUMERIC} ROWS FETCH NEXT #{size, jdbcType=NUMERIC} ROWS ONLY
+    </select>
+
+    <!-- 졸업요건 상태 변경 (스타일 통일) -->
+    <update id="updateStuGraduReqStatus">
+        UPDATE stu_gradu_req
+        SET
+            gradu_req_cd = #{status},
+            evaluate_at = SYSDATE
+        WHERE TRIM(gradu_req_submit_id) = #{graduReqSubmitId}
+    </update>
+
+    <!-- 졸업요건 상태 및 반려사유 변경 (스타일 통일) -->
+    <update id="updateStuGraduReqStatusWithReason">
+        UPDATE stu_gradu_req
+        SET
+            gradu_req_cd = #{status},
+            evaluation = #{reason}
+            , evaluate_at = SYSDATE
+        WHERE TRIM(gradu_req_submit_id) = #{graduReqSubmitId}
+    </update>
+
+  <select id="selectGraduationAssignmentSubmissions" parameterType="map" resultType="kr.or.jsu.vo.StuGraduReqVO">
+      SELECT
+          TRIM(sgr.GRADU_REQ_SUBMIT_ID) AS gradu_req_submit_id,
+          sgr.STUDENT_NO,
+          sgr.PROFESSOR_NO,
+          sgr.GRADU_REQ_CD,
+          sgr.FILE_ID,
+          sgr.SUBMIT_AT,
+          sgr.EVALUATE_AT,
+          sgr.EVALUATION,
+          sgr.DELETE_YN,
+          u.first_name || u.last_name AS stdName,
+          NVL((SELECT MIN(fd_sub.FILE_ORDER) FROM FILE_DETAIL fd_sub WHERE fd_sub.FILE_ID = sgr.FILE_ID AND fd_sub.FILE_ORDER > 0), -1) AS fileOrder
+      FROM
+          STU_GRADU_REQ sgr
+      JOIN
+          STUDENT s ON sgr.student_no = s.student_no
+      JOIN
+          USERS u ON s.user_id = u.user_id
+      LEFT JOIN
+          FILE_DETAIL fd ON sgr.FILE_ID = fd.FILE_ID
+      WHERE
+          sgr.PROFESSOR_NO = #{professorNo}
+          AND sgr.DELETE_YN = 'N'
+          AND (sgr.student_no, sgr.submit_at) IN (
+              SELECT
+                  sgr_inner.student_no,
+                  MAX(sgr_inner.submit_at)
+              FROM
+                  STU_GRADU_REQ sgr_inner
+              WHERE
+                  sgr_inner.PROFESSOR_NO = #{professorNo}
+                  AND sgr_inner.DELETE_YN = 'N'
+              GROUP BY
+                  sgr_inner.student_no
+          )
+           <if test="grade != null and grade != ''">
+              AND (TO_NUMBER(TO_CHAR(SYSDATE, 'YYYY')) - TO_NUMBER(SUBSTR(s.STUDENT_NO, 1, 4)) + 1) = #{grade}
+          </if>
+          <if test="semester != null and semester != ''">
+              AND CASE
+                  WHEN TO_CHAR(sgr.SUBMIT_AT, 'MM') BETWEEN '03' AND '08' THEN '1'
+                  ELSE '2'
+              END = #{semester}
+          </if>
+      GROUP BY
+          sgr.GRADU_REQ_SUBMIT_ID,
+          sgr.STUDENT_NO,
+          sgr.PROFESSOR_NO,
+          sgr.GRADU_REQ_CD,
+          sgr.FILE_ID,
+          sgr.SUBMIT_AT,
+          sgr.EVALUATE_AT,
+          sgr.EVALUATION,
+          sgr.DELETE_YN,
+          u.first_name,
+          u.last_name,
+          fd.FILE_ORDER
+      ORDER BY
+          sgr.SUBMIT_AT DESC
+  </select>
+
+    <select id="selectGraduationAssignmentByStudentNo" parameterType="map" resultType="kr.or.jsu.vo.StuGraduReqVO">
+        SELECT
+            TRIM(sgr.GRADU_REQ_SUBMIT_ID) AS GRADU_REQ_SUBMIT_ID,
+            sgr.STUDENT_NO,
+            sgr.PROFESSOR_NO,
+            sgr.GRADU_REQ_CD,
+            sgr.FILE_ID,
+            sgr.SUBMIT_AT,
+            sgr.EVALUATE_AT,
+            sgr.EVALUATION,
+            sgr.DELETE_YN,
+            (SELECT MIN(fd.FILE_ORDER) FROM FILE_DETAIL fd WHERE fd.FILE_ID = sgr.FILE_ID) AS fileOrder
+        FROM
+            STU_GRADU_REQ sgr
+        WHERE
+            sgr.PROFESSOR_NO = #{professorNo}
+            AND sgr.STUDENT_NO = #{studentNo}
+            AND sgr.DELETE_YN = 'N'
+        ORDER BY
+            sgr.SUBMIT_AT DESC
+        FETCH FIRST 1 ROWS ONLY
+    </select>
+
+</mapper>

@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.ApprovalMapper">
+<resultMap id="approvalVoResultMap" type="kr.or.jsu.vo.ApprovalVO">
+        <id property="approveId" column="APPROVE_ID"/>
+        <result property="prevApproveId" column="PREV_APPROVE_ID"/>
+        <result property="userId" column="USER_ID"/>
+        <result property="approveYnnull" column="APPROVE_YNNULL"/>
+        <result property="approveAt" column="APPROVE_AT"/>
+        <result property="comments" column="COMMENTS"/>
+        <result property="attachFileId" column="ATTACH_FILE_ID"/>
+        <result property="applicantUserId" column="APPLICANT_USER_ID"/>
+</resultMap>
+
+<resultMap id="approvalDetailResultMap" type="kr.or.jsu.vo.ApprovalVO" extends="approvalVoResultMap">
+    <result property="lastName" column="LAST_NAME"/>
+    <result property="firstName" column="FIRST_NAME"/>
+    <result property="title" column="TITLE"/>
+    <result property="formType" column="FORM_TYPE"/>
+</resultMap>
+
+<resultMap id="approvalDetailDTOMap" type="kr.or.jsu.dto.ApprovalLineRequestDetailDTO">
+    <id property="approveId" column="APPROVE_ID"/>
+    <result property="prevApproveId" column="PREV_APPROVE_ID"/>
+    <result property="userId" column="USER_ID"/>
+    <result property="approveYnnull" column="APPROVE_YNNULL"/>
+    <result property="approveAt" column="APPROVE_AT"/>
+    <result property="comments" column="COMMENTS"/>
+    <result property="attachFileId" column="ATTACH_FILE_ID"/>
+    <result property="applyTypeName" column="APPLY_TYPE_NAME"/>
+    <result property="currentLastName" column="CURRENT_LAST_NAME"/>
+    <result property="currentFirstName" column="CURRENT_FIRST_NAME"/>
+    <result property="prevLastName" column="PREV_LAST_NAME"/>
+    <result property="prevFirstName" column="PREV_FIRST_NAME"/>
+    <result property="applicantLastName" column="APPLICANT_LAST_NAME"/>
+    <result property="applicantFirstName" column="APPLICANT_FIRST_NAME"/>
+    <result property="subjectName" column="SUBJECT_NAME"/>
+    <result property="credit" column="CREDIT"/>
+    <result property="completionCdName" column="COMPLETION_CD_NAME"/>
+</resultMap>
+
+
+<insert id="insertApproval" parameterType="map">
+    <selectKey keyProperty="APPROVE_ID" resultType="string" order="BEFORE">
+        SELECT 'APPR' || LPAD(SEQ_APPROVAL.NEXTVAL, 11, '0') FROM DUAL
+    </selectKey>
+    INSERT INTO APPROVAL (
+        APPROVE_ID
+        , PREV_APPROVE_ID
+        , USER_ID
+        , APPROVE_YNNULL
+        , APPLY_TYPE_CD
+        , APPLICANT_USER_ID
+    ) VALUES (
+        #{APPROVE_ID}
+        , #{PREV_APPROVE_ID, jdbcType=VARCHAR}
+        , #{USER_ID}
+        , #{APPROVE_YNNULL, jdbcType=VARCHAR}
+        , #{APPLY_TYPE_CD}
+        , #{APPLICANT_USER_ID}
+    )
+</insert>
+
+<select id="selectApprovalCount" resultType="int" parameterType="map"> SELECT
+    COUNT(*)
+FROM
+    APPROVAL a
+INNER JOIN
+    USERS u ON a.USER_ID = u.USER_ID
+
+<where>
+    AND (
+        a.USER_ID = #{currentUserId}
+        OR a.APPLICANT_USER_ID = #{currentUserId}
+    )
+
+    <if test="pagingInfo.simpleSearch != null and pagingInfo.simpleSearch.searchWord != null and pagingInfo.simpleSearch.searchWord != ''">
+        <choose>
+            <when test="pagingInfo.simpleSearch.searchType == 'approveYnnull'">
+                </when>
+            <when test="pagingInfo.simpleSearch.searchType == 'name'">
+                AND u.FIRST_NAME || u.LAST_NAME LIKE '%' || #{pagingInfo.simpleSearch.searchWord} || '%'
+            </when>
+        </choose>
+    </if>
+</where>
+</select>
+
+<select id="selectApprovalStatusCounts" resultType="map" parameterType="map">
+    SELECT
+        -- PENDING (대기): 결재 여부가 NULL인 경우
+        COUNT(CASE WHEN A.APPROVE_YNNULL IS NULL THEN 1 END) AS PENDING_COUNT,
+
+        -- APPROVED (승인): 결재 여부가 'Y'인 경우
+        COUNT(CASE WHEN A.APPROVE_YNNULL = 'Y' THEN 1 END) AS APPROVED_COUNT,
+
+        -- REJECTED (반려): 결재 여부가 'N'인 경우
+        COUNT(CASE WHEN A.APPROVE_YNNULL = 'N' THEN 1 END) AS REJECTED_COUNT,
+
+        -- 총 건수
+        COUNT(*) AS TOTAL_COUNT
+    FROM
+        APPROVAL A
+    WHERE
+        (A.USER_ID = #{currentUserId} OR A.APPLICANT_USER_ID = #{currentUserId})
+</select>
+
+
+<select id="selectApprovalList" resultType="kr.or.jsu.dto.ApprovalLineRequestDetailDTO" parameterType="map">
+    SELECT
+        *
+    FROM (
+        SELECT
+            T.*,
+            ROWNUM AS RNUM
+        FROM (
+            SELECT
+			    A.APPROVE_ID,
+			    A.PREV_APPROVE_ID,
+			    A.USER_ID,
+			    A.APPROVE_YNNULL,
+			    A.APPROVE_AT,
+			    A.COMMENTS,
+			    A.ATTACH_FILE_ID,
+			    A.APPLICANT_USER_ID,
+			    A.APPLY_TYPE_CD,
+
+			    CC_APPLY_TYPE.CD_NAME AS APPLY_TYPE_NAME,
+
+			    -- 1. 현재 결재자 이름
+			    U_CURRENT.LAST_NAME AS CURRENT_LAST_NAME,
+			    U_CURRENT.FIRST_NAME AS CURRENT_FIRST_NAME,
+
+			    -- 2. 이전 결재자 이름 (PREV_APPROVE_ID를 통해 이전 결재 건의 USER_ID를 가져와야 함)
+                U_PREV.LAST_NAME AS PREV_LAST_NAME,
+			    U_PREV.FIRST_NAME AS PREV_FIRST_NAME,
+
+			    -- 3. 신청자 이름 (A.APPLICANT_USER_ID 사용)
+			    U_APPLICANT.LAST_NAME AS APPLICANT_LAST_NAME,
+			    U_APPLICANT.FIRST_NAME AS APPLICANT_FIRST_NAME,
+
+                -- 4. 신청자(교수) 소속 정보
+                C.COLLEGE_NAME AS collegeName,
+               D.UNIV_DEPT_NAME AS departmentName,
+                CASE
+			        WHEN A.APPROVE_YNNULL = 'N' THEN A.COMMENTS
+			        ELSE NULL
+			    END AS REJECTION_REASON
+			FROM
+			    APPROVAL A
+			INNER JOIN
+			    USERS U_CURRENT ON A.USER_ID = U_CURRENT.USER_ID
+            /* **수정: PREV_APPROVE_ID (이전 결재 건 ID)를 이용해 이전 결재 건을 찾고, 그 건의 USER_ID를 통해 USERS 테이블 JOIN** */
+            LEFT JOIN
+                APPROVAL A_PREV ON A.PREV_APPROVE_ID = A_PREV.APPROVE_ID
+			LEFT JOIN
+			    USERS U_PREV ON A_PREV.USER_ID = U_PREV.USER_ID
+            /* **원래는 A.PREV_APPROVE_ID = U_PREV.USER_ID 였는데, 이는 오류였을 가능성이 높습니다.** */
+			INNER JOIN
+			    USERS U_APPLICANT ON A.APPLICANT_USER_ID = U_APPLICANT.USER_ID
+
+			LEFT JOIN
+			    PROFESSOR P ON A.APPLICANT_USER_ID = P.PROFESSOR_NO
+			LEFT JOIN
+			    UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+            LEFT JOIN
+			    COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+
+			LEFT JOIN
+			    COMMON_CODE CC_APPLY_TYPE ON A.APPLY_TYPE_CD = CC_APPLY_TYPE.COMMON_CD
+
+             <where>
+                 AND (
+                    A.USER_ID = #{currentUserId} OR A.APPLICANT_USER_ID = #{currentUserId} )
+
+                <if test="pagingInfo.simpleSearch != null and pagingInfo.simpleSearch.searchWord != null and pagingInfo.simpleSearch.searchWord != ''">
+                    <choose>
+                        <when test="pagingInfo.simpleSearch.searchType == 'comments'">
+                            AND A.COMMENTS LIKE '%' || #{pagingInfo.simpleSearch.searchWord} || '%'
+                        </when>
+                        <when test="pagingInfo.simpleSearch.searchType == 'approveYnnull'">
+                            AND
+                            <if test="pagingInfo.simpleSearch.searchWord == '승인'">
+                                A.APPROVE_YNNULL = 'Y'
+                            </if>
+                            <if test="pagingInfo.simpleSearch.searchWord == '반려'">
+                                A.APPROVE_YNNULL = 'N'
+                            </if>
+                            <if test="pagingInfo.simpleSearch.searchWord == '대기'">
+                                A.APPROVE_YNNULL IS NULL
+                            </if>
+                        </when>
+                        <when test="pagingInfo.simpleSearch.searchType == 'name'">
+                            AND U_APPLICANT.LAST_NAME || U_APPLICANT.FIRST_NAME LIKE '%' || #{pagingInfo.simpleSearch.searchWord} || '%'
+                        </when>
+                    </choose>
+                </if>
+            </where>
+
+            ORDER BY A.APPROVE_AT DESC, A.APPROVE_ID DESC
+        ) T
+    )
+    WHERE RNUM BETWEEN #{pagingInfo.startRow} AND #{pagingInfo.endRow}
+</select>
+
+<select id="selectApproval" resultMap="approvalDetailDTOMap" parameterType="String">
+    SELECT
+        -- APPROVAL 테이블 기본 정보
+        A.APPROVE_ID,
+        A.PREV_APPROVE_ID,
+        A.USER_ID,
+        A.APPROVE_YNNULL,
+        A.APPROVE_AT,
+        A.COMMENTS,
+        A.ATTACH_FILE_ID,
+        A.APPLICANT_USER_ID,
+        A.APPLY_TYPE_CD,
+
+        -- 공통 코드 (문서 종류)
+        CC_APPLY_TYPE.CD_NAME AS APPLY_TYPE_NAME,
+
+        -- 현재 결재자 및 신청자 이름
+        U_CURRENT.LAST_NAME AS CURRENT_LAST_NAME,
+        U_CURRENT.FIRST_NAME AS CURRENT_FIRST_NAME,
+
+        U_PREV_USER.LAST_NAME AS PREV_LAST_NAME,
+        U_PREV_USER.FIRST_NAME AS PREV_FIRST_NAME,
+
+        U_APPLICANT.LAST_NAME AS APPLICANT_LAST_NAME,
+        U_APPLICANT.FIRST_NAME AS APPLICANT_FIRST_NAME,
+
+        -- 신청자(교수) 소속 정보
+        C.COLLEGE_NAME AS collegeName,
+        D.UNIV_DEPT_NAME AS departmentName,
+
+        -- 반려 사유
+        CASE
+            WHEN A.APPROVE_YNNULL = 'N' THEN A.COMMENTS
+            ELSE NULL
+        END AS REJECTION_REASON,
+
+        -- LCT_OPEN_APPLY (강의개설) 관련 정보
+        LA.LCT_APPLY_ID,
+        LA.SUBJECT_CD,
+        <!-- LA.WEEKLY_PLANS, -->
+        S.SUBJECT_NAME,
+        LA.PROFESSOR_NO,
+        U_PROF.LAST_NAME || U_PROF.FIRST_NAME AS PROFESSOR_NAME,
+        LA.YEARTERM_CD,
+        LA.LECTURE_INDEX,
+        LA.LECTURE_GOAL,
+        LA.PREREQ_SUBJECT,
+        LA.EXPECT_CAP,
+        LA.DESIRE_OPTION,
+        LA.CANCEL_YN,
+        LA.APPLY_AT AS LCT_APPLY_AT, -- 신청 테이블의 신청일
+
+        -- SUBJECT (과목) 정보
+        S.CREDIT,
+        CC_COMPL.CD_NAME AS COMPLETION_CD_NAME
+
+    FROM
+        APPROVAL A
+    INNER JOIN
+        USERS U_CURRENT ON A.USER_ID = U_CURRENT.USER_ID
+    INNER JOIN
+        USERS U_APPLICANT ON A.APPLICANT_USER_ID = U_APPLICANT.USER_ID
+    LEFT JOIN
+        COMMON_CODE CC_APPLY_TYPE ON A.APPLY_TYPE_CD = CC_APPLY_TYPE.COMMON_CD
+    LEFT JOIN
+        APPROVAL A_PREV ON A.PREV_APPROVE_ID = A_PREV.APPROVE_ID
+    LEFT JOIN
+        USERS U_PREV_USER ON A_PREV.USER_ID = U_PREV_USER.USER_ID
+    LEFT JOIN
+        LCT_OPEN_APPLY LA ON A.APPROVE_ID = LA.APPROVE_ID AND A.APPLY_TYPE_CD = 'LCT_OPEN'
+    LEFT JOIN
+        SUBJECT S ON LA.SUBJECT_CD = S.SUBJECT_CD
+    LEFT JOIN
+        PROFESSOR P ON LA.PROFESSOR_NO = P.PROFESSOR_NO
+    LEFT JOIN
+        UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+    LEFT JOIN
+        COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+    LEFT JOIN
+        USERS U_PROF ON P.PROFESSOR_NO = U_PROF.USER_ID
+    LEFT JOIN
+        COMMON_CODE CC_COMPL ON S.COMPLETION_CD = CC_COMPL.COMMON_CD
+	LEFT JOIN
+	    LCT_OPEN_APPLY LA ON A.APPROVE_ID = LA.APPROVE_ID AND A.APPLY_TYPE_CD = 'LCT_OPEN'
+    WHERE
+        A.APPROVE_ID = #{approveId}
+</select>
+
+<select id="selectApprovalWithDocId" resultType="map" parameterType="String">
+    SELECT
+        A.APPROVE_ID,
+        A.APPLY_TYPE_CD,
+        CC_APPLY_TYPE.CD_NAME AS APPLY_TYPE_NAME
+    FROM
+        APPROVAL A
+    LEFT JOIN
+        COMMON_CODE CC_APPLY_TYPE ON A.APPLY_TYPE_CD = CC_APPLY_TYPE.COMMON_CD
+    WHERE
+        A.APPROVE_ID = #{approveId}
+</select>
+
+<update id="updateApproval" parameterType="kr.or.jsu.vo.ApprovalVO">
+    UPDATE APPROVAL
+    SET
+        APPROVE_YNNULL = #{approveYnnull},
+        APPROVE_AT = SYSDATE,
+        COMMENTS = #{comments, jdbcType=VARCHAR},
+        ATTACH_FILE_ID = #{attachFileId, jdbcType=VARCHAR}
+    WHERE APPROVE_ID = #{approveId}
+    AND APPROVE_YNNULL IS NULL
+</update>
+
+<select id="selectNextApprovalLines" parameterType="string" resultMap="approvalVoResultMap">
+    SELECT
+        APPROVE_ID,
+        USER_ID
+    FROM APPROVAL
+    WHERE PREV_APPROVE_ID = #{approveId}
+    AND APPROVE_YNNULL IS NULL
+    ORDER BY APPROVE_ID ASC
+</select>
+
+<delete id="deleteApproval" parameterType="string">
+    DELETE FROM APPROVAL
+    WHERE PREV_APPROVE_ID = #{prevApproveId}
+</delete>
+
+<delete id="stuApplyDeleteApproval" parameterType="string">
+    DELETE FROM APPROVAL
+    WHERE APPROVE_ID = #{approveId}
+</delete>
+
+
+</mapper>

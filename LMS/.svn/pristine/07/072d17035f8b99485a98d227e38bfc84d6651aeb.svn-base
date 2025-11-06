@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LectureMapper">
+	
+	<!-- 교수, 학생의 강의목록 조회에 사용하는 dto 구성 -->
+	<resultMap type="kr.or.jsu.classroom.dto.db.LectureSimpleDTO" id="lctSimpleDTO" autoMapping="true">
+		<association property="lectureInfo" autoMapping="true"/>
+		<association property="subjectInfo" autoMapping="true"/>
+	</resultMap>
+	
+	<!-- 강의 단건 조회 -->
+	<select id="selectLecture" resultMap="lctSimpleDTO">
+		<include refid="lectureSimple"/>
+		WHERE l.LECTURE_ID = #{lectureId}
+	</select>
+	
+	<!-- 교수의 강의목록 조회 -->
+	<select id="selectTeachingLectureList" resultMap="lctSimpleDTO">
+		<include refid="lectureSimple"/>
+		WHERE l.PROFESSOR_NO = #{professorNo}
+		AND l.CANCEL_YN = 'N'
+	</select>
+	
+	<!-- 학생의 수강목록 조회 -->
+	<select id="selectEnrolledLectureList" resultMap="lctSimpleDTO">
+		<include refid="lectureSimple"/>
+		WHERE l.LECTURE_ID IN (
+			SELECT LECTURE_ID FROM STU_ENROLL_LCT
+			WHERE STUDENT_NO = #{studentNo}
+		)
+		AND l.CANCEL_YN = 'N'
+	</select>
+	
+	<resultMap id="scheduleMap" type="LectureWithScheduleDTO"
+		autoMapping="true">
+		<id property="lectureId" column="LECTURE_ID" />
+		<!-- JSON_ARRAYAGG ... RETURNING CLOB 이면 CLOB 매핑 -->
+		<result property="scheduleJson" column="SCHEDULE_JSON"
+			jdbcType="CLOB" />
+	</resultMap>
+	
+	<!-- 강의의 시간표 조회 -->
+	<select id="selectScheduleListJson" resultMap="scheduleMap" parameterType="java.util.Collection">
+		WITH base AS (
+			SELECT
+				  lrs.LECTURE_ID
+				, lrs.PLACE_CD
+				, NVL(p1.PLACE_NAME || ' ', '') || p.PLACE_NAME AS PLACE_NAME
+				, SUBSTR(lrs.TIMEBLOCK_CD, 1, 2) AS DAY_CD
+				, TO_NUMBER(SUBSTR(lrs.TIMEBLOCK_CD, 3, 2)) * 60
+					+ TO_NUMBER(SUBSTR(lrs.TIMEBLOCK_CD, 5, 2)) AS MINUTES
+			FROM LCT_ROOM_SCHEDULE lrs
+			JOIN PLACE p ON lrs.PLACE_CD = p.PLACE_CD
+			JOIN PLACE p1 ON p.PARENT_CD = p1.PLACE_CD
+			WHERE 1=1
+			<if test="collection != null and collection.size() > 0">
+				AND lrs.LECTURE_ID IN
+				<foreach collection="collection" item="id" open="(" separator="," close=")">
+					#{id}
+				</foreach>
+			</if>
+		)
+		, runs AS (
+			SELECT
+				  b.*
+				, LAG(MINUTES) OVER (PARTITION BY LECTURE_ID, PLACE_CD, DAY_CD ORDER BY MINUTES) AS PREV_MIN
+			FROM base b
+		)
+		, flags AS (
+			SELECT
+				  r.*
+				, CASE WHEN PREV_MIN IS NOT NULL AND MINUTES = PREV_MIN + 30 THEN 0 ELSE 1 END AS IS_NEW
+			FROM runs r
+		)
+		, grp AS (
+			SELECT
+				  f.*
+				, SUM(IS_NEW) OVER (PARTITION BY LECTURE_ID, PLACE_CD, DAY_CD ORDER BY MINUTES) AS GRP_ID
+			FROM flags f
+		)
+		, merged AS (
+			SELECT
+				  LECTURE_ID
+				, PLACE_CD
+				, PLACE_NAME
+				, DAY_CD
+				, MIN(MINUTES) AS START_MIN
+				, MAX(MINUTES) + 30 AS END_MIN
+			FROM grp
+			GROUP BY LECTURE_ID, PLACE_CD, PLACE_NAME, DAY_CD, GRP_ID
+		)
+		, slots_per_place AS (
+			SELECT
+				  LECTURE_ID
+				, PLACE_CD
+				, PLACE_NAME
+				, JSON_ARRAYAGG(
+					JSON_OBJECT(
+						  'day' VALUE DAY_CD
+						, 'start' VALUE TO_CHAR(TRUNC(START_MIN/60), 'FM00') || TO_CHAR(MOD(START_MIN,60), 'FM00')
+						, 'end' VALUE TO_CHAR(TRUNC(END_MIN/60), 'FM00') || TO_CHAR(MOD(END_MIN,60), 'FM00')
+					)
+					ORDER BY DAY_CD, START_MIN
+					RETURNING CLOB
+				) AS SLOTS_JSON
+			FROM merged
+			GROUP BY LECTURE_ID, PLACE_CD, PLACE_NAME
+		)
+		SELECT
+			  LECTURE_ID
+			, JSON_ARRAYAGG(
+				JSON_OBJECT(
+					  'placeCd' VALUE PLACE_CD
+					, 'placeName' VALUE PLACE_NAME
+					, 'slots' VALUE SLOTS_JSON FORMAT JSON
+				)
+				ORDER BY PLACE_CD
+				RETURNING CLOB
+			) AS SCHEDULE_JSON
+		FROM slots_per_place
+		GROUP BY LECTURE_ID
+		ORDER BY LECTURE_ID
+	</select>
+
+<resultMap type="LectureWithWeekbyDTO" id="weekbyDTO">
+	<id column="LECTURE_ID" property="lectureId"/>
+	<association property="lectureInfo" javaType="LectureInfo" autoMapping="true" />
+	<collection property="weekbyList" ofType="LctWeekbyInfo" autoMapping="true"/>
+</resultMap>
+
+	<select id="selectLectureWithWeekby" resultMap="weekbyDTO">
+		SELECT
+			l.LECTURE_ID
+			, <include refid="lecture_min"/>
+			, <include refid="lecture_extra"/>
+			, lw.LECTURE_WEEK
+			, lw.LECTURE_ID
+			, lw.WEEK_GOAL
+			, lw.WEEK_DESC
+		FROM
+			LECTURE l 
+		JOIN LCT_WEEKBY lw ON
+			l.LECTURE_ID = lw.LECTURE_ID
+		WHERE l.LECTURE_ID = #{lectureId}
+	</select>
+	
+	<select id="selectGraderatioList">
+		SELECT
+			  lgr.GRADE_CRITERIA_CD
+			, lgr.LECTURE_ID
+			, lgr.RATIO
+		FROM
+			LCT_GRADERATIO lgr
+		WHERE
+			lgr.LECTURE_ID = #{lectureId}
+	</select>
+
+<resultMap type="StudentAndEnrollDTO" id="lctStuDTO">
+	<association property="studentInfo" javaType="StudentInfo" autoMapping="true"/>
+	<association property="stuEnrollLctInfo" javaType="StuEnrollLctInfo" autoMapping="true"/>
+</resultMap>
+
+	<select id="selectLectureWithStudent" resultMap="lctStuDTO">
+		SELECT
+			<include refid="users_min"/>
+			, <include refid="student_min"/>
+			, sel.ENROLL_ID
+			, sel.STUDENT_NO
+			, sel.LECTURE_ID
+			, sel.ENROLL_STATUS_CD
+			, sel.RETAKE_YN
+			, sel.STATUS_CHANGE_AT
+			, sel.AUTO_GRADE
+			, sel.FINAL_GRADE
+			, sel.CHANGE_REASON
+		FROM
+			LECTURE l
+		JOIN STU_ENROLL_LCT sel ON
+			l.LECTURE_ID = sel.LECTURE_ID
+		JOIN STUDENT s ON
+			sel.STUDENT_NO = s.STUDENT_NO
+		JOIN USERS u ON
+			s.USER_ID = u.USER_ID
+		WHERE l.LECTURE_ID = #{lectureId}
+		<choose>
+	        <when test="isNotCancel == true">
+				AND sel.ENROLL_STATUS_CD NOT IN ('ENR_CANCEL', 'ENR_WITHDRAW')
+	        </when>
+	        <when test="isNotCancel == false">
+	            AND sel.ENROLL_STATUS_CD IN ('ENR_CANCEL', 'ENR_WITHDRAW')
+	        </when>
+	        <otherwise/>
+	    </choose>
+	</select>
+
+	<select id="selectLectureWithPost">
+		SELECT
+			*
+		FROM
+			LECTURE l 
+		JOIN LCT_POST lp ON
+			l.LECTURE_ID = lp.LECTURE_ID
+	</select>
+	
+	<select id="selectPrfLectureSchedule">
+		SELECT
+		    l.LECTURE_ID
+		  , s.SUBJECT_NAME
+		  , (
+		        SELECT
+		            LISTAGG(x.PLACE_NAME, ' ') WITHIN GROUP (ORDER BY LEVEL DESC)
+		        FROM PLACE x
+		        START WITH x.PLACE_CD = p.PLACE_CD
+		        CONNECT BY PRIOR x.PARENT_CD = x.PLACE_CD
+		        AND (x.PARENT_CD IS NOT NULL OR x.PLACE_CD = p.PLACE_CD)
+		    ) AS PLACE_NAME
+		  , lrs.TIMEBLOCK_CD
+		FROM LCT_ROOM_SCHEDULE lrs
+		JOIN LECTURE l
+		  ON lrs.LECTURE_ID = l.LECTURE_ID
+		JOIN SUBJECT s
+		  ON l.SUBJECT_CD = s.SUBJECT_CD
+		JOIN PLACE p
+		  ON lrs.PLACE_CD = p.PLACE_CD
+		WHERE l.YEARTERM_CD = #{yearTermCd}
+		  AND l.PROFESSOR_NO = #{professorNo}
+	</select>
+	
+	<select id="selectStuLectureSchedule">
+		SELECT
+			l.LECTURE_ID
+			, s.SUBJECT_NAME
+			, (
+		        SELECT
+		            LISTAGG(x.PLACE_NAME, ' ') WITHIN GROUP (ORDER BY LEVEL DESC)
+		        FROM PLACE x
+		        START WITH x.PLACE_CD = p.PLACE_CD
+		        CONNECT BY PRIOR x.PARENT_CD = x.PLACE_CD
+		        AND (x.PARENT_CD IS NOT NULL OR x.PLACE_CD = p.PLACE_CD)
+		    ) AS PLACE_NAME
+			, lrs.TIMEBLOCK_CD
+		FROM LCT_ROOM_SCHEDULE lrs 
+		JOIN LECTURE l ON
+			lrs.LECTURE_ID = l.LECTURE_ID
+		JOIN STU_ENROLL_LCT t ON
+			l.LECTURE_ID = t.LECTURE_ID
+		JOIN SUBJECT s ON
+			l.SUBJECT_CD = s.SUBJECT_CD
+		JOIN PLACE p ON
+			lrs.PLACE_CD = p.PLACE_CD
+		WHERE
+			l.YEARTERM_CD = #{yearTermCd}
+			AND t.STUDENT_NO = #{studentNo}
+	</select>
+	
+	<select id="selectRoomLectureSchedule">
+		SELECT
+			l.LECTURE_ID
+			, l.PROFESSOR_NO
+			, s.SUBJECT_NAME
+			, (
+		        SELECT
+		            LISTAGG(x.PLACE_NAME, ' ') WITHIN GROUP (ORDER BY LEVEL DESC)
+		        FROM PLACE x
+		        START WITH x.PLACE_CD = p.PLACE_CD
+		        CONNECT BY PRIOR x.PARENT_CD = x.PLACE_CD
+		        AND (x.PARENT_CD IS NOT NULL OR x.PLACE_CD = p.PLACE_CD)
+		    ) AS PLACE_NAME
+			, lrs.TIMEBLOCK_CD
+		FROM LCT_ROOM_SCHEDULE lrs 
+		JOIN LECTURE l ON
+			lrs.LECTURE_ID = l.LECTURE_ID
+		JOIN SUBJECT s ON
+			l.SUBJECT_CD = s.SUBJECT_CD
+		JOIN PLACE p ON
+			lrs.PLACE_CD = p.PLACE_CD
+		WHERE
+			l.YEARTERM_CD = #{yearTermCd}
+			AND p.place_cd = #{placeCd}
+	</select>
+
+	<!-- 강의_공간_시간표 일괄 삽입 -->
+	<insert id="insertClassroomSchedule">
+	    INSERT ALL
+	    <foreach collection="list" item="s">
+	        INTO LCT_ROOM_SCHEDULE (
+	              LECTURE_ID
+	            , PLACE_CD
+	            , TIMEBLOCK_CD
+	        )
+	        VALUES (
+	              #{s.lectureId}
+	            , #{s.placeCd}
+	            , #{s.timeblockCd}
+	        )
+	    </foreach>
+	    SELECT 1 FROM DUAL
+	</insert>
+
+
+	<insert id="insertLectureWithApply">
+		<selectKey keyColumn="LECTURE_ID" keyProperty="lecture.lectureId" resultType="string" order="BEFORE">
+			SELECT 'LECT' || LPAD(SEQ_LECTURE.NEXTVAL, 11, '0') AS lectureId
+			FROM DUAL
+		</selectKey>
+	
+		INSERT INTO LECTURE (
+			LECTURE_ID
+			, SUBJECT_CD
+			, PROFESSOR_NO
+			, YEARTERM_CD
+			, MAX_CAP
+			, LECTURE_INDEX
+			, LECTURE_GOAL
+			, PREREQ_SUBJECT
+			, CANCEL_YN
+			, END_AT
+		)
+		SELECT
+			#{lecture.lectureId}
+			, SUBJECT_CD
+			, PROFESSOR_NO
+			, YEARTERM_CD
+			, NVL(#{lecture.maxCap, jdbcType=INTEGER}, EXPECT_CAP)
+			, LECTURE_INDEX
+			, LECTURE_GOAL
+			, PREREQ_SUBJECT
+			, 'N'
+			, NULL
+		FROM LCT_OPEN_APPLY
+		WHERE APPROVE_ID = #{approveId}
+	</insert>
+		
+	<insert id="insertLctWeekbyWithApply">
+		INSERT INTO LCT_WEEKBY (
+			LECTURE_WEEK
+			, LECTURE_ID
+			, WEEK_GOAL
+			, WEEK_DESC
+		)
+		SELECT
+			law.LECTURE_WEEK
+			, #{lectureId}
+			, law.WEEK_GOAL
+			, law.WEEK_DESC
+		FROM LCT_APPLY_WEEKBY law
+		JOIN LCT_OPEN_APPLY loa
+			ON loa.LCT_APPLY_ID = law.LCT_APPLY_ID
+		WHERE loa.APPROVE_ID = #{approveId}
+	</insert>
+	
+	<insert id="insertLctGraderatioWithApply">
+		INSERT INTO LCT_GRADERATIO (
+			GRADE_CRITERIA_CD
+			, LECTURE_ID
+			, RATIO
+		)
+		SELECT
+			lag.GRADE_CRITEIRA_CD
+			, #{lectureId}
+			, lag.RATIO
+		FROM LCT_APPLY_GRADERATIO lag
+		JOIN LCT_OPEN_APPLY loa
+			ON loa.LCT_APPLY_ID = lag.LCT_APPLY_ID
+		WHERE loa.APPROVE_ID = #{approveId}
+	</insert>
+	
+	
+	<resultMap type="UnassignedLectureDTO" id="unassLctDTO" autoMapping="true">
+		<association property="lectureInfo" autoMapping="true"/>
+		<association property="subjectInfo" autoMapping="true"/>
+	</resultMap>
+	
+	<select id="selectUnassignedLectureList" resultMap="unassLctDTO">
+		WITH rs AS (
+			SELECT
+				LECTURE_ID
+				, COUNT(*) AS scheduled_slots
+			FROM
+				LCT_ROOM_SCHEDULE
+			GROUP BY
+				LECTURE_ID
+		) SELECT
+		      l.LECTURE_ID
+			, l.SUBJECT_CD
+			, l.PROFESSOR_NO
+			, l.YEARTERM_CD
+			, l.MAX_CAP
+			, l.LECTURE_INDEX
+			, l.LECTURE_GOAL
+			, l.PREREQ_SUBJECT
+			, l.CANCEL_YN
+			, l.END_AT
+			, l.SCORE_FINALIZE_YN
+			, s.SUBJECT_CD
+			, s.UNIV_DEPT_CD
+			, s.SUBJECT_NAME
+			, s.COMPLETION_CD
+			, s.CREDIT
+			, s."HOUR"
+			, s.CREATE_AT
+			, s.DELETE_AT
+			, s.SUBJECT_TYPE_CD
+		    , NVL(rs.scheduled_slots, 0) AS SCHEDULED_SLOTS
+		FROM LECTURE l
+		JOIN SUBJECT s ON
+			s.SUBJECT_CD = l.SUBJECT_CD
+		LEFT JOIN rs ON
+			rs.LECTURE_ID = l.LECTURE_ID
+		WHERE
+			l.YEARTERM_CD = #{yearTermCd}
+			AND NVL(rs.scheduled_slots, 0) &lt;&gt; s."HOUR" * 2
+		ORDER BY l.LECTURE_ID	
+	</select>
+	
+<!-- 쿼리조각 선언부 -->
+<!-- 강의 단건조회, 교수, 학생의 강의목록 조회에 공유하는 쿼리조각 -->
+<sql id="lectureSimple">
+	SELECT
+		<include refid="lecture_min"/>
+		, <include refid="lecture_extra"/>
+		, s.UNIV_DEPT_CD
+		, s.SUBJECT_NAME
+		, s.COMPLETION_CD
+		, s.CREDIT
+		, s."HOUR"
+		, s.SUBJECT_TYPE_CD
+		, (
+			SELECT count(*)
+			FROM STU_ENROLL_LCT s
+			WHERE s.LECTURE_ID = l.LECTURE_ID
+		) AS CURRENT_CAP
+	FROM
+		LECTURE l
+	LEFT JOIN SUBJECT s ON
+		l.SUBJECT_CD = s.SUBJECT_CD
+</sql>
+
+<sql id="users_min">
+u.USER_ID
+, u.FIRST_NAME
+, u.LAST_NAME
+, u.PHOTO_ID
+, u.MOBILE_NO
+, u.EMAIL
+</sql>
+
+<sql id="student_min">
+s.STUDENT_NO
+, s.UNIV_DEPT_CD
+, s.GRADE_CD
+, s.STU_STATUS_CD
+</sql>
+ 
+
+<sql id="lecture_min">
+l.LECTURE_ID
+, l.SUBJECT_CD
+, l.PROFESSOR_NO
+, l.YEARTERM_CD
+, l.MAX_CAP
+, l.CANCEL_YN
+, l.END_AT
+, l.SCORE_FINALIZE_YN
+</sql>
+
+<sql id="lecture_extra">
+l.LECTURE_INDEX
+, l.LECTURE_GOAL
+, l.PREREQ_SUBJECT
+</sql>
+<!-- 쿼리조각 선언부 -->
+<!-- 선언부 밑으로 코드작성금지 -->
+
+</mapper>

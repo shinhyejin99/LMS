@@ -1,0 +1,69 @@
+,,,,,,,,,,"-- 입력: &TABLE_NAME (예: SBJ_TARGET)
+WITH
+pk AS (
+  SELECT ucc.table_name, ucc.column_name
+  FROM   user_constraints uc
+  JOIN   user_cons_columns ucc
+         ON uc.constraint_name = ucc.constraint_name
+  WHERE  uc.constraint_type = 'P'
+),
+fkmap AS (
+  /* FK 컬럼 → 참조(테이블(컬럼)) 매핑 */
+  SELECT
+    cfk.table_name,
+    cfk.column_name,
+    LISTAGG(
+      p.table_name || '(' || p.column_name || ')',
+      ' , '
+    ) WITHIN GROUP (ORDER BY p.position) AS ref_targets
+  FROM   user_constraints fr
+  JOIN   user_cons_columns cfk
+         ON fr.constraint_name = cfk.constraint_name
+  JOIN   user_constraints pkc
+         ON pkc.constraint_name = fr.r_constraint_name
+  JOIN   user_cons_columns p
+         ON p.constraint_name = pkc.constraint_name
+        AND p.position = cfk.position   -- 같은 순서의 컬럼 매핑
+  WHERE  fr.constraint_type = 'R'
+  GROUP  BY cfk.table_name, cfk.column_name
+)
+SELECT
+  c.column_id                         AS ""번호"",
+  c.column_name                       AS ""컬럼ID"",
+  cc.comments                         AS ""컬럼명"",
+  /* 도메인: 별도 테이블 없으면 NULL 유지(코멘트 규칙으로 파싱하려면 여기서 파싱 로직 추가) */
+  CAST(NULL AS VARCHAR2(1))           AS ""도메인"",
+  /* 데이터타입 가독성 */
+  CASE
+    WHEN c.data_type IN ('CHAR','NCHAR','VARCHAR2','NVARCHAR2')
+      THEN c.data_type || '(' || c.char_col_decl_length || ')'
+    WHEN c.data_type = 'NUMBER'
+      THEN CASE
+             WHEN c.data_precision IS NULL THEN 'NUMBER'
+             WHEN NVL(c.data_scale,0) = 0 THEN 'NUMBER('||c.data_precision||')'
+             ELSE 'NUMBER('||c.data_precision||','||c.data_scale||')'
+           END
+    WHEN c.data_type LIKE 'TIMESTAMP%'
+      THEN c.data_type || NVL2(c.data_scale, '('||c.data_scale||')', '')
+    ELSE c.data_type
+  END                                  AS ""데이터타입"",
+  CASE c.nullable WHEN 'N' THEN 'NOT NULL' ELSE NULL END AS ""NULL"",
+  /* LONG 타입이라 가공 불가 → 그대로 노출 */
+  c.data_default                       AS ""기본값"",
+  /* KEY 정보 */
+  CASE WHEN p.column_name IS NOT NULL THEN 'PK' END       AS ""PK"",
+  CASE WHEN f.ref_targets IS NOT NULL THEN 'FK' END       AS ""FK"",
+  f.ref_targets                                           AS ""FK_참조대상""
+FROM   user_tab_columns c
+LEFT   JOIN pk p
+       ON p.table_name = c.table_name
+      AND p.column_name = c.column_name
+LEFT   JOIN fkmap f
+       ON f.table_name = c.table_name
+      AND f.column_name = c.column_name
+LEFT   JOIN user_col_comments cc
+       ON cc.table_name = c.table_name
+      AND cc.column_name = c.column_name
+WHERE  c.table_name = UPPER('LCT_WEEKBY')
+ORDER  BY c.column_id;
+"

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+ * == 개정이력(Modification Information) ==
+ *
+ *   수정일      			수정자           수정내용
+ *  ============   	============== =======================
+ *  2025. 10. 14.     	김수현            학과별 조건 값 조회 추가
+ *
+-->
+<mapper namespace="kr.or.jsu.mybatis.mapper.DeptConditionMapper">
+
+	 <insert id="insertDeptCondition">
+        INSERT INTO dept_condition (
+            dept_cond_id,
+            univ_dept_cd,
+            condition_cd,
+            needed_value
+        ) VALUES (
+            #{deptCondId},
+            #{univDeptCd},
+            #{conditionCd},
+            #{neededValue}
+        )
+    </insert>
+
+    <select id="selectDeptConditionList" resultType="kr.or.jsu.vo.DeptConditionVO">
+        SELECT
+            dept_cond_id,
+            univ_dept_cd,
+            condition_cd,
+            needed_value
+        FROM
+            dept_condition
+        ORDER BY
+            dept_cond_id
+    </select>
+
+    <update id="updateDeptCondition">
+        UPDATE dept_condition
+        SET
+            univ_dept_cd = #{univDeptCd},
+            condition_cd = #{conditionCd},
+            needed_value = #{neededValue}
+        WHERE
+            dept_cond_id = #{deptCondId}
+    </update>
+
+    <delete id="deleteDeptCondition">
+        DELETE FROM dept_condition
+        WHERE
+            dept_cond_id = #{deptCondId}
+    </delete>
+
+
+
+	<!-- 학과별 조건 값 조회 -->
+	<select id="selectConditionValue" resultType="string">
+		SELECT
+			NEEDED_VALUE
+        FROM
+        	DEPT_CONDITION
+        WHERE
+        	UNIV_DEPT_CD = #{univDeptCd}
+          AND CONDITION_CD = #{conditionCd}
+	</select>
+
+</mapper>

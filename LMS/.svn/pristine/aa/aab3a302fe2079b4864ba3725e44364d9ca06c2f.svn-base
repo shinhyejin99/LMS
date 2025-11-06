@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuCounselMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectStuCounsel" parameterType="string" resultType="kr.or.jsu.vo.StuCounselVO">
+        SELECT 
+          counsel_id
+        , student_no
+        , professor_no
+        , request_at
+        , counsel_at
+        , counsel_yn
+        , counsel_detail
+        FROM stu_counsel
+        WHERE counsel_id = #{counselId}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStuCounselList" resultType="kr.or.jsu.vo.StuCounselVO">
+        SELECT 
+          counsel_id
+        , student_no
+        , professor_no
+        , request_at
+        , counsel_at
+        , counsel_yn
+        , counsel_detail
+        FROM stu_counsel
+        ORDER BY request_at DESC
+        , counsel_id
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStuCounsel" parameterType="kr.or.jsu.vo.StuCounselVO">
+        INSERT INTO stu_counsel (
+          counsel_id
+        , student_no
+        , professor_no
+        , request_at
+        , counsel_at
+        , counsel_yn
+        , counsel_detail
+        ) VALUES (
+          #{counselId}
+        , #{studentNo}
+        , #{professorNo}
+        , #{requestAt}
+        , #{counselAt}
+        , #{counselYn}
+        , #{counselDetail}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateStuCounsel" parameterType="kr.or.jsu.vo.StuCounselVO">
+        UPDATE stu_counsel
+        SET 
+          student_no    = #{studentNo}
+        , professor_no  = #{professorNo}
+        , request_at    = #{requestAt}
+        , counsel_at    = #{counselAt}
+        , counsel_yn    = #{counselYn}
+        , counsel_detail= #{counselDetail}
+        WHERE counsel_id = #{counselId}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStuCounsel" parameterType="string">
+        DELETE FROM stu_counsel
+        WHERE counsel_id = #{counselId}
+    </delete>
+
+    <select id="selectCounselingRequestListByProfessorNo" parameterType="string" resultType="map">
+        SELECT
+            sc.counsel_id AS "reqId",
+            sc.student_no AS "studentNo",
+            u.first_name || u.last_name AS "stdName",
+            sc.request_at AS "reqDate",
+            sc.counsel_detail AS "reqContent",
+            CASE WHEN sc.counsel_yn = 'Y' THEN '답변완료' ELSE '요청' END AS "status"
+        FROM
+            stu_counsel sc
+        JOIN
+            student s ON sc.student_no = s.student_no
+        JOIN
+            users u ON s.user_id = u.user_id
+        WHERE
+            sc.professor_no = #{professorNo}
+        ORDER BY
+            sc.request_at DESC
+    </select>
+
+    <select id="selectCounselingRequestListByStudentNo" parameterType="string" resultType="map">
+        SELECT
+            sc.counsel_id AS "reqId",
+            sc.student_no AS "studentNo",
+            u.first_name || u.last_name AS "stdName",
+            sc.request_at AS "reqDate",
+            sc.counsel_detail AS "reqContent",
+            CASE WHEN sc.counsel_yn = 'Y' THEN '답변완료' ELSE '요청' END AS "status"
+        FROM
+            stu_counsel sc
+        JOIN
+            student s ON sc.student_no = s.student_no
+        JOIN
+            users u ON s.user_id = u.user_id
+        WHERE
+            sc.student_no = #{studentNo}
+        ORDER BY
+            sc.request_at DESC
+    </select>
+
+
+</mapper>

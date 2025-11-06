@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.GrouptaskGroupMapper">
+	<insert id="insertGroup">
+        INSERT INTO grouptask_group (
+            group_id,
+            reader_enroll_id,
+            grouptask_id,
+            group_name,
+            create_at,
+            using_yn
+        ) VALUES (
+            #{groupId},
+            #{readerEnrollId},
+            #{grouptaskId},
+            #{groupName},
+            #{createAt},
+            #{usingYn}
+        )
+    </insert>
+
+    <select id="selectGroupList" resultType="kr.or.jsu.vo.GrouptaskGroupVO">
+        SELECT
+            group_id,
+            reader_enroll_id,
+            grouptask_id,
+            group_name,
+            create_at,
+            using_yn
+        FROM
+            grouptask_group
+        ORDER BY
+            group_id
+    </select>
+
+    <update id="updateGroup">
+        UPDATE grouptask_group
+        SET
+            reader_enroll_id = #{readerEnrollId},
+            grouptask_id = #{grouptaskId},
+            group_name = #{groupName},
+            create_at = #{createAt},
+            using_yn = #{usingYn}
+        WHERE
+            group_id = #{groupId}
+    </update>
+
+    <delete id="deleteGroupSoft">
+        DELETE FROM grouptask_group
+        WHERE
+            group_id = #{groupId}
+    </delete>
+
+
+</mapper>

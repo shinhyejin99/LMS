@@ -1,0 +1,27 @@
+package kr.or.jsu.mybatis.mapper;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Transactional
+@SpringBootTest
+@Slf4j
+class GrouptaskSubmitMapperTest {
+
+	@Autowired
+	GrouptaskSubmitMapper mapper;
+	
+	@Test
+	void testSelectSubmitList() {
+		assertDoesNotThrow(() -> mapper.selectSubmitList());
+		assertEquals(0, (mapper.selectSubmitList()).size());
+		
+	}
+
+}

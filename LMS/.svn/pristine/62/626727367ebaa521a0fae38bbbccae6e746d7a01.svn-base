@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctApplyWishlistMapper">
+
+	<insert id="insertLctApplyWishlist">
+        INSERT INTO lct_apply_wishlist (
+            lecture_id,
+            student_no
+        ) VALUES (
+            #{lectureId},
+            #{studentNo}
+        )
+    </insert>
+
+    <select id="selectLctApplyWishlistList" resultType="kr.or.jsu.vo.LctApplyWishlistVO">
+        SELECT
+            lecture_id,
+            student_no
+        FROM
+            lct_apply_wishlist
+        ORDER BY
+            lecture_id, student_no
+    </select>
+
+    <update id="updateLctApplyWishlist">
+        UPDATE lct_apply_wishlist
+        SET
+            WHERE
+            lecture_id = #{lectureId} AND student_no = #{studentNo}
+    </update>
+
+    <delete id="deleteLctApplyWishlist">
+        DELETE FROM lct_apply_wishlist
+        WHERE
+            lecture_id = #{lectureId} AND student_no = #{studentNo}
+    </delete>
+
+</mapper>

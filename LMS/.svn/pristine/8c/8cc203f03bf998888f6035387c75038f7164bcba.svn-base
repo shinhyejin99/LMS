@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.LctRoomScheduleMapper">
+
+    <insert id="insertLctRoomSchedule" parameterType="map">
+        INSERT INTO LCT_ROOM_SCHEDULE (
+            SCHEDULE_ID,
+            LECTURE_ID,
+            PLACE_CD,
+            DAY_CD, TIMEBLOCK_CD,
+            YEARTERM_CD
+        )
+        VALUES (
+            LCT_SCHEDULE_SEQ.NEXTVAL,
+            #{LECTURE_ID},
+            #{PLACE_CD},
+            #{DAY_CD}, #{TIMEBLOCK_CD},
+            (SELECT YEARTERM_CD FROM LECTURE WHERE LECTURE_ID = #{LECTURE_ID})
+        )
+    </insert>
+
+    <select id="selectLectureAssignmentInfo" resultType="kr.or.jsu.dto.LctApplyDetailDTO">
+        SELECT
+            TRIM(A.LCT_APPLY_ID) AS lctApplyId,
+            S.SUBJECT_NAME AS lectureName,
+            S.HOUR AS lectureHours,
+            S.CREDIT AS credit,
+            A.EXPECT_CAP AS expectCap,
+            A.YEARTERM_CD AS yeartermCd,
+            U.LAST_NAME || U.FIRST_NAME AS professorName,
+            P.PROFESSOR_NO AS professorNo,
+            S.SUBJECT_NAME AS subjectName,
+            S.SUBJECT_CD AS subjectCd
+        FROM
+            LCT_OPEN_APPLY A
+        JOIN PROFESSOR P ON A.PROFESSOR_NO = P.PROFESSOR_NO
+        JOIN USERS U ON P.USER_ID = U.USER_ID
+        JOIN SUBJECT S ON A.SUBJECT_CD = S.SUBJECT_CD
+        WHERE
+            TRIM(A.LCT_APPLY_ID) = #{lctApplyId}
+    </select>
+
+
+    <select id="selectLctRoomScheduleList" resultType="kr.or.jsu.vo.LctRoomScheduleVO">
+        SELECT
+            LECTURE_ID,
+            PLACE_CD,
+            TIMEBLOCK_CD
+        FROM
+            LCT_ROOM_SCHEDULE
+        ORDER BY
+            LECTURE_ID, PLACE_CD, TIMEBLOCK_CD
+    </select>
+
+    <update id="updateLctOpenApplyAssignment" parameterType="map">
+        UPDATE LCT_OPEN_APPLY
+        SET
+            PLACE_CD = #{placeCd},                  ASSIGNED_DAY = #{assignedDay},          ASSIGNED_TIMEBLOCK = #{assignedTimeblock}, ALLOCATE_YN = 'Y',                      ASSIGNMENT_STATUS_CD = 'TEMP_ASSIGN'    WHERE
+            LCT_APPLY_ID = #{lctApplyId}
+    </update>
+
+    <select id="selectConflictingSchedule" resultType="int" parameterType="map">
+        SELECT
+            COUNT(T1.LECTURE_ID)
+        FROM
+            LCT_ROOM_SCHEDULE T1
+        INNER JOIN
+            LECTURE T2 ON T1.LECTURE_ID = T2.LECTURE_ID
+        WHERE
+            T2.YEARTERM_CD = #{yearTermCd}
+            AND T1.PLACE_CD = #{placeCd}
+            AND T2.CANCEL_YN = 'N'
+            -- timeblockCds 목록을 반복하여 요일(DAY_CD)과 시간블록(TIMEBLOCK_CD)을 동시에 체크
+            AND (
+                <foreach collection="timeblockCds" item="combinedCd" separator=" OR ">
+                    (T1.DAY_CD = SUBSTR(#{combinedCd}, 1, 3) AND T1.TIMEBLOCK_CD = SUBSTR(#{combinedCd}, 5))
+                </foreach>
+            )
+    </select>
+
+
+   <select id="selectRequiredTimeblocks" parameterType="String" resultType="java.util.Map">
+   SELECT
+        (
+            CASE SUBSTR(A.TIMEBLOCK_CD, 1, 2)
+                WHEN 'MO' THEN 1
+                WHEN 'TU' THEN 2
+                WHEN 'WE' THEN 3
+                WHEN 'TH' THEN 4
+                WHEN 'FR' THEN 5
+                ELSE NULL
+            END
+        ) AS dayOfWeek,
+        SUBSTR(A.TIMEBLOCK_CD, 4, 4) AS timeSlotCode
+    FROM
+        -- 🔑 이 부분을 아래 후보로 대체해야 합니다.
+       LCT_ROOM_SCHEDULE A
+    INNER JOIN
+        TIMEBLOCK T ON T.TIMEBLOCK_CD = A.TIMEBLOCK_CD
+    WHERE
+        A.LECTURE_ID	 = #{lctureId}
+    ORDER BY
+        dayOfWeek, timeSlotCode
+</select>
+
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" width="1536" height="1024">
+  <!-- Clean photographic base -->
+  <image href="campus-clean.png" x="0" y="0" width="1536" height="1024" preserveAspectRatio="none"/>
+
+  <!-- Clickable overlays: 6 buildings -->
+  <g id="buildings" fill="transparent" stroke="none">
+    <!-- 중앙도서관 -->
+    <g class="building-group" id="B001" data-building-cd="B001" data-building-name="중앙도서관">
+      <polygon points="240,180 520,165 540,305 260,320"/>
+    </g>
+
+    <!-- 학생회관 -->
+    <g class="building-group" id="B002" data-building-cd="B002" data-building-name="학생회관">
+      <rect x="770" y="165" width="300" height="170" rx="12"/>
+    </g>
+
+    <!-- 제1공학관 -->
+    <g class="building-group" id="B003" data-building-cd="B003" data-building-name="제1공학관">
+      <circle cx="1265" cy="245" r="105"/>
+    </g>
+
+    <!-- 제2공학관 -->
+    <g class="building-group" id="B004" data-building-cd="B004" data-building-name="제2공학관">
+      <polygon points="170,560 480,545 500,705 190,720"/>
+    </g>
+
+    <!-- 본관 -->
+    <g class="building-group" id="B005" data-building-cd="B005" data-building-name="본관">
+      <polygon points="1070,545 1400,525 1420,705 1090,725"/>
+    </g>
+
+    <!-- 기숙사 -->
+    <g class="building-group" id="B006" data-building-cd="B006" data-building-name="기숙사">
+      <rect x="590" y="630" width="360" height="190" rx="14"/>
+    </g>
+  </g>
+
+  <style>
+    #buildings > g:hover > * { fill: rgba(37,99,235,0.22); cursor: pointer; }
+  </style>
+</svg>

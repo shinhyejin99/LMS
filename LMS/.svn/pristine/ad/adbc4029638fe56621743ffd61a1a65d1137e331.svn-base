@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.ExamSubmitMapper">
+
+	<insert id="insertExamSubmit">
+        INSERT INTO exam_submit (
+            enroll_id,
+            lct_exam_id,
+            submit_at,
+            auto_score,
+            modified_score,
+            modify_reason
+        ) VALUES (
+            #{enrollId},
+            #{lctExamId},
+            #{submitAt},
+            #{autoScore},
+            #{modifiedScore},
+            #{modifyReason}
+        )
+    </insert>
+
+    <select id="selectExamSubmitList" resultType="kr.or.jsu.vo.ExamSubmitVO">
+        SELECT
+            enroll_id,
+            lct_exam_id,
+            submit_at,
+            auto_score,
+            modified_score,
+            modify_reason
+        FROM
+            exam_submit
+        ORDER BY
+            enroll_id, lct_exam_id
+    </select>
+
+    <update id="updateExamSubmit">
+        UPDATE exam_submit
+        SET
+            submit_at = #{submitAt},
+            auto_score = #{autoScore},
+            modified_score = #{modifiedScore},
+            modify_reason = #{modifyReason}
+        WHERE
+            enroll_id = #{enrollId} AND lct_exam_id = #{lctExamId}
+    </update>
+
+    <delete id="deleteExamSubmit">
+        DELETE FROM exam_submit
+        WHERE
+            enroll_id = #{enrollId} AND lct_exam_id = #{lctExamId}
+    </delete>
+
+
+</mapper>

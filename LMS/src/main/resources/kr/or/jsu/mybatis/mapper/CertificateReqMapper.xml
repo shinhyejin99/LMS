@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 
+ * == 개정이력(Modification Information) ==
+ *   
+ *   수정일      		수정자           수정내용
+ *  ============   	============== =======================
+ *  2025.10.09        정태일            MyBatis XML 포맷 정리 및 명칭 정비
+-->
+
+<mapper namespace="kr.or.jsu.mybatis.mapper.CertificateReqMapper">
+
+    <!-- 증명서 요청 등록 -->
+    <insert id="insertCertificateReq" parameterType="kr.or.jsu.vo.CertificateReqVO">
+        INSERT INTO certificate_req (
+              cert_req_id
+            , user_id
+            , certificate_cd
+            , request_at
+            , expire_at
+        ) VALUES (
+              #{certReqId}
+            , #{userId}
+            , #{certificateCd}
+            , #{requestAt}
+            , #{expireAt}
+        )
+    </insert>
+
+    <!-- 증명서 요청 목록 조회 -->
+    <select id="selectCertificateReqList" resultType="kr.or.jsu.vo.CertificateReqVO">
+        SELECT
+              cert_req_id
+            , user_id
+            , certificate_cd
+            , request_at
+            , expire_at
+        FROM
+            certificate_req
+        ORDER BY
+            cert_req_id
+    </select>
+
+    <!-- 증명서 요청 수정 -->
+    <update id="updateCertificateReq" parameterType="kr.or.jsu.vo.CertificateReqVO">
+        UPDATE certificate_req
+        SET
+              user_id       = #{userId}
+            , certificate_cd = #{certificateCd}
+            , request_at     = #{requestAt}
+            , expire_at      = #{expireAt}
+        WHERE
+            cert_req_id = #{certReqId}
+    </update>
+
+    <!-- 증명서 요청 삭제 -->
+    <delete id="deleteCertificateReq" parameterType="string">
+        DELETE FROM certificate_req
+        WHERE
+            cert_req_id = #{certReqId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.ProfessorMapper">
+
+    <!-- 교수 등록 -->
+    <insert id="insertProfessor" parameterType="kr.or.jsu.vo.ProfessorVO">
+         INSERT INTO PROFESSOR (
+            PROFESSOR_NO, UNIV_DEPT_CD, ENG_LNAME, ENG_FNAME, PRF_STATUS_CD, PRF_APPNT_CD, PRF_POSIT_CD, USER_ID, OFFICE_NO
+        ) VALUES (
+            #{professorNo}, #{univDeptCd}, #{engLname}, #{engFname}, #{prfStatusCd}, #{prfAppntCd}, #{prfPositCd}, #{userId}, #{officeNo}
+        )
+    </insert>
+
+    <!-- 교수 전체 목록 조회 -->
+    <select id="selectProfessorList" resultType="kr.or.jsu.vo.ProfessorVO">
+        SELECT
+            PROFESSOR_NO, UNIV_DEPT_CD, ENG_LNAME, ENG_FNAME, PRF_STATUS_CD, PRF_APPNT_CD, PRF_POSIT_CD, USER_ID, OFFICE_NO
+        FROM PROFESSOR
+    </select>
+
+    <!-- 특정 교수 조회 (단순) -->
+    <select id="selectProfessor" parameterType="string" resultType="kr.or.jsu.vo.ProfessorVO">
+        SELECT
+            PROFESSOR_NO, UNIV_DEPT_CD, ENG_LNAME, ENG_FNAME, PRF_STATUS_CD, PRF_APPNT_CD, PRF_POSIT_CD, USER_ID
+        FROM PROFESSOR
+        WHERE PROFESSOR_NO = #{professorNo}
+    </select>
+	
+	
+	<sql id="user_all_col">
+    	u.USER_ID
+		, u.FIRST_NAME
+		, u.LAST_NAME
+		, u.REGI_NO
+		, u.PHOTO_ID
+		, u.ADDR_ID
+		, u.MOBILE_NO
+		, u.EMAIL
+		, u.BANK_CODE
+		, u.BANK_ACCOUNT
+		, u.CREATE_AT
+    </sql>
+    
+    <sql id="professor_all_col">
+    	p.PROFESSOR_NO
+		, p.UNIV_DEPT_CD
+		, p.ENG_LNAME
+		, p.ENG_FNAME
+		, p.PRF_STATUS_CD
+		, p.PRF_APPNT_CD
+		, p.PRF_POSIT_CD
+		, p.OFFICE_NO
+    </sql>
+    
+	<!-- 플랫 객체로, USERS + PROFESSOR 까지만 조인한 교수정보 조회 -->
+	<!-- 코드성 데이터는 조인해오지 않으므로, 직접 cache로 넣어서 써야 합니다. -->
+    <select id="selectBasicProfessorInfo">
+		SELECT
+		    <include refid="user_all_col"/>
+		    , <include refid="professor_all_col"/>
+		FROM
+			USERS u
+		JOIN PROFESSOR p ON
+			u.USER_ID = p.USER_ID
+		WHERE
+			p.PROFESSOR_NO = #{professorNo}
+    </select>
+    
+	<!-- 플랫 객체로, USERS + PROFESSOR 까지만 조인한 교수정보 조회 -->
+	<!-- 코드성 데이터는 조인해오지 않으므로, 직접 cache로 넣어서 써야 합니다. -->
+	<!-- 사용자ID로 검색하므로, 결과가 null일 경우 -->
+	<!-- 1. 해당 사용자가 없거나 -->
+	<!-- 2. 해당 사용자가 있어도 교수가 아닌 경우입니다. -->
+	
+    <select id="selectBasicProfessorInfoByUserId">
+		SELECT
+		    <include refid="user_all_col"/>
+		    , <include refid="professor_all_col"/>
+		FROM
+			USERS u
+		JOIN PROFESSOR p ON
+			u.USER_ID = p.USER_ID
+		WHERE
+			u.USER_ID = #{userId}
+    </select>
+    
+    
+	<!-- 특정 학과의 학과장 교수를 가져옵니다. -->
+	<!-- 플랫 객체로, USERS + PROFESSOR 까지만 조인한 교수정보 조회 -->
+	<!-- 코드성 데이터는 조인해오지 않으므로, 직접 cache로 넣어서 써야 합니다. -->
+    <select id="selectDeptCheifProfessor">
+    	SELECT
+		    <include refid="user_all_col"/>
+		    , <include refid="professor_all_col"/>
+		FROM
+			USERS u
+		JOIN PROFESSOR p ON
+			u.USER_ID = p.USER_ID
+		WHERE
+			p.UNIV_DEPT_CD = #{univDeptCd}
+			AND p.PRF_POSIT_CD = 'PRF_POSIT_HEAD'
+    </select>
+
+    <!-- 교수 정보 수정 (동적) -->
+    <update id="updateProfessor" parameterType="kr.or.jsu.vo.ProfessorVO">
+        UPDATE PROFESSOR
+        <set>
+            <if test="univDeptCd != null and univDeptCd != ''">UNIV_DEPT_CD = #{univDeptCd},</if>
+            <if test="engLname != null and engLname != ''">ENG_LNAME = #{engLname},</if>
+            <if test="engFname != null and engFname != ''">ENG_FNAME = #{engFname},</if>
+            <if test="prfStatusCd != null and prfStatusCd != ''">PRF_STATUS_CD = #{prfStatusCd},</if>
+            <if test="prfAppntCd != null and prfAppntCd != ''">PRF_APPNT_CD = #{prfAppntCd},</if>
+            <if test="prfPositCd != null and prfPositCd != ''">PRF_POSIT_CD = #{prfPositCd},</if>
+            <if test="userId != null and userId != ''">USER_ID = #{userId},</if>
+        </set>
+        WHERE
+            PROFESSOR_NO = #{professorNo}
+    </update>
+
+    <!-- 교수 삭제 -->
+    <delete id="deleteProfessor" parameterType="string">
+        DELETE FROM PROFESSOR
+        WHERE PROFESSOR_NO = #{professorNo}
+    </delete>
+
+    <!-- 상세 정보 조회를 위한 ResultMap -->
+    <resultMap type="kr.or.jsu.dto.ProfessorInfoDTO" id="professorInfoDTOResultMap">
+        <!-- Primary Key for Professor -->
+        <id property="professorNo" column="PROFESSOR_NO"/>
+
+        <!-- Fields from USERS table (inherited by ProfessorVO) -->
+        <result property="userId" column="USER_ID"/>
+        <result property="pwHash" column="PW_HASH"/>
+        <result property="firstName" column="FIRST_NAME"/>
+        <result property="lastName" column="LAST_NAME"/>
+        <result property="regiNo" column="REGI_NO"/>
+        <result property="photoId" column="PHOTO_ID"/>
+        <result property="addrId" column="ADDR_ID"/>
+        <result property="mobileNo" column="MOBILE_NO"/>
+        <result property="email" column="EMAIL"/>
+        <result property="bankCode" column="BANK_CODE"/>
+        <result property="bankAccount" column="BANK_ACCOUNT"/>
+        <result property="createAt" column="CREATE_AT"/>
+
+	    <!-- Fields from ADDRESS table -->
+		<result property="zipCode" column="ZIP_CODE" />
+		<result property="baseAddr" column="BASE_ADDR" />
+		<result property="detailAddr" column="DETAIL_ADDR" />
+
+        <!-- Fields from PROFESSOR table -->
+        <result property="univDeptCd" column="UNIV_DEPT_CD"/>
+        <result property="engLname" column="ENG_LNAME"/>
+        <result property="engFname" column="ENG_FNAME"/>
+        <result property="prfStatusCd" column="PRF_STATUS_CD"/>
+        <result property="prfAppntCd" column="PRF_APPNT_CD"/>
+        <result property="prfPositCd" column="PRF_POSIT_CD"/>
+
+        <!-- Joined Fields for ProfessorInfoDTO -->
+        <result property="collegeName" column="COLLEGE_NAME"/>
+        <result property="departmentName" column="UNIV_DEPT_NAME"/>
+        <result property="positionName" column="POSITION_NAME"/>
+        <result property="employmentStatus" column="STATUS_NAME"/>
+        <result property="employmentType" column="APPNT_NAME"/>
+        <result property="employmentDate" column="CREATE_AT"/>
+        <result property="finalDegree" column="FINAL_DEGREE_NAME"/>
+        <result property="officeNo" column="OFFICE_NO"/>
+
+        <result property="positionName" column="POSITION_NAME"/>
+
+
+    <result property="researchArea" column="RESEARCH_AREA"/>
+    <result property="researchSummary" column="RESEARCH_SUMMARY"/>
+
+    </resultMap>
+
+    <!-- 교수 상세 정보 조회 (JOIN) -->
+    <select id="selectProfessorInfoView" parameterType="string" resultMap="professorInfoDTOResultMap">
+       SELECT
+		    U.USER_ID, U.PW_HASH, U.FIRST_NAME, U.LAST_NAME, U.REGI_NO, U.PHOTO_ID, U.ADDR_ID, U.MOBILE_NO, U.EMAIL, U.BANK_CODE, U.BANK_ACCOUNT, U.CREATE_AT,
+		    A.ZIP_CODE, A.BASE_ADDR, A.DETAIL_ADDR,
+		    P.PROFESSOR_NO, P.UNIV_DEPT_CD, P.ENG_LNAME, P.ENG_FNAME, P.PRF_STATUS_CD, P.PRF_APPNT_CD, P.PRF_POSIT_CD, P.OFFICE_NO,
+
+		    C.COLLEGE_NAME,
+		    D.UNIV_DEPT_NAME,
+		    POS.CD_NAME AS POSITION_NAME,
+		    STAT.CD_NAME AS STATUS_NAME,
+		    APPNT.CD_NAME AS APPNT_NAME,
+		    PD.DEGREE_NAME AS FINAL_DEGREE_NAME,
+		    PR.PURPOSE AS RESEARCH_ROOM_PURPOSE,
+		    BK.CD_NAME AS BANK_NAME
+
+        FROM
+            PROFESSOR P
+            LEFT JOIN USERS U ON P.USER_ID = U.USER_ID
+            LEFT JOIN ADDRESS A ON U.ADDR_ID = A.ADDR_ID
+            LEFT JOIN UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+            LEFT JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+            LEFT JOIN COMMON_CODE POS ON P.PRF_POSIT_CD = POS.COMMON_CD
+            LEFT JOIN COMMON_CODE STAT ON P.PRF_STATUS_CD = STAT.COMMON_CD
+            LEFT JOIN COMMON_CODE APPNT ON P.PRF_APPNT_CD = APPNT.COMMON_CD
+            LEFT JOIN PRF_DEGREE PD ON P.PROFESSOR_NO = PD.PROFESSOR_NO AND PD.FINAL_YN = 'Y'
+            LEFT JOIN PRF_ROOM PR ON P.PROFESSOR_NO = PR.PROFESSOR_NO
+            LEFT JOIN COMMON_CODE BK ON U.BANK_CODE = BK.COMMON_CD
+        WHERE
+            P.PROFESSOR_NO = #{professorNo}
+    </select>
+
+
+<!-- PROFESSOR 테이블에 대해 해당 연도의 최대 순번을 찾는쿼리 -->
+<select id="findMaxSequenceByYear" parameterType="string" resultType="int">
+    SELECT
+         count(*) + 1
+    FROM
+        PROFESSOR
+    WHERE
+        SUBSTR(PROFESSOR_NO, 1, 4) = #{year}
+</select>
+
+<select id="selectStaffProfessorInfoList"
+        parameterType="kr.or.jsu.core.paging.PaginationInfo"
+        resultMap="professorInfoDTOResultMap">
+
+    SELECT *
+    FROM (
+        SELECT
+            ROWNUM rn,
+            a.*
+        FROM (
+            SELECT
+            U.USER_ID
+            , U.PW_HASH
+            , U.FIRST_NAME
+            , U.LAST_NAME
+            , U.REGI_NO
+            , U.PHOTO_ID
+            , U.ADDR_ID
+            , U.MOBILE_NO
+            , U.EMAIL
+            , U.BANK_CODE
+            , U.BANK_ACCOUNT
+            , U.CREATE_AT
+            , P.PROFESSOR_NO
+            , P.UNIV_DEPT_CD
+            , P.ENG_LNAME
+            , P.ENG_FNAME
+            , P.PRF_STATUS_CD
+            , P.PRF_APPNT_CD
+            , P.PRF_POSIT_CD
+            , C.COLLEGE_NAME
+            , D.UNIV_DEPT_NAME
+            , POS.CD_NAME AS POSITION_NAME
+            , STAT.CD_NAME AS STATUS_NAME
+            , APPNT.CD_NAME AS APPNT_NAME
+            , PD.DEGREE_NAME AS FINAL_DEGREE_NAME
+            , PR.PURPOSE AS RESEARCH_ROOM_PURPOSE
+        FROM
+            PROFESSOR P
+            LEFT JOIN USERS U ON P.USER_ID = U.USER_ID
+            LEFT JOIN UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+            LEFT JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+            LEFT JOIN COMMON_CODE POS ON P.PRF_POSIT_CD = POS.COMMON_CD
+            LEFT JOIN COMMON_CODE STAT ON P.PRF_STATUS_CD = STAT.COMMON_CD
+            LEFT JOIN COMMON_CODE APPNT ON P.PRF_APPNT_CD = APPNT.COMMON_CD
+            LEFT JOIN PRF_DEGREE PD ON P.PROFESSOR_NO = PD.PROFESSOR_NO AND PD.FINAL_YN = 'Y'
+            LEFT JOIN PRF_ROOM PR ON P.PROFESSOR_NO = PR.PROFESSOR_NO
+
+          <where>
+        <if test="searchKeyword != null and searchKeyword != ''">
+                AND (P.PROFESSOR_NO LIKE '%' || #{searchKeyword} || '%'
+                OR U.LAST_NAME || U.FIRST_NAME LIKE '%' || #{searchKeyword} || '%')
+            </if>
+
+            <if test="filterEmploymentStatus != null and filterEmploymentStatus != ''">
+                AND STAT.CD_NAME = #{filterEmploymentStatus}
+            </if>
+
+            <if test="filterCollege != null and filterCollege != ''">
+                AND C.COLLEGE_NAME = #{filterCollege}
+            </if>
+
+            <if test="filterDepartment != null and filterDepartment != ''">
+                AND D.UNIV_DEPT_NAME = #{filterDepartment}
+            </if>
+
+            <if test="filterAppointment != null and filterAppointment != ''">
+                AND APPNT.CD_NAME = #{filterAppointment}
+            </if>
+
+            </where>
+            ORDER BY
+             D.UNIV_DEPT_NAME ASC,p.PROFESSOR_NO  ASC
+        ) a
+      )
+    WHERE rn BETWEEN #{startRow} AND #{endRow}
+</select>
+<select id="selectProfessorCount" parameterType="kr.or.jsu.core.paging.PaginationInfo" resultType="int">
+    SELECT COUNT(p.PROFESSOR_NO)
+    FROM PROFESSOR p
+    JOIN USERS u ON p.USER_ID = u.USER_ID
+    LEFT JOIN COMMON_CODE STAT ON P.PRF_STATUS_CD = STAT.COMMON_CD
+    LEFT JOIN UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+    LEFT JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+    LEFT JOIN COMMON_CODE APPNT ON P.PRF_APPNT_CD = APPNT.COMMON_CD
+
+    <where>
+             <if test="searchKeyword != null and searchKeyword != ''">
+            AND (p.PROFESSOR_NO LIKE '%' || #{searchKeyword} || '%'
+            OR u.LAST_NAME || u.FIRST_NAME LIKE '%' || #{searchKeyword} || '%')
+        </if>
+
+        <if test="filterEmploymentStatus != null and filterEmploymentStatus != ''">
+            AND STAT.CD_NAME = #{filterEmploymentStatus}
+        </if>
+
+        <if test="filterCollege != null and filterCollege != ''">
+            AND C.COLLEGE_NAME = #{filterCollege}
+        </if>
+
+        <if test="filterDepartment != null and filterDepartment != ''">
+            AND D.UNIV_DEPT_NAME = #{filterDepartment}
+        </if>
+
+        <if test="filterAppointment != null and filterAppointment != ''">
+            AND APPNT.CD_NAME = #{filterAppointment}
+        </if>
+
+        </where>
+</select>
+     <!-- 교직원이 교수 등록 사용 -->
+    <insert id="insertStaffProfessorInfo" parameterType="kr.or.jsu.dto.ProfessorInfoDTO">
+    INSERT INTO PROFESSOR (
+        PROFESSOR_NO,
+        UNIV_DEPT_CD,
+        ENG_LNAME,
+        ENG_FNAME,
+        PRF_STATUS_CD,
+        PRF_APPNT_CD
+        , PRF_POSIT_CD
+        , USER_ID
+        , OFFICE_NO
+
+    ) VALUES (
+        #{professorNo},
+        #{univDeptCd},
+        #{engLname},
+        #{engFname},
+        #{prfStatusCd},
+        #{prfAppntCd}
+        , #{prfPositCd}
+        , #{userId}
+        , #{officeNo}
+
+    )
+</insert>
+<!--재직상태에 따라 단과별 교수 수  -->
+<select id="selectProfessorStatsByCollege" parameterType="java.util.Map" resultType="java.util.Map">
+        SELECT
+            C.COLLEGE_NAME AS NAME,
+            COUNT(P.PROFESSOR_NO) AS COUNT
+        FROM
+            PROFESSOR P
+            LEFT JOIN UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+            LEFT JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+            LEFT JOIN COMMON_CODE STAT ON P.PRF_STATUS_CD = STAT.COMMON_CD
+        <where>
+            <if test="status != null and status != ''">
+                AND STAT.CD_NAME = #{status}
+            </if>
+        </where>
+        GROUP BY
+            C.COLLEGE_NAME
+        ORDER BY
+            COUNT(P.PROFESSOR_NO) DESC
+    </select>
+    <!--단과별에 따라 학과별 교수 수  -->
+		  <select id="selectProfessorStatsByDepartment" resultType="java.util.Map">
+			    SELECT
+			        D.UNIV_DEPT_NAME AS NAME,  COUNT(P.PROFESSOR_NO) AS COUNT
+			    FROM PROFESSOR P
+			        JOIN USERS U ON P.USER_ID = U.USER_ID
+			        JOIN COMMON_CODE S ON P.PRF_STATUS_CD = S.COMMON_CD
+			        JOIN UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+			        JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+			    WHERE 1=1
+			        <if test="status != null and !status.equals('')">
+			            AND S.CD_NAME = #{status}
+			        </if>
+			        <if test="college != null and !college.equals('')">
+			            AND C.COLLEGE_NAME = #{college}
+			        </if>
+			    GROUP BY D.UNIV_DEPT_NAME
+			    ORDER BY COUNT DESC
+			</select>
+    <!--학과별에 따라 직위별 교수 수  -->
+      <select id="selectProfessorStatsByPosition" resultType="java.util.Map">
+			    SELECT
+			        PT.CD_NAME AS NAME,
+			        COUNT(P.PROFESSOR_NO) AS COUNT
+			    FROM PROFESSOR P
+			        JOIN USERS U ON P.USER_ID = U.USER_ID
+			        JOIN COMMON_CODE S ON P.PRF_STATUS_CD = S.COMMON_CD
+			        JOIN COMMON_CODE PT ON P.PRF_APPNT_CD = PT.COMMON_CD
+			        JOIN UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+			        JOIN COLLEGE C ON D.COLLEGE_CD = C.COLLEGE_CD
+			    WHERE 1=1
+			        <if test="status != null and !status.equals('')">
+			            AND S.CD_NAME = #{status}
+			        </if>
+			        <if test="college != null and !college.equals('')">
+			            AND C.COLLEGE_NAME = #{college}
+			        </if>
+			        <if test="department != null and !department.equals('')">
+			            AND D.UNIV_DEPT_NAME = #{department}
+			        </if>
+			    GROUP BY PT.CD_NAME
+			    ORDER BY COUNT DESC
+			</select>
+		<select id="selectEmploymentStatusCounts" resultType="java.util.Map">
+			    SELECT
+			        C.CD_NAME AS STATUS,
+			        COUNT(P.PROFESSOR_NO) AS COUNT
+			    FROM PROFESSOR P
+			    JOIN COMMON_CODE C ON P.PRF_STATUS_CD = C.COMMON_CD
+			    GROUP BY C.CD_NAME
+			</select>
+    <!-- 특정 교수의 전체 담당 학생 수 조회 -->
+    <select id="selectTotalAdvisedStudentsCount" parameterType="string" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            STUDENT
+        WHERE
+            PROFESSOR_ID = #{professorNo}
+    </select>
+
+    <!-- 특정 교수의 휴학 상태 담당 학생 수 조회 -->
+    <select id="selectLeaveOfAbsenceAdvisedStudentsCount" parameterType="string" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            STUDENT
+        WHERE
+            PROFESSOR_ID = #{professorNo} AND STU_STATUS_CD = 'STU_STATUS_LOA'
+    </select>
+
+    <!-- 특정 교수의 자퇴 상태 담당 학생 수 조회 -->
+    <select id="selectWithdrawalAdvisedStudentsCount" parameterType="string" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+            STUDENT
+        WHERE
+            PROFESSOR_ID = #{professorNo} AND STU_STATUS_CD = 'STU_STATUS_WDR'
+    </select>
+
+    <resultMap id="recentLectureMap" type="kr.or.jsu.vo.LectureVO">
+        <id property="lectureId" column="LECTURE_ID"/>
+        <result property="subjectCd" column="SUBJECT_CD"/>
+        <result property="professorNo" column="PROFESSOR_NO"/>
+        <result property="yeartermCd" column="YEARTERM_CD"/>
+        <result property="maxCap" column="MAX_CAP"/>
+        <result property="lectureIndex" column="LECTURE_INDEX"/>
+        <result property="lectureGoal" column="LECTURE_GOAL"/>
+        <result property="prereqSubject" column="PREREQ_SUBJECT"/>
+        <result property="cancelYn" column="CANCEL_YN"/>
+        <result property="endAt" column="END_AT"/>
+        <result property="subjectName" column="SUBJECT_NAME"/>
+        <result property="currentCap" column="CURRENT_CAP"/>
+    </resultMap>
+
+    <select id="selectRecentConfirmedLectures" parameterType="string" resultMap="recentLectureMap">
+        SELECT *
+        FROM (
+            SELECT
+                  L.LECTURE_ID
+                , L.SUBJECT_CD
+                , L.PROFESSOR_NO
+                , L.YEARTERM_CD
+                , L.MAX_CAP
+                , L.LECTURE_INDEX
+                , L.LECTURE_GOAL
+                , L.PREREQ_SUBJECT
+                , L.CANCEL_YN
+                , L.END_AT
+                , S.SUBJECT_NAME
+                , (SELECT COUNT(*) FROM STU_ENROLL_LCT WHERE LECTURE_ID = L.LECTURE_ID) AS CURRENT_CAP
+            FROM LECTURE L
+            JOIN SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+            WHERE
+                L.PROFESSOR_NO = #{professorNo}
+                AND L.CANCEL_YN = 'N'
+            ORDER BY
+                L.YEARTERM_CD DESC, L.LECTURE_ID DESC
+        )
+        WHERE ROWNUM &lt;= 5
+    </select>
+
+    <select id="selectAdviseeGrades" resultType="map">
+        SELECT
+            CASE E.FINAL_GRADE
+                WHEN 4.5 THEN 'A+'
+                WHEN 4.0 THEN 'A0'
+                WHEN 3.5 THEN 'B+'
+                WHEN 3.0 THEN 'B0'
+                WHEN 2.5 THEN 'C+'
+                WHEN 2.0 THEN 'C0'
+                WHEN 1.5 THEN 'D+'
+                WHEN 1.0 THEN 'D0'
+                ELSE 'F'
+            END AS FINAL_GRADE
+        FROM
+            STUDENT S
+        INNER JOIN
+            STU_ENROLL_LCT E ON S.STUDENT_NO = E.STUDENT_NO
+        INNER JOIN
+            LECTURE L ON E.LECTURE_ID = L.LECTURE_ID
+        INNER JOIN
+            SUBJECT SUB ON L.SUBJECT_CD = SUB.SUBJECT_CD
+        WHERE
+            S.PROFESSOR_ID = #{professorNo}
+            AND E.FINAL_GRADE IS NOT NULL
+            AND SUB.COMPLETION_CD != 'SUBJ_PASSFAIL'
+    </select>
+
+    <select id="selectAdviseeGradeYearCounts" resultType="map">
+        SELECT
+            CC_GRADE.CD_NAME AS GRADE_NAME,
+            COUNT(S.STUDENT_NO) AS COUNT
+        FROM
+            STUDENT S
+        LEFT JOIN
+            COMMON_CODE CC_GRADE ON S.GRADE_CD = CC_GRADE.COMMON_CD
+        WHERE
+            S.PROFESSOR_ID = #{professorNo}
+        GROUP BY
+            CC_GRADE.CD_NAME
+        ORDER BY
+            GRADE_NAME ASC
+    </select>
+
+    <select id="selectLectureGradeDistributions" resultType="map">
+        SELECT
+            L.LECTURE_ID,
+            S.SUBJECT_NAME,
+            CASE E.FINAL_GRADE
+                WHEN 4.5 THEN 'A+'
+                WHEN 4.0 THEN 'A0'
+                WHEN 3.5 THEN 'B+'
+                WHEN 3.0 THEN 'B0'
+                WHEN 2.5 THEN 'C+'
+                WHEN 2.0 THEN 'C0'
+                WHEN 1.5 THEN 'D+'
+                WHEN 1.0 THEN 'D0'
+                ELSE 'F'
+            END AS FINAL_GRADE,
+            COUNT(*) AS COUNT
+        FROM
+            STU_ENROLL_LCT E
+        INNER JOIN
+            LECTURE L ON E.LECTURE_ID = L.LECTURE_ID
+        INNER JOIN
+            SUBJECT S ON L.SUBJECT_CD = S.SUBJECT_CD
+        WHERE
+            L.PROFESSOR_NO = #{professorNo}
+            AND E.FINAL_GRADE IS NOT NULL
+            AND S.COMPLETION_CD != 'SUBJ_PASSFAIL'
+        GROUP BY
+            L.LECTURE_ID, S.SUBJECT_NAME, E.FINAL_GRADE
+        ORDER BY
+            L.LECTURE_ID, S.SUBJECT_NAME, FINAL_GRADE
+    </select>
+
+    <select id="selectProfessorListForStudentMapping" parameterType="map" resultType="kr.or.jsu.dto.ProfessorInfoDTO">
+	    SELECT
+	        P.PROFESSOR_NO AS professorId,
+	        (U.LAST_NAME || U.FIRST_NAME) AS professorName,
+	        P.UNIV_DEPT_CD AS univDeptCd,
+	        D.UNIV_DEPT_NAME AS univDeptName
+	    FROM
+	        PROFESSOR P
+	    JOIN
+	        USERS U ON P.USER_ID = U.USER_ID
+	    JOIN
+	        UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+	    WHERE
+	        P.PRF_STATUS_CD = 'PRF_STATUS_EMP' <if test="deptCd != null and deptCd != ''">
+	        AND P.UNIV_DEPT_CD = #{deptCd}
+	    </if>
+
+	    <if test="searchKeyword != null and searchKeyword != ''">
+	        AND (
+	            (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{searchKeyword} || '%'
+	             OR P.PROFESSOR_NO LIKE '%' || #{searchKeyword} || '%'
+	        )
+	    </if>
+	    ORDER BY professorName
+	</select>
+
+
+   <select id="selectProfessorListForSearch" parameterType="map" resultType="kr.or.jsu.dto.ProfessorInfoDTO">
+       SELECT
+            P.PROFESSOR_NO AS professorNo,
+            (U.LAST_NAME || U.FIRST_NAME) AS professorName,
+            D.UNIV_DEPT_NAME AS univDeptName
+        FROM
+            PROFESSOR P
+        JOIN
+            USERS U ON P.USER_ID = U.USER_ID
+        JOIN
+            UNIV_DEPT D ON P.UNIV_DEPT_CD = D.UNIV_DEPT_CD
+        WHERE
+            P.PRF_STATUS_CD = 'PRF_STATUS_ACTV'  <if test="deptCd != null and deptCd != ''">
+            AND P.UNIV_DEPT_CD = #{deptCd}  </if>
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND (
+                (U.LAST_NAME || U.FIRST_NAME) LIKE '%' || #{searchKeyword} || '%'  OR P.PROFESSOR_NO LIKE '%' || #{searchKeyword} || '%'            )
+        </if>
+        ORDER BY professorName
+    </select>
+
+</mapper>

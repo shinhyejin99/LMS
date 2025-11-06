@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.StuScholarDetailMapper">
+
+    <!-- 단건 조회 -->
+    <select id="selectStuScholarDetail" parameterType="string" resultType="kr.or.jsu.vo.StuScholarDetailVO">
+        SELECT 
+          yearterm_cd
+        , student_no
+        , scholarship_id
+        FROM stu_scholar_detail
+        WHERE scholarship_id = #{scholarshipId}
+    </select>
+
+    <!-- 전체 조회 -->
+    <select id="selectStuScholarDetailList" resultType="kr.or.jsu.vo.StuScholarDetailVO">
+        SELECT 
+          yearterm_cd
+        , student_no
+        , scholarship_id
+        FROM stu_scholar_detail
+        ORDER BY yearterm_cd
+        , student_no
+        , scholarship_id
+    </select>
+
+    <!-- 등록 -->
+    <insert id="insertStuScholarDetail" parameterType="kr.or.jsu.vo.StuScholarDetailVO">
+        INSERT INTO stu_scholar_detail (
+          yearterm_cd
+        , student_no
+        , scholarship_id
+        ) VALUES (
+          #{yeartermCd}
+        , #{studentNo}
+        , #{scholarshipId}
+        )
+    </insert>
+
+    <!-- 수정 -->
+    <update id="updateStuScholarDetail" parameterType="kr.or.jsu.vo.StuScholarDetailVO">
+        UPDATE stu_scholar_detail
+        SET 
+          yearterm_cd = #{yeartermCd}
+        , student_no  = #{studentNo}
+        WHERE scholarship_id = #{scholarshipId}
+    </update>
+
+    <!-- 삭제 -->
+    <delete id="deleteStuScholarDetail" parameterType="string">
+        DELETE FROM stu_scholar_detail
+        WHERE scholarship_id = #{scholarshipId}
+    </delete>
+    
+</mapper>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.jsu.lms.professor.approval.mapper.ProfApprovalMapper">
+
+    <!-- ✅ 결재 ID로 단건 조회 -->
+    <select id="selectApprovalById" parameterType="string" resultType="ApprovalVO">
+        SELECT APPROVE_ID,
+               USER_ID,
+               APPROVE_YNNULL
+        FROM APPROVAL
+        WHERE APPROVE_ID = #{approveId}
+    </select>
+
+    <!-- ✅ 결재 반려 처리 -->
+    <update id="updateApprovalReject" parameterType="ApprovalVO">
+        UPDATE APPROVAL
+        SET APPROVE_YNNULL = 'N',
+            COMMENTS = #{comments},
+            APPROVE_AT = SYSDATE
+        WHERE APPROVE_ID = #{approveId}
+          AND USER_ID = #{userId}
+          AND APPROVE_YNNULL IS NULL
+    </update>
+
+    <!-- ✅ 결재 승인 상태 변경 -->
+    <update id="updateApprovalStatus" parameterType="map">
+        UPDATE APPROVAL
+        SET APPROVE_YNNULL = #{approveYnnull},
+            COMMENTS = #{comments},
+            APPROVE_AT = SYSDATE
+        WHERE APPROVE_ID = #{approveId}
+          AND USER_ID = #{userId}
+          AND APPROVE_YNNULL IS NULL
+    </update>
+
+    <!-- ✅ 신청 상태 변경 (학적변동) -->
+    <update id="updateRecordApplyStatus" parameterType="map">
+        UPDATE UNIV_RECORD_APPLY
+        SET APPLY_STATUS_CD = #{applyStatusCd}
+        WHERE APPROVAL_LINE = #{approveId}
+    </update>
+
+    <!-- ✅ 신청 상태 변경 (소속변경) -->
+    <update id="updateAffilApplyStatus" parameterType="map">
+        UPDATE UNIV_AFFIL_APPLY
+        SET APPLY_STATUS_CD = #{applyStatusCd}
+        WHERE APPROVAL_LINE = #{approveId}
+    </update>
+
+    <!-- ✅ 학과장(Department Head) 조회 -->
+    <select id="findDepartmentHead" parameterType="string" resultType="map">
+        SELECT *
+        FROM (
+            SELECT P.PROFESSOR_NO,
+                   U.USER_ID,
+                   P.UNIV_DEPT_CD
+            FROM PROFESSOR P
+            JOIN USERS U ON P.USER_ID = U.USER_ID
+            WHERE P.UNIV_DEPT_CD = #{deptCd}
+              AND P.PRF_POSIT_CD = 'PRF_POSIT_HEAD'
+        )
+        WHERE ROWNUM = 1
+    </select>
+
+    <!-- ✅ 다음 결재자(Approval Line) 생성 -->
+    <insert id="insertNextApproval" parameterType="ApprovalVO">
+        <selectKey keyProperty="approveId" resultType="string" order="BEFORE">
+            SELECT 'APPR' || LPAD(TO_CHAR(SEQ_APPROVAL.NEXTVAL), 11, '0') FROM DUAL
+        </selectKey>
+        INSERT INTO APPROVAL (
+            APPROVE_ID,
+            PREV_APPROVE_ID,
+            USER_ID,
+            APPLICANT_USER_ID,
+            APPLY_TYPE_CD
+        )
+        VALUES (
+            #{approveId},
+            #{prevApproveId},
+            #{userId},
+            #{applicantUserId},
+            #{applyTypeCd}
+        )
+    </insert>
+
+    <!-- ✅ 학적변동 승인 라인 업데이트 -->
+    <update id="updateRecordApplyApprovalLine" parameterType="map">
+        UPDATE UNIV_RECORD_APPLY
+        SET APPROVAL_LINE = #{newApproveId}
+        WHERE APPROVAL_LINE = #{oldApproveId}
+    </update>
+
+    <!-- ✅ 소속변경 승인 라인 업데이트 -->
+    <update id="updateAffilApplyApprovalLine" parameterType="map">
+        UPDATE UNIV_AFFIL_APPLY
+        SET APPROVAL_LINE = #{newApproveId}
+        WHERE APPROVAL_LINE = #{oldApproveId}
+    </update>
+
+    <!-- ✅ 지도교수 조회: 학생 USER_ID로 교수 USER_ID 가져오기 -->
+    <select id="selectSupervisorIdByStudent" parameterType="string" resultType="string">
+        SELECT P.USER_ID
+        FROM STUDENT S
+        JOIN PROFESSOR P ON S.PROFESSOR_ID = P.PROFESSOR_NO
+        WHERE S.USER_ID = #{userId}
+    </select>
+
+    <!-- ✅ 신청 상세 조회 -->
+    <select id="selectProfApprovalDetail" parameterType="string" resultType="map">
+        SELECT
+            A.APPROVE_ID,
+            A.PREV_APPROVE_ID,
+            A.USER_ID,
+            A.APPLY_TYPE_CD AS "APPLYTYPECD",
+            A.APPLICANT_USER_ID AS "APPLICANTUSERID",
+
+            -- Approver Info
+            U.LAST_NAME,
+            U.FIRST_NAME,
+
+            -- Applicant Info
+            APPLICANT_U.LAST_NAME || APPLICANT_U.FIRST_NAME AS "APPLICANTNAME",
+            APPLICANT_U.MOBILE_NO AS "APPLICANTMOBILENO",
+            APPLICANT_U.EMAIL AS "APPLICANTEMAIL",
+            APPLICANT_S.STUDENT_NO AS "APPLICANTSTUDENTNO",
+            APPLICANT_DEPT.UNIV_DEPT_NAME AS "APPLICANTDEPTNAME",
+            GRADE_C.CD_NAME AS "APPLICANTGRADENAME",
+            APPLICANT_A.BASE_ADDR AS "APPLICANTBASEADDR",
+            APPLICANT_A.DETAIL_ADDR AS "APPLICANTDETAILADDR",
+            APPLICANT_A.ZIP_CODE AS "APPLICANTZIPCODE",
+
+            -- Application Info
+            APPLY_TYPE_C.CD_NAME AS "DOCUMENTTYPE",
+            NVL(REC_A.APPLY_REASON, AFF_A.APPLY_REASON) AS "APPLY_REASON",
+            REC_A.DISIRE_TERM,
+            AFF_A.TARGET_DEPT_CD,
+            TARGET_DEPT.UNIV_DEPT_NAME AS "TARGET_DEPT_NAME"
+
+        FROM APPROVAL A
+        LEFT JOIN USERS U ON A.USER_ID = U.USER_ID
+        -- Applicant Joins
+        LEFT JOIN USERS APPLICANT_U ON A.APPLICANT_USER_ID = APPLICANT_U.USER_ID
+        LEFT JOIN ADDRESS APPLICANT_A ON APPLICANT_U.ADDR_ID = APPLICANT_A.ADDR_ID
+        LEFT JOIN STUDENT APPLICANT_S ON APPLICANT_U.USER_ID = APPLICANT_S.USER_ID
+        LEFT JOIN UNIV_DEPT APPLICANT_DEPT ON APPLICANT_S.UNIV_DEPT_CD = APPLICANT_DEPT.UNIV_DEPT_CD
+        LEFT JOIN COMMON_CODE GRADE_C ON APPLICANT_S.GRADE_CD = GRADE_C.COMMON_CD
+        -- Application Details Joins
+        LEFT JOIN COMMON_CODE APPLY_TYPE_C ON A.APPLY_TYPE_CD = APPLY_TYPE_C.COMMON_CD
+        LEFT JOIN UNIV_RECORD_APPLY REC_A ON A.APPROVE_ID = REC_A.APPROVAL_LINE
+        LEFT JOIN UNIV_AFFIL_APPLY AFF_A ON A.APPROVE_ID = AFF_A.APPROVAL_LINE
+        LEFT JOIN UNIV_DEPT TARGET_DEPT ON AFF_A.TARGET_DEPT_CD = TARGET_DEPT.UNIV_DEPT_CD
+        WHERE A.APPROVE_ID = #{approveId}
+    </select>
+
+    <!-- ✅ 결재 목록 카운트 -->
+    <select id="selectProfApprovalCount"
+            parameterType="kr.or.jsu.core.paging.PaginationInfo" resultType="int">
+        SELECT COUNT(*)
+        FROM APPROVAL A
+        WHERE A.USER_ID = #{detailSearch.approverUserId}
+          AND A.APPLY_TYPE_CD != 'LCT_OPEN'
+    </select>
+
+    <!-- ✅ 결재 목록 조회 -->
+    <select id="selectProfApprovalList"
+            parameterType="kr.or.jsu.core.paging.PaginationInfo" resultType="map">
+        SELECT *
+        FROM (
+            SELECT ROWNUM AS RNUM, T.*
+            FROM (
+                SELECT
+                    A.APPROVE_ID,
+                    A.USER_ID,
+                    U.LAST_NAME || U.FIRST_NAME AS APPROVER_NAME,
+                    A.APPLY_TYPE_CD,
+                    A.APPROVE_YNNULL,
+                    TO_CHAR(A.APPROVE_AT, 'YYYY-MM-DD') AS APPROVE_AT,
+                    A.COMMENTS,
+                    APPLICANT_U.LAST_NAME || APPLICANT_U.FIRST_NAME AS APPLICANTNAME,
+                    COALESCE(URA.APPLY_AT, UAA.APPLY_AT) AS APPLICATION_DATE,
+                    CASE
+                        WHEN A.APPLY_TYPE_CD = 'UNIV_RECORD_CHANGE' THEN '재학상태변경'
+                        ELSE CC.CD_NAME
+                    END AS GENERAL_DOCUMENT_TYPE,
+                    CASE
+                        WHEN A.APPLY_TYPE_CD = 'UNIV_RECORD_CHANGE' THEN RECORD_CHANGE_CC.CD_NAME
+                        ELSE CCS.SORT_NAME
+                    END AS SPECIFIC_DOCUMENT_TYPE
+                FROM APPROVAL A
+                LEFT JOIN USERS U ON A.USER_ID = U.USER_ID
+                LEFT JOIN USERS APPLICANT_U ON A.APPLICANT_USER_ID = APPLICANT_U.USER_ID
+                LEFT JOIN UNIV_RECORD_APPLY URA ON A.APPROVE_ID = URA.APPROVAL_LINE
+                LEFT JOIN COMMON_CODE RECORD_CHANGE_CC ON URA.RECORD_CHANGE_CD = RECORD_CHANGE_CC.COMMON_CD
+                LEFT JOIN UNIV_AFFIL_APPLY UAA ON A.APPROVE_ID = UAA.APPROVAL_LINE
+                LEFT JOIN COMMON_CODE CC ON A.APPLY_TYPE_CD = CC.COMMON_CD
+                LEFT JOIN COMMON_CODE_SORT CCS ON CC.COMMON_SORT_CD = CCS.COMMON_SORT_CD
+                WHERE A.USER_ID = #{detailSearch.approverUserId}
+                ORDER BY A.APPROVE_AT DESC, A.APPROVE_ID DESC
+            ) T
+        )
+        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+    </select>
+
+</mapper>

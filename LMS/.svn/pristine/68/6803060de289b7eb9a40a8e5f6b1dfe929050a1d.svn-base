@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.jsu.mybatis.mapper.CommonCodeMapper">
+
+	<select id="selectCommonCodeList">
+		SELECT
+			COMMON_CD AS commonCd
+			, COMMON_SORT_CD AS commonSortCd
+			, CD_NAME AS cdName
+			, CD_DESC AS cdDesc
+			, USING_YN AS usingYn
+		FROM
+			COMMON_CODE
+		WHERE
+			USING_YN = 'Y'
+			AND COMMON_SORT_CD = #{commonSortCode}
+	</select>
+
+	<!-- 현재 학기 조회 -->
+	<select id="selectCurrentYearterm" resultType="string">
+	    SELECT YEARTERM_CD
+	    FROM UNIV_YEARTERM
+	    WHERE SYSDATE BETWEEN START_AT AND END_AT
+	    FETCH FIRST 1 ROW ONLY
+	</select>
+
+	<!-- 다음 학기 조회 -->
+	<select id="selectNextYearterm" resultType="string">
+	    SELECT YEARTERM_CD
+	    FROM UNIV_YEARTERM
+	    WHERE START_AT > (
+	        SELECT END_AT
+	        FROM UNIV_YEARTERM
+	        WHERE YEARTERM_CD = #{currentYearterm}
+	    )
+	    ORDER BY START_AT ASC
+	    FETCH FIRST 1 ROW ONLY
+	</select>
+
+	<!-- 학기 코드 매핑 (REG1 -> 1, REG2 -> 2) -->
+	<select id="selectTermCdMapping" resultType="string">
+	    SELECT
+	        CASE
+	            WHEN SUBSTR(#{yeartermCd}, INSTR(#{yeartermCd}, '_') + 1) IN ('REG1', 'SUB1') THEN '1'
+	            WHEN SUBSTR(#{yeartermCd}, INSTR(#{yeartermCd}, '_') + 1) IN ('REG2', 'SUB2') THEN '2'
+	            ELSE '1'
+	        END AS TERM_CD
+	    FROM DUAL
+	</select>
+
+	<!-- 학년+학기별 최대 학점 조회 -->
+	<select id="selectMaxCreditByGrade" resultType="int">
+	    SELECT TO_NUMBER(CD_NAME)
+	    FROM COMMON_CODE
+	    WHERE COMMON_SORT_CD = 'CREDIT_LIMIT_CD'
+	    AND COMMON_CD = 'MAX_' || #{gradeCd} || '_' || #{termCd} || '_STD'
+	</select>
+</mapper>
