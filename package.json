@@ -1,5 +1,9 @@
+
+"homepage": "https://shinhyejin99.github.io/LMS/",
 {
   "devDependencies": {
-    "gh-pages": "^6.3.0"
+   "gh-pages": "^6.3.0"
+   "predeploy": "npm run build,
+   "deploy": "gh-pages -d build
   }
 }
